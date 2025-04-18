@@ -22,6 +22,10 @@ jobs:
         steps:
             -   name: Checkout
                 uses: actions/checkout@v4
+                with:
+                    # Disable shallow clone
+                    # https://stackoverflow.com/a/62500400/1399706
+                    fetch-depth: 0
 
             -   name: Setup PHP
                 uses: shivammathur/setup-php@2.28.0
@@ -65,14 +69,25 @@ jobs:
                 run: |
                     ./vendor-bin/phpunit/vendor/bin/phpunit --coverage-clover var/coverage/clover.xml
 
+            -   name: Upload coverage reports to Codecov
+                if: |
+                    matrix.php == '8.3' && matrix.symfony == '~7.2' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev')
+                uses: codecov/codecov-action@v5
+                env:
+                    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+                with:
+                    fail_ci_if_error: false
+                    verbose: true
+                    files: ./var/coverage/clover.xml
+
             -   name: Change paths in clover.xml
                 run: |
                     sed -i 's+/home/runner/work/component-array-writer/component-array-writer+/github/workspace+g' ./var/coverage/clover.xml
 
             -   name: Sonarcloud
                 if: |
-                    github.ref == 'refs/heads/dev' && matrix.php == '8.3' && matrix.symfony == '~7.2'
-                uses: sonarsource/sonarcloud-github-action@master
+                    matrix.php == '8.3' && matrix.symfony == '~7.2' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev')
+                uses: SonarSource/sonarqube-scan-action@v5.1.0
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
