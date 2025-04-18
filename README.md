@@ -13,15 +13,13 @@
 </p>
 <p>
     Supports:
-    <a title="Supports Symfony ^5.4" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev"><img title="Supports Symfony ^5.4" src="https://img.shields.io/badge/Symfony-%5E5.4-333?style=flat-square&logo=symfony" /></a>
-    <a title="Supports Symfony ^6.2" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev"><img title="Supports Symfony ^6.4" src="https://img.shields.io/badge/Symfony-%5E6.4-333?style=flat-square&logo=symfony" /></a>
-    <a title="Supports Symfony ^6.2" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev"><img title="Supports Symfony ^7.0" src="https://img.shields.io/badge/Symfony-%5E7.0-333?style=flat-square&logo=symfony" /></a>
+    <a title="Supports Symfony ^6.4" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster"><img title="Supports Symfony ^6.4" src="https://img.shields.io/badge/Symfony-%5E6.4-333?style=flat-square&logo=symfony" /></a>
+    <a title="Supports Symfony ^7.2" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster"><img title="Supports Symfony ^7.2" src="https://img.shields.io/badge/Symfony-%5E7.2-333?style=flat-square&logo=symfony" /></a>
 </p>
 <p>
     Tested with:
-    <a title="Tested with Symfony ^5.4" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev"><img title="Tested with Symfony ^5.4" src="https://img.shields.io/badge/Symfony-%5E5.4-333?style=flat-square&logo=symfony" /></a>
-    <a title="Tested with Symfony ^6.4" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev"><img title="Tested with Symfony ^6.4" src="https://img.shields.io/badge/Symfony-%5E6.4-333?style=flat-square&logo=symfony" /></a>
-    <a title="Tested with Symfony ^7.0" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev"><img title="Tested with Symfony ^7.0" src="https://img.shields.io/badge/Symfony-%5E7.0-333?style=flat-square&logo=symfony" /></a>
+    <a title="Tested with Symfony ^6.4" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster"><img title="Tested with Symfony ^6.4" src="https://img.shields.io/badge/Symfony-%5E6.4-333?style=flat-square&logo=symfony" /></a>
+    <a title="Tested with Symfony ^7.2" href="https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster"><img title="Tested with Symfony ^7.2" src="https://img.shields.io/badge/Symfony-%5E7.2-333?style=flat-square&logo=symfony" /></a>
 </p>
 
 ## Current Status
@@ -34,13 +32,19 @@
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=Aerendir_bin-github-actions-matrix&metric=sqale_index)](https://sonarcloud.io/dashboard?id=Aerendir_bin-github-actions-matrix)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=Aerendir_bin-github-actions-matrix&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=Aerendir_bin-github-actions-matrix)
 
-[![Phan](https://github.com/Aerendir/bin-github-actions-matrix/workflows/Phan/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev)
-[![PHPStan](https://github.com/Aerendir/bin-github-actions-matrix/workflows/PHPStan/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev)
-[![PSalm](https://github.com/Aerendir/bin-github-actions-matrix/workflows/PSalm/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev)
-[![PHPUnit](https://github.com/Aerendir/bin-github-actions-matrix/workflows/PHPunit/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev)
-[![Composer](https://github.com/Aerendir/bin-github-actions-matrix/workflows/Composer/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev)
-[![PHP CS Fixer](https://github.com/Aerendir/bin-github-actions-matrix/workflows/PHP%20CS%20Fixer/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev)
-[![Rector](https://github.com/Aerendir/bin-github-actions-matrix/workflows/Rector/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Adev)
+[![PHPStan](https://github.com/Aerendir/bin-github-actions-matrix/workflows/PHPStan/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster)
+[![PSalm](https://github.com/Aerendir/bin-github-actions-matrix/workflows/PSalm/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster)
+[![PHPUnit](https://github.com/Aerendir/bin-github-actions-matrix/workflows/PHPunit/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster)
+[![Composer](https://github.com/Aerendir/bin-github-actions-matrix/workflows/Composer/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster)
+[![PHP CS Fixer](https://github.com/Aerendir/bin-github-actions-matrix/workflows/PHP%20CS%20Fixer/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster)
+[![Rector](https://github.com/Aerendir/bin-github-actions-matrix/workflows/Rector/badge.svg)](https://github.com/Aerendir/bin-github-actions-matrix/actions?query=branch%3Amaster)
+
+[![codecov](https://codecov.io/gh/Aerendir/bin-github-actions-matrix/graph/badge.svg?token=iZiIGuk91g)](https://codecov.io/gh/Aerendir/bin-github-actions-matrix)
+
+
+[![CodeCov SunBurst](https://codecov.io/gh/Aerendir/bin-github-actions-matrix/branch/master/graphs/sunburst.svg?token=iZiIGuk91g)](https://codecov.io/gh/Aerendir/bin-github-actions-matrix)
+[![CodeCov Tree](https://codecov.io/gh/Aerendir/bin-github-actions-matrix/branch/master/graphs/tree.svg?token=iZiIGuk91g)](https://codecov.io/gh/Aerendir/bin-github-actions-matrix)
+[![CodeCov I Cicle](https://codecov.io/gh/Aerendir/bin-github-actions-matrix/branch/master/graphs/icicle.svg?token=iZiIGuk91g)](https://codecov.io/gh/Aerendir/bin-github-actions-matrix)
 
 <hr />
 <h3 align="center">
@@ -54,33 +58,7 @@
 </p>
 <hr />
 
-## Available methods
-
-- `getValue()`
-- `getValueAndForget()`
-- `getValueByPartialKey()`
-- `isNode()`
-- `isReadable()`
-- `isRoot()`
-- `isWritable()`
-- `keyExistsNested()`
-- `add()`
-- `cp()`
-- `cpSafe()`
-- `edit()`
-- `merge()`
-- `mv()`
-- `mvSafe()`
-- `mvUp()`
-- `rm()`
-- `wrap()`
-- `pathize()`
-- `unpathize()`
-- `forceArray()`
-
-For details about each method, please, read the comments in the code: they are really simple to be read, trust me!
-
-## Install Serendipity HQ Array Writer via Composer
+## Install Serendipity HQ Bin GitHub Actions Matrix
 
     $ composer require aerendir/bin-github-actions-matrix
 

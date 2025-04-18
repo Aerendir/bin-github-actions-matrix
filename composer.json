@@ -46,7 +46,7 @@
     "thecodingmachine/phpstan-safe-rule": "1.2.0"
   },
   "bin": [
-    "bin/github-actions-matrix"
+    "src/Composer/Bin/github-actions-matrix"
   ],
   "config": {
     "sort-packages": true,
@@ -86,6 +86,16 @@
     ],
     "val:psalm": [
       "vendor-bin/phpunit/vendor/bin/psalm"
+    ],
+    "test": [
+      "@php vendor-bin/phpunit/vendor/bin/phpunit"
+    ],
+    "test:coverage": [
+      "@putenv XDEBUG_MODE=coverage",
+      "@test --coverage-html var/coverage/coverage-html --coverage-clover var/coverage/clover.xml --coverage-xml var/coverage/coverage-xml --log-junit var/coverage/junit.xml"
+    ],
+    "test:coverage:filter": [
+      "@test:coverage --filter"
     ]
   },
   "extra": {

@@ -22,11 +22,23 @@ class Finder
 
     public function __construct()
     {
-        $finder = new SymfonyFinder();
-        $folder = __DIR__ . '/../../.github/workflows';
+        $finder          = new SymfonyFinder();
+        $possibleFolders = [
+            __DIR__ . '/../../.github/workflows',
+            __DIR__ . '/../../../../../../../.github/workflows',
+        ];
 
-        if (false === file_exists($folder)) {
-            throw new \RuntimeException('The folder ' . $folder . ' does not exist.');
+        $foundFolder = null;
+        foreach ($possibleFolders as $folder) {
+            if (file_exists($folder)) {
+                $foundFolder = $folder;
+
+                break;
+            }
+        }
+
+        if (null === $foundFolder) {
+            throw new \RuntimeException('Impossible to locate the GitHub workflows folder');
         }
 
         $this->finder = $finder->files()->name('*.yml')->in($folder);
