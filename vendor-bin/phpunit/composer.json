@@ -1,0 +1,12 @@
+{
+  "require-dev": {
+    "phpunit/phpunit": "12.1.2",
+    "vimeo/psalm": "6.10.0",
+    "psalm/plugin-phpunit": "0.19.5"
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/package-versions-deprecated": true
+    }
+  }
+}
