@@ -22,7 +22,7 @@ class Finder
 
     public function __construct()
     {
-        $finder = new SymfonyFinder();
+        $finder          = new SymfonyFinder();
         $possibleFolders = [
             __DIR__ . '/../../.github/workflows',
             __DIR__ . '/../../../../../../../.github/workflows',
@@ -30,9 +30,9 @@ class Finder
 
         $foundFolder = null;
         foreach ($possibleFolders as $folder) {
-            echo "Trying to load $folder\n";
             if (file_exists($folder)) {
                 $foundFolder = $folder;
+
                 break;
             }
         }
