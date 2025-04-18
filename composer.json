@@ -46,7 +46,7 @@
     "thecodingmachine/phpstan-safe-rule": "1.2.0"
   },
   "bin": [
-    "bin/github-actions-matrix"
+    "src/Composer/Bin/github-actions-matrix"
   ],
   "config": {
     "sort-packages": true,
