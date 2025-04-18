@@ -1,0 +1,56 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Config\\\\Config\\:\\:addExcludedCombination\\(\\) has parameter \\$excludedCombination with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Config/Config.php
+
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Config\\\\Config\\:\\:getExcludedCombinations\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Config/Config.php
+
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Config\\\\Config\\:\\:setExcludedCombination\\(\\) has parameter \\$excludedCombinations with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Config/Config.php
+
+		-
+			message: "#^Property Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Config\\\\Config\\:\\:\\$excludedCombinations type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Config/Config.php
+
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\AbstractCommand\\:\\:getRemoteJobsIds\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: "#^Property Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\AbstractCommand\\:\\:\\$combinationsToRemove type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: "#^Property Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\AbstractCommand\\:\\:\\$remoteJobsIds type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubTokenCommandOption\\:\\:askForValue\\(\\) should return string but returns mixed\\.$#"
+			count: 1
+			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
+
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubTokenCommandOption\\:\\:getValueOrNull\\(\\) should return string\\|null but returns mixed\\.$#"
+			count: 1
+			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
+
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubUsernameCommandOption\\:\\:askForValue\\(\\) should return string but returns mixed\\.$#"
+			count: 1
+			path: src/Console/Command/Params/Options/GitHubUsernameCommandOption.php
+
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubUsernameCommandOption\\:\\:getValueOrNull\\(\\) should return string\\|null but returns mixed\\.$#"
+			count: 1
+			path: src/Console/Command/Params/Options/GitHubUsernameCommandOption.php

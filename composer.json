@@ -1,0 +1,96 @@
+{
+  "name": "aerendir/bin-github-actions-matrix",
+  "description": "Updates the matrix of required status checks in branch protection rules of a repository hosted on GitHub.",
+  "type": "application",
+  "license": "MIT",
+  "keywords": [
+    "github",
+    "github actions",
+    "protection rules",
+    "branch protection",
+    "branch protection rules"
+  ],
+  "autoload": {
+    "psr-4": {
+      "Aerendir\\Bin\\GitHubActionsMatrix\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Aerendir\\Bin\\GitHubActionsMatrix\\Tests\\": "tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Aerendir",
+      "email": "hello@aerendir.me"
+    }
+  ],
+  "require": {
+    "php": "^8.3",
+    "knplabs/github-api": "^3.0",
+    "nyholm/psr7": "^1.8",
+    "symfony/console": "~6.4 || ~7.2",
+    "symfony/finder": "~6.4 || ~7.2",
+    "symfony/http-client": "~6.4 || ~7.2",
+    "symfony/yaml": "~6.4 || ~7.2",
+    "thecodingmachine/safe": "^2.0"
+  },
+  "require-dev": {
+    "bamarni/composer-bin-plugin": "^1.4",
+    "phpstan/phpstan": "1.10.47",
+    "phpstan/phpstan-phpunit": "1.3.15",
+    "rector/rector": "0.18.11",
+    "roave/security-advisories": "dev-master",
+    "serendipity_hq/rector-config": "^1.0",
+    "thecodingmachine/phpstan-safe-rule": "1.2.0"
+  },
+  "bin": [
+    "bin/github-actions-matrix"
+  ],
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "php-http/discovery": true,
+      "bamarni/composer-bin-plugin": true
+    }
+  },
+  "scripts": {
+    "bin": "echo 'bin not installed'",
+    "post-install-cmd": [
+      "@composer bin all install --ansi"
+    ],
+    "post-update-cmd": [
+      "@composer bin all update --ansi"
+    ],
+    "fix":[
+      "vendor/bin/rector process",
+      "vendor-bin/phpcs/vendor/bin/php-cs-fixer fix --allow-risky yes -v"
+    ],
+    "bl": [
+      "@bl:phpstan",
+      "@bl:psalm"
+    ],
+    "bl:phpstan": [
+      "vendor/bin/phpstan analyse --generate-baseline .baseline-phpstan.neon"
+    ],
+    "bl:psalm": [
+      "vendor-bin/phpunit/vendor/bin/psalm --set-baseline=.baseline-psalm.xml"
+    ],
+    "val": [
+      "@val:phpstan",
+      "@val:psalm"
+    ],
+    "val:phpstan": [
+      "vendor/bin/phpstan analyse"
+    ],
+    "val:psalm": [
+      "vendor-bin/phpunit/vendor/bin/psalm"
+    ]
+  },
+  "extra": {
+    "bamarni-bin": {
+      "bin-links": false
+    }
+  }
+}
