@@ -1,0 +1,10 @@
+{
+    "require": {
+        "aerendir/bin-github-actions-matrix": "^0.1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}
