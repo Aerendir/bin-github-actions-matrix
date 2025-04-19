@@ -13,37 +13,50 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options;
 
+use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 
+use function Safe\preg_match;
+
 class GitHubTokenCommandOption
 {
-    final public const string OPT_REPO_TOKEN          = 'token';
-    final public const string OPT_REPO_TOKEN_SHORTCUT = 't';
-    private const int MAX_ATTEMPTS                    = 2;
+    final public const string NAME     = 'token';
+    final public const string SHORTCUT = 't';
+    private const int MAX_ATTEMPTS     = 2;
 
     public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
-        $token = $this->getValueOrNull($input);
+        $validationCallback = $this->getValidationCallback();
+        $token              = $this->getValueOrNull($input);
 
         return null === $token
             ? $this->askForValue($input, $output, $questionHelper, $maxAttempts)
-            : $token;
+            : $validationCallback($token);
     }
 
     public function getValueOrNull(InputInterface $input): ?string
     {
-        return $input->getOption(self::OPT_REPO_TOKEN);
+        $validationCallback = $this->getValidationCallback();
+        $value              = $input->getOption(self::NAME);
+
+        if (null === $value) {
+            return null;
+        }
+
+        return $validationCallback($value);
     }
 
     private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
-        $question = new Question('Please, provide your GitHub token: ');
+        $validationCallback = $this->getValidationCallback();
+        $question           = new Question('Please, provide your GitHub token: ');
         $question->setHidden(false);
         $question->setMaxAttempts($maxAttempts ?? self::MAX_ATTEMPTS);
+        $question->setValidator($validationCallback);
 
         try {
             $token = $questionHelper->ask($input, $output, $question);
@@ -52,5 +65,16 @@ class GitHubTokenCommandOption
         }
 
         return $token;
+    }
+
+    private function getValidationCallback(): callable
+    {
+        return static function (mixed $gitHubToken): string {
+            if ( ! preg_match('/^ghp_[A-Za-z0-9]{36}$/', $gitHubToken)) {
+                throw new InvalidOptionException('The GitHub Token format is invalid.');
+            }
+
+            return $gitHubToken;
+        };
     }
 }
