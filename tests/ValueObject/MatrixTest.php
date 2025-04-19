@@ -19,12 +19,47 @@ use PHPUnit\Framework\TestCase;
 
 class MatrixTest extends TestCase
 {
+    public function testConstructWithValidCombinations(): void
+    {
+        $combinations = [
+            'phpcs (8.3)' => new Combination(['php' => '8.3'], 'phpcs.yml', 'Test PHP CS Fixer Workflow', 'phpcs'),
+            'rector (~7)' => new Combination(['symfony' => '~7'], 'rector.yml', 'Test Rector Workflow', 'rector'),
+        ];
+
+        $matrix = new Matrix($combinations);
+
+        $this->assertInstanceOf(Matrix::class, $matrix);
+        $this->assertSame($combinations, $matrix->getCombinations());
+    }
+
+    public function testConstructWithNonStringKeyThrowsException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $combinations = [
+            0 => new Combination(['php' => '8.3'], 'rector.yml', 'Test Rector Workflow', 'rector'),
+        ];
+
+        new Matrix($combinations);
+    }
+
+    public function testConstructWithNonCombinationValueThrowsException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $combinations = [
+            'combination1' => 'not-a-combination',
+        ];
+
+        new Matrix($combinations);
+    }
+
     public function testCreateFromArrayWithEmptyMatrixCreatesAtLeastOneEmptyCombination(): void
     {
-        $expectedCombinationKey = 'tests ()';
-        $expectedCombination    = new Combination([], 'workflow.yml', 'Test Workflow', 'tests');
+        $expectedCombinationKey = 'rector ()';
+        $expectedCombination    = new Combination([], 'rector.yml', 'Test Rector Workflow', 'rector');
 
-        $matrix = Matrix::createFromArray([], 'workflow.yml', 'Test Workflow', 'tests');
+        $matrix = Matrix::createFromArray([], 'rector.yml', 'Test Rector Workflow', 'rector');
 
         $this->assertInstanceOf(Matrix::class, $matrix);
 
@@ -44,24 +79,24 @@ class MatrixTest extends TestCase
             ],
         ];
 
-        $matrix = Matrix::createFromArray($matrixInput, 'workflow.yml', 'Test Workflow', 'tests');
+        $matrix = Matrix::createFromArray($matrixInput, 'rector.yml', 'Test Rector Workflow', 'rector');
 
         $this->assertInstanceOf(Matrix::class, $matrix);
 
         $combinations = $matrix->getCombinations();
         $this->assertCount(2, $combinations);
 
-        $this->assertArrayHasKey('tests (8.3)', $combinations);
-        $this->assertArrayHasKey('tests (8.4)', $combinations);
+        $this->assertArrayHasKey('rector (8.3)', $combinations);
+        $this->assertArrayHasKey('rector (8.4)', $combinations);
 
         $this->assertEquals(
-            new Combination(['php' => '8.3'], 'workflow.yml', 'Test Workflow', 'tests'),
-            $combinations['tests (8.3)']
+            new Combination(['php' => '8.3'], 'rector.yml', 'Test Rector Workflow', 'rector'),
+            $combinations['rector (8.3)']
         );
 
         $this->assertEquals(
-            new Combination(['php' => '8.4'], 'workflow.yml', 'Test Workflow', 'tests'),
-            $combinations['tests (8.4)']
+            new Combination(['php' => '8.4'], 'rector.yml', 'Test Rector Workflow', 'rector'),
+            $combinations['rector (8.4)']
         );
     }
 
@@ -78,36 +113,36 @@ class MatrixTest extends TestCase
             ],
         ];
 
-        $matrix = Matrix::createFromArray($matrixInput, 'workflow.yml', 'Test Workflow', 'tests');
+        $matrix = Matrix::createFromArray($matrixInput, 'rector.yml', 'Test Rector Workflow', 'rector');
 
         $this->assertInstanceOf(Matrix::class, $matrix);
 
         $combinations = $matrix->getCombinations();
         $this->assertCount(4, $combinations);
 
-        $this->assertArrayHasKey('tests (8.0, 16)', $combinations);
-        $this->assertArrayHasKey('tests (8.0, 18)', $combinations);
-        $this->assertArrayHasKey('tests (8.1, 16)', $combinations);
-        $this->assertArrayHasKey('tests (8.1, 18)', $combinations);
+        $this->assertArrayHasKey('rector (8.0, 16)', $combinations);
+        $this->assertArrayHasKey('rector (8.0, 18)', $combinations);
+        $this->assertArrayHasKey('rector (8.1, 16)', $combinations);
+        $this->assertArrayHasKey('rector (8.1, 18)', $combinations);
 
         $this->assertEquals(
-            new Combination(['php' => '8.0', 'node' => '16'], 'workflow.yml', 'Test Workflow', 'tests'),
-            $combinations['tests (8.0, 16)']
+            new Combination(['php' => '8.0', 'node' => '16'], 'rector.yml', 'Test Rector Workflow', 'rector'),
+            $combinations['rector (8.0, 16)']
         );
 
         $this->assertEquals(
-            new Combination(['php' => '8.0', 'node' => '18'], 'workflow.yml', 'Test Workflow', 'tests'),
-            $combinations['tests (8.0, 18)']
+            new Combination(['php' => '8.0', 'node' => '18'], 'rector.yml', 'Test Rector Workflow', 'rector'),
+            $combinations['rector (8.0, 18)']
         );
 
         $this->assertEquals(
-            new Combination(['php' => '8.1', 'node' => '16'], 'workflow.yml', 'Test Workflow', 'tests'),
-            $combinations['tests (8.1, 16)']
+            new Combination(['php' => '8.1', 'node' => '16'], 'rector.yml', 'Test Rector Workflow', 'rector'),
+            $combinations['rector (8.1, 16)']
         );
 
         $this->assertEquals(
-            new Combination(['php' => '8.1', 'node' => '18'], 'workflow.yml', 'Test Workflow', 'tests'),
-            $combinations['tests (8.1, 18)']
+            new Combination(['php' => '8.1', 'node' => '18'], 'rector.yml', 'Test Rector Workflow', 'rector'),
+            $combinations['rector (8.1, 18)']
         );
     }
 
@@ -119,16 +154,16 @@ class MatrixTest extends TestCase
             'php' => 'not-an-array', // Invalid type.
         ];
 
-        Matrix::createFromArray($invalidMatrixInput, 'workflow.yml', 'Test Workflow', 'tests');
+        Matrix::createFromArray($invalidMatrixInput, 'rector.yml', 'Test Rector Workflow', 'rector');
     }
 
     public function testMergeWithNonOverlappingCombinations(): void
     {
         $matrix1Combinations = [
-            new Combination(['key1' => 'value1'], 'workflow.yml', 'Test Workflow', 'tests'),
+            'phpcs (8.3)' => new Combination(['php' => '8.3'], 'phpcs.yml', 'Test PHP CS Fixer Workflow', 'phpcs'),
         ];
         $matrix2Combinations = [
-            new Combination(['key2' => 'value2'], 'file2', 'workflow2', 'job2'),
+            'rector (~7)' => new Combination(['symfony' => '~7'], 'workflow2.yml', 'Test Workflow 2', 'rector'),
         ];
 
         $matrix1 = new Matrix($matrix1Combinations);
@@ -137,14 +172,14 @@ class MatrixTest extends TestCase
         $matrix1->merge($matrix2);
 
         $this->assertCount(2, $matrix1->getCombinations());
-        $this->assertSame($matrix1Combinations[0], $matrix1->getCombinations()[0]);
-        $this->assertSame($matrix2Combinations[0], $matrix1->getCombinations()[1]);
+        $this->assertSame($matrix1Combinations['phpcs (8.3)'], $matrix1->getCombinations()['phpcs (8.3)']);
+        $this->assertSame($matrix2Combinations['rector (~7)'], $matrix1->getCombinations()['rector (~7)']);
     }
 
     public function testMergeWithEmptySecondMatrix(): void
     {
         $matrix1Combinations = [
-            new Combination(['key1' => 'value1'], 'workflow.yml', 'Test Workflow', 'tests'),
+            'phpcs (8.3)' => new Combination(['php' => '8.3'], 'phpcs.yml', 'Test PHP CS Fixer Workflow', 'phpcs'),
         ];
 
         $matrix1 = new Matrix($matrix1Combinations);
@@ -153,13 +188,13 @@ class MatrixTest extends TestCase
         $matrix1->merge($matrix2);
 
         $this->assertCount(1, $matrix1->getCombinations());
-        $this->assertSame($matrix1Combinations[0], $matrix1->getCombinations()[0]);
+        $this->assertSame($matrix1Combinations['phpcs (8.3)'], $matrix1->getCombinations()['phpcs (8.3)']);
     }
 
     public function testMergeWithEmptyFirstMatrix(): void
     {
         $matrix2Combinations = [
-            new Combination(['key2' => 'value2'], 'file2', 'workflow2', 'job2'),
+            'rector (~7)' => new Combination(['symfony' => '~7'], 'workflow2.yml', 'Test Workflow 2', 'rector'),
         ];
 
         $matrix1 = new Matrix([]);
@@ -168,7 +203,7 @@ class MatrixTest extends TestCase
         $matrix1->merge($matrix2);
 
         $this->assertCount(1, $matrix1->getCombinations());
-        $this->assertSame($matrix2Combinations[0], $matrix1->getCombinations()[0]);
+        $this->assertSame($matrix2Combinations['rector (~7)'], $matrix1->getCombinations()['rector (~7)']);
     }
 
     public function testMergeWithBothMatricesEmpty(): void

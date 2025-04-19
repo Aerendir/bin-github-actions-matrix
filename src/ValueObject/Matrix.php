@@ -20,6 +20,15 @@ final class Matrix
      */
     public function __construct(private array $combinations)
     {
+        foreach ($this->combinations as $combinationAsString => $combination) {
+            if (false === is_string($combinationAsString)) {
+                throw new \InvalidArgumentException('The combination key must be a string.');
+            }
+
+            if (false === $combination instanceof Combination) {
+                throw new \InvalidArgumentException('The combinations must be instances of Combination.');
+            }
+        }
     }
 
     /**
