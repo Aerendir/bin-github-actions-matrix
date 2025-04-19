@@ -59,15 +59,19 @@ final class Matrix
             return [(string) $combination => $combination];
         }
 
-        $combinations    = [];
-        $remainingArrays = $matrix;
-        $currentArrayKey = key($matrix);
-        $currentArray    = array_shift($remainingArrays);
+        $combinations          = [];
+        $remainingMatrixValues = $matrix;
+        $matrixKey             = key($matrix);
+        $matrixValues          = array_shift($remainingMatrixValues);
 
-        foreach ($currentArray as $element) {
-            $newCombination                   = $currentCombination;
-            $newCombination[$currentArrayKey] = $element;
-            $combinations                     = [...$combinations, ...self::generateCombinations($remainingArrays, $workflowFilename, $workflowName, $job, $newCombination)];
+        if (false === is_array($matrixValues)) {
+            throw new \InvalidArgumentException('The matrix must be an array of arrays.');
+        }
+
+        foreach ($matrixValues as $matrixValue) {
+            $newCombination             = $currentCombination;
+            $newCombination[$matrixKey] = $matrixValue;
+            $combinations               = [...$combinations, ...self::generateCombinations($remainingMatrixValues, $workflowFilename, $workflowName, $job, $newCombination)];
         }
 
         return $combinations;
