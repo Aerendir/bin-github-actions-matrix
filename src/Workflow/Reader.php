@@ -22,11 +22,8 @@ use function Safe\file_get_contents;
 
 class Reader
 {
-    private readonly Finder $finder;
-
-    public function __construct(Finder $finder = null)
+    public function __construct(private readonly Finder $finder = new Finder())
     {
-        $this->finder = $finder ?? new Finder();
     }
 
     public function read(): JobsCollection

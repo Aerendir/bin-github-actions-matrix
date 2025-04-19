@@ -25,7 +25,7 @@ class GitHubUsernameCommandOption
     final public const string OPT_REPO_USERNAME_SHORTCUT = 'u';
     private const int MAX_ATTEMPTS                       = 2;
 
-    public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, int $maxAttempts = null): string
+    public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
         $username = $this->getValueOrNull($input);
 
@@ -39,7 +39,7 @@ class GitHubUsernameCommandOption
         return $input->getOption(self::OPT_REPO_USERNAME);
     }
 
-    private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, int $maxAttempts = null): string
+    private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
         $question = new Question('Please, provide your GitHub username: ');
         $question->setHidden(false);
