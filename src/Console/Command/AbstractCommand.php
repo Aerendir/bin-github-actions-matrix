@@ -51,6 +51,7 @@ abstract class AbstractCommand extends Command
         ?RepoReader $repoReader = null,
         ?WorkflowsReader $workflowsReader = null,
         ?Comparator $comparator = null,
+        ?Client $githubClient = null,
     ) {
         parent::__construct();
         $this->gitHubUsernameCommandOption = $gitHubUsernameCommandOption ??new GitHubUsernameCommandOption();
@@ -58,7 +59,7 @@ abstract class AbstractCommand extends Command
         $this->repoReader                  = $repoReader                  ?? new RepoReader();
         $this->workflowsReader             = $workflowsReader             ?? new WorkflowsReader();
         $this->comparator                  = $comparator                  ?? new Comparator();
-        $this->githubClient                = Client::createWithHttpClient(new HttplugClient());
+        $this->githubClient                = $githubClient                ?? Client::createWithHttpClient(new HttplugClient());
     }
 
     #[\Override]
