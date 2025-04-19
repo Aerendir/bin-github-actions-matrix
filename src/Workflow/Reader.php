@@ -39,7 +39,7 @@ class Reader
 
     public function createFromYaml(SplFileInfo $fileInfo): JobsCollection
     {
-        $parsed       = Yaml::parse(file_get_contents($fileInfo->getPathname()));
+        $parsed = Yaml::parse(file_get_contents($fileInfo->getPathname()));
 
         if (false === is_array($parsed)) {
             throw new \RuntimeException('The parsed YAML file is not an array.');
