@@ -25,7 +25,7 @@ class GitHubTokenCommandOption
     final public const string OPT_REPO_TOKEN_SHORTCUT = 't';
     private const int MAX_ATTEMPTS                    = 2;
 
-    public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, int $maxAttempts = null): string
+    public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
         $token = $this->getValueOrNull($input);
 
@@ -39,7 +39,7 @@ class GitHubTokenCommandOption
         return $input->getOption(self::OPT_REPO_TOKEN);
     }
 
-    private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, int $maxAttempts = null): string
+    private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
         $question = new Question('Please, provide your GitHub token: ');
         $question->setHidden(false);

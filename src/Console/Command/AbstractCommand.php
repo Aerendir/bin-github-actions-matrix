@@ -46,11 +46,11 @@ abstract class AbstractCommand extends Command
     private array $combinationsToRemove;
 
     public function __construct(
-        GitHubUsernameCommandOption $gitHubUsernameCommandOption = null,
-        GitHubTokenCommandOption $gitHubTokenCommandOption = null,
-        RepoReader $repoReader = null,
-        WorkflowsReader $workflowsReader = null,
-        Comparator $comparator = null
+        ?GitHubUsernameCommandOption $gitHubUsernameCommandOption = null,
+        ?GitHubTokenCommandOption $gitHubTokenCommandOption = null,
+        ?RepoReader $repoReader = null,
+        ?WorkflowsReader $workflowsReader = null,
+        ?Comparator $comparator = null,
     ) {
         parent::__construct();
         $this->gitHubUsernameCommandOption = $gitHubUsernameCommandOption ??new GitHubUsernameCommandOption();
@@ -97,7 +97,7 @@ abstract class AbstractCommand extends Command
         $this->combinationsToRemove = $this->comparator->compare($this->localJobs, $this->remoteJobsIds);
     }
 
-    protected function getRepoUsername(InputInterface $input = null, OutputInterface $output = null, QuestionHelper $questionHelper = null): string
+    protected function getRepoUsername(?InputInterface $input = null, ?OutputInterface $output = null, ?QuestionHelper $questionHelper = null): string
     {
         if (isset($this->repoUsername)) {
             return $this->repoUsername;
