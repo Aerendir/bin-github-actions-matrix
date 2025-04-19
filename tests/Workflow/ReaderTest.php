@@ -13,12 +13,10 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Workflow;
 
+use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Reader;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Finder\SplFileInfo;
 
-use function Safe\file_put_contents;
 use function Safe\unlink;
 
 class ReaderTest extends TestCase
@@ -155,14 +153,5 @@ class ReaderTest extends TestCase
 
         unlink($phpCsFileInfo->getPathname());
         unlink($rectorFileInfo->getPathname());
-    }
-
-    private function createTempFile(string $content, string $fileName = 'workflow'): SplFileInfo
-    {
-        $filePathname = sys_get_temp_dir() . sprintf('/%s.yaml', $fileName);
-
-        file_put_contents($filePathname, $content);
-
-        return new SplFileInfo($filePathname, dirname($filePathname), basename($filePathname));
     }
 }
