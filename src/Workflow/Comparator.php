@@ -24,8 +24,7 @@ class Comparator
      */
     public function compare(JobsCollection $localJobs, array $remoteJobsIds): array
     {
-        $localJobsIds = $localJobs->getJobsIds();
-        $toSync       = $this->getToSync($localJobsIds, $remoteJobsIds);
+        $toSync = $this->getToSync($localJobs, $remoteJobsIds);
 
         foreach ($localJobs->getJobs() as $localJob) {
             foreach ($localJob->getMatrix()->getCombinations() as $combination) {
@@ -39,32 +38,26 @@ class Comparator
     }
 
     /**
-     * @param array<string>|JobsCollection $localJobs
-     * @param array<string>                $remoteJobs
+     * @param array<string> $remoteJobsIds
      *
      * @return array<string>
      */
-    private function getToSync(array|JobsCollection $localJobs, array $remoteJobs): array
+    private function getToSync(JobsCollection $localJobs, array $remoteJobsIds): array
     {
-        if ($localJobs instanceof JobsCollection) {
-            $localJobs = $localJobs->getJobsIds();
-        }
+        $localJobsIds = $localJobs->getJobsIds();
 
-        return array_diff($localJobs, $remoteJobs);
+        return array_diff($localJobsIds, $remoteJobsIds);
     }
 
     /**
-     * @param array<string>|JobsCollection $localJobs
-     * @param array<string>                $remoteJobsIds
+     * @param array<string> $remoteJobsIds
      *
      * @return array<string>
      */
-    private function getToRemove(array|JobsCollection $localJobs, array $remoteJobsIds): array
+    private function getToRemove(JobsCollection $localJobs, array $remoteJobsIds): array
     {
-        if ($localJobs instanceof JobsCollection) {
-            $localJobs = $localJobs->getJobsIds();
-        }
+        $localJobsIds = $localJobs->getJobsIds();
 
-        return array_values(array_diff($remoteJobsIds, $localJobs));
+        return array_values(array_diff($remoteJobsIds, $localJobsIds));
     }
 }

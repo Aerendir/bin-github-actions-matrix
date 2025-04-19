@@ -13,17 +13,21 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Repo;
 
+use Aerendir\Bin\GitHubActionsMatrix\Utils\Shell;
 use Safe\Exceptions\ExecException;
 
 use function Safe\preg_match;
-use function Safe\shell_exec;
 
-class Reader
+readonly class Reader
 {
+    public function __construct(private Shell $shell = new Shell())
+    {
+    }
+
     public function getUsername(): ?string
     {
         try {
-            $result = shell_exec('git config user.name');
+            $result = $this->shell->exec('git config user.name');
         } catch (ExecException) {
             return null;
         }
@@ -33,16 +37,16 @@ class Reader
 
     public function getRepoName(): string
     {
-        $repoUrl  = trim(shell_exec('git remote get-url origin'));
-        $repoName = '';
-        if (0 !== preg_match('/\/([^\/]+)\.git$/', $repoUrl, $matches)) {
-            if (null === $matches) {
-                throw new \RuntimeException('Cannot find the name of the repo.');
-            }
-
-            // Get the URL of the repo from its URL
-            $repoName = $matches[1];
+        $repoUrl  = trim($this->shell->exec('git remote get-url origin'));
+        if (
+            0       === preg_match('/\/([^\/]+)\.git$/', $repoUrl, $matches)
+            || null === $matches
+        ) {
+            throw new \RuntimeException('Cannot find the name of the repo.');
         }
+
+        // Get the URL of the repo from its URL
+        $repoName = $matches[1];
 
         if (null === $repoName) {
             throw new \RuntimeException('Cannot find the name of the repo.');
