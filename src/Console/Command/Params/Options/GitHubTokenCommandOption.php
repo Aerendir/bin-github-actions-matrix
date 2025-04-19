@@ -70,7 +70,7 @@ class GitHubTokenCommandOption
     private function getValidationCallback(): callable
     {
         return static function (mixed $gitHubToken): string {
-            if ( ! preg_match('/^ghp_[A-Za-z0-9]{36}$/', $gitHubToken)) {
+            if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $gitHubToken)) {
                 throw new InvalidOptionException('The GitHub Token format is invalid.');
             }
 

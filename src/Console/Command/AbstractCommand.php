@@ -64,7 +64,7 @@ abstract class AbstractCommand extends Command
     #[\Override]
     protected function configure(): void
     {
-        $this->addOption(GitHubUsernameCommandOption::OPT_REPO_USERNAME, GitHubUsernameCommandOption::OPT_REPO_USERNAME_SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub username.');
+        $this->addOption(GitHubUsernameCommandOption::NAME, GitHubUsernameCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub username.');
         $this->addOption(GitHubTokenCommandOption::NAME, GitHubTokenCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub access token.');
     }
 
