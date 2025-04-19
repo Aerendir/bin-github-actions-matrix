@@ -13,13 +13,15 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Console\Command;
 
-use Aerendir\Bin\GitHubActionsMatrix\Console\Command\CompareCommand;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
+use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
+use Github\Client;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
-class CompareCommandTest extends CommandTestCase
+class SyncCommandTest extends CommandTestCase
 {
     public function testExecute(): void
     {
@@ -30,8 +32,9 @@ class CompareCommandTest extends CommandTestCase
         $mockRepoReader      = $this->createMockReader($testRepo);
         $mockWorkflowsReader = $this->createMockWorkflowsReader();
         $mockGitHubClient    = $this->createMockGitHubClient();
+        $this->updateMockGitHubClient($mockGitHubClient, $testUsername, $testRepo);
 
-        $command = new CompareCommand(repoReader: $mockRepoReader, workflowsReader: $mockWorkflowsReader, githubClient: $mockGitHubClient);
+        $command = new SyncCommand(repoReader: $mockRepoReader, workflowsReader: $mockWorkflowsReader, githubClient: $mockGitHubClient);
 
         $application = new Application();
         $application->add($command);
@@ -44,35 +47,41 @@ class CompareCommandTest extends CommandTestCase
         ]);
 
         $expectedOutput = <<<'OUTPUT'
-            Protection rules comparison matrix
-            ==================================
+            Protection rules sync
+            =====================
 
-            +- phpcs.yaml > PHP CS > phpcs --+
-            | Status Check | Action    | php |
-            +--------------+-----------+-----+
-            | phpcs (8.3)  | ✔ Nothing | 8.3 |
-            | phpcs (8.4)  | ⇄ Sync    | 8.4 |
-            +--------------+-----------+-----+
+            Removing the following combinations from the protection rules:
+             - phpcs (8.2)
+             - rector (8.2)
+            Adding the following combinations to the protection rules:
+             - phpcs (8.4)
+             - rector (8.4)
 
-            +- rector.yaml > Rector > re... -+
-            | Status Check | Action    | php |
-            +--------------+-----------+-----+
-            | rector (8.3) | ✔ Nothing | 8.3 |
-            | rector (8.4) | ⇄ Sync    | 8.4 |
-            +--------------+-----------+-----+
-
-            +- Required Checks on ... -+
-            | Status check | Action    |
-            +--------------+-----------+
-            | phpcs (8.2)  | ✖ Remove  |
-            | phpcs (8.3)  | ✔ Nothing |
-            | rector (8.2) | ✖ Remove  |
-            | rector (8.3) | ✔ Nothing |
-            +--------------+-----------+
+             [OK] Sync completed
             OUTPUT;
 
         $output = $commandTester->getDisplay();
 
         $this->assertEquals($expectedOutput, trim($output));
+    }
+
+    private function updateMockGitHubClient(Client&MockObject $client, string $repoUsername, string $repoName): void
+    {
+        $mockGitHubClient = parent::createMockGitHubClient();
+        $mockProtection   = $mockGitHubClient->api('repo')->protection();
+
+        $mockProtection->method('removeStatusChecksContexts')->with($repoUsername, $repoName, 'dev', [
+            'contexts' => [
+                'phpcs (8.3)',
+                'phpcs (8.4)',
+                'rector (8.3)',
+                'rector (8.4)',
+            ],
+        ]);
+
+        $mockProtection->method('addStatusChecksContexts')->with($repoUsername, $repoName, 'dev', [
+            'phpcs (8.4)',
+            'rector (8.4)',
+        ]);
     }
 }
