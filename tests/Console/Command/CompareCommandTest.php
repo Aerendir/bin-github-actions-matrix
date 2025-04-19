@@ -17,17 +17,14 @@ use Aerendir\Bin\GitHubActionsMatrix\Console\Command\CompareCommand;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
+use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Reader as WorkflowsReader;
 use Github\Api\Repo;
 use Github\Api\Repository\Protection;
 use Github\Client;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Finder\SplFileInfo;
-
-use function Safe\file_put_contents;
 
 class CompareCommandTest extends TestCase
 {
@@ -155,14 +152,5 @@ class CompareCommandTest extends TestCase
         $mockClient->method('api')->with('repo')->willReturn($mockRepo);
 
         return $mockClient;
-    }
-
-    private function createTempFile(string $content, string $fileName = 'workflow'): SplFileInfo
-    {
-        $filePathname = sys_get_temp_dir() . sprintf('/%s.yaml', $fileName);
-
-        file_put_contents($filePathname, $content);
-
-        return new SplFileInfo($filePathname, dirname($filePathname), basename($filePathname));
     }
 }
