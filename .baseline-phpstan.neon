@@ -36,12 +36,17 @@ parameters:
 			path: src/Console/Command/AbstractCommand.php
 
 		-
+			message: "#^Anonymous function should return string but returns mixed\\.$#"
+			count: 1
+			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
+
+		-
 			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubTokenCommandOption\\:\\:askForValue\\(\\) should return string but returns mixed\\.$#"
 			count: 1
 			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
 
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubTokenCommandOption\\:\\:getValueOrNull\\(\\) should return string\\|null but returns mixed\\.$#"
+			message: "#^Parameter \\#2 \\$subject of function Safe\\\\preg_match expects string, mixed given\\.$#"
 			count: 1
 			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
 
@@ -54,3 +59,68 @@ parameters:
 			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubUsernameCommandOption\\:\\:getValueOrNull\\(\\) should return string\\|null but returns mixed\\.$#"
 			count: 1
 			path: src/Console/Command/Params/Options/GitHubUsernameCommandOption.php
+
+		-
+			message: "#^Attribute class PHPUnit\\\\Framework\\\\Attributes\\\\CodeCoverageIgnore does not exist\\.$#"
+			count: 1
+			path: src/Utils/Shell.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between false and true will always evaluate to false\\.$#"
+			count: 3
+			path: src/ValueObject/Job.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between false and true will always evaluate to false\\.$#"
+			count: 3
+			path: src/ValueObject/Matrix.php
+
+		-
+			message: "#^Call to an undefined method Github\\\\Api\\\\AbstractApi\\:\\:protection\\(\\)\\.$#"
+			count: 1
+			path: tests/Console/Command/SyncCommandTest.php
+
+		-
+			message: "#^Call to method method\\(\\) on an unknown class PHPUnit\\\\Framework\\\\MockObject\\\\Builder\\\\InvocationMocker\\.$#"
+			count: 1
+			path: tests/Repo/ReaderTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{strategy\\: 'not\\-an\\-array'\\} given\\.$#"
+			count: 1
+			path: tests/ValueObject/JobTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{strategy\\: array\\{matrix\\: 'not\\-an\\-array'\\}\\} given\\.$#"
+			count: 1
+			path: tests/ValueObject/JobTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{strategy\\: array\\{matrix\\: array\\{php\\: array\\{'8\\.0', '8\\.1'\\}\\}\\}\\} given\\.$#"
+			count: 1
+			path: tests/ValueObject/JobTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{strategy\\: array\\{\\}\\} given\\.$#"
+			count: 1
+			path: tests/ValueObject/JobTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{\\} given\\.$#"
+			count: 1
+			path: tests/ValueObject/JobTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$combinations of class Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Matrix constructor expects array\\<string, Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Combination\\>, array\\<int, Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Combination\\> given\\.$#"
+			count: 1
+			path: tests/ValueObject/MatrixTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$combinations of class Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Matrix constructor expects array\\<string, Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Combination\\>, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: tests/ValueObject/MatrixTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$matrix of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Matrix\\:\\:createFromArray\\(\\) expects array\\<string, array\\<string\\>\\>, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: tests/ValueObject/MatrixTest.php

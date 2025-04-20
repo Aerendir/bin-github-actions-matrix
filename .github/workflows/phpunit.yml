@@ -67,11 +67,18 @@ jobs:
 
             -   name: Run PHPUnit
                 run: |
-                    ./vendor-bin/phpunit/vendor/bin/phpunit --coverage-clover var/coverage/clover.xml
+                    ./vendor-bin/phpunit/vendor/bin/phpunit --coverage-clover var/coverage/clover.xml --log-junit junit.xml
+
+            - name: Upload test results to Codecov
+              if: ${{ !cancelled() }}
+              uses: codecov/test-results-action@v1
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  flags: ${{matrix.symfony}},${{matrix.php}}
 
             -   name: Upload coverage reports to Codecov
                 if: |
-                    matrix.php == '8.3' && matrix.symfony == '~7.2' && github.ref == 'refs/heads/dev'
+                    matrix.php == '8.3' && matrix.symfony == '~7.2' && contains(github.ref, 'dependabot') == false
                 uses: codecov/codecov-action@v5
                 env:
                     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
