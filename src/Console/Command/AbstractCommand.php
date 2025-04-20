@@ -51,6 +51,7 @@ abstract class AbstractCommand extends Command
         ?RepoReader $repoReader = null,
         ?WorkflowsReader $workflowsReader = null,
         ?Comparator $comparator = null,
+        ?Client $githubClient = null,
     ) {
         parent::__construct();
         $this->gitHubUsernameCommandOption = $gitHubUsernameCommandOption ??new GitHubUsernameCommandOption();
@@ -58,14 +59,14 @@ abstract class AbstractCommand extends Command
         $this->repoReader                  = $repoReader                  ?? new RepoReader();
         $this->workflowsReader             = $workflowsReader             ?? new WorkflowsReader();
         $this->comparator                  = $comparator                  ?? new Comparator();
-        $this->githubClient                = Client::createWithHttpClient(new HttplugClient());
+        $this->githubClient                = $githubClient                ?? Client::createWithHttpClient(new HttplugClient());
     }
 
     #[\Override]
     protected function configure(): void
     {
-        $this->addOption(GitHubUsernameCommandOption::OPT_REPO_USERNAME, GitHubUsernameCommandOption::OPT_REPO_USERNAME_SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub username.');
-        $this->addOption(GitHubTokenCommandOption::OPT_REPO_TOKEN, GitHubTokenCommandOption::OPT_REPO_TOKEN_SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub access token.');
+        $this->addOption(GitHubUsernameCommandOption::NAME, GitHubUsernameCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub username.');
+        $this->addOption(GitHubTokenCommandOption::NAME, GitHubTokenCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub access token.');
     }
 
     protected function init(InputInterface $input, OutputInterface $output): void
