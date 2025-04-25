@@ -1,11 +1,13 @@
 services:
-    php:
-        container_name: bin-github-actions-matrix
-        build:
-            context: .
-            target: bin-github-actions-matrix
-        volumes:
-            - .:/project
-        command: [ "tail", "-f", "/dev/null" ]
-        stdin_open: true   # per tenere aperto lo stdin
-        tty: true          # per abilitare il TTY
+  php:
+    container_name: ${PROJECT_NAME}-${PHP_V}
+    build:
+      context: .
+      # This has to be the same name as set in Dockerfiles `as container-name-xx´
+      target: ${PROJECT_NAME}-${PHP_V_ID}
+      dockerfile: .docker/php/${PHP_V}/Dockerfile
+    volumes:
+      - .:/project
+    command: [ "tail", "-f", "/dev/null" ]
+    stdin_open: true
+    tty: true
