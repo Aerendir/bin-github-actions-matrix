@@ -32,6 +32,22 @@ final class Job
      */
     public static function createFromArray(string $name, array $content, string $workflowFilename, string $workflowName, string $job): self
     {
+        if (false === array_key_exists('strategy', $content)) {
+            throw new \InvalidArgumentException('The "strategy" key is missing in the provided content.');
+        }
+
+        if (false === is_array($content['strategy'])) {
+            throw new \InvalidArgumentException('The "strategy" key must be an array.');
+        }
+
+        if (false === array_key_exists('matrix', $content['strategy'])) {
+            throw new \InvalidArgumentException('The "matrix" key is missing in the provided content.');
+        }
+
+        if (false === is_array($content['strategy']['matrix'])) {
+            throw new \InvalidArgumentException('The "matrix" key must be an array.');
+        }
+
         $matrix = Matrix::createFromArray($content['strategy']['matrix'], $workflowFilename, $workflowName, $job);
 
         return new Job($name, $matrix);

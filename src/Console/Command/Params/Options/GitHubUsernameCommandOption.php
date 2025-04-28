@@ -21,11 +21,11 @@ use Symfony\Component\Console\Question\Question;
 
 class GitHubUsernameCommandOption
 {
-    final public const string OPT_REPO_USERNAME          = 'username';
-    final public const string OPT_REPO_USERNAME_SHORTCUT = 'u';
-    private const int MAX_ATTEMPTS                       = 2;
+    final public const string NAME     = 'username';
+    final public const string SHORTCUT = 'u';
+    private const int MAX_ATTEMPTS     = 2;
 
-    public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, int $maxAttempts = null): string
+    public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
         $username = $this->getValueOrNull($input);
 
@@ -36,10 +36,10 @@ class GitHubUsernameCommandOption
 
     public function getValueOrNull(InputInterface $input): ?string
     {
-        return $input->getOption(self::OPT_REPO_USERNAME);
+        return $input->getOption(self::NAME);
     }
 
-    private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, int $maxAttempts = null): string
+    private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
         $question = new Question('Please, provide your GitHub username: ');
         $question->setHidden(false);

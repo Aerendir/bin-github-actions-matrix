@@ -20,7 +20,7 @@ use Symfony\Component\Console\Application as BaseApplication;
 final class Application extends BaseApplication
 {
     public const string NAME    = 'Github Actions Matrix';
-    public const string VERSION = '0.1.0';
+    public const string VERSION = '1.0.0';
 
     public function __construct()
     {

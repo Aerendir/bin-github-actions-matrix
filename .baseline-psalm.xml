@@ -51,6 +51,14 @@
       <code><![CDATA[null === $repoName]]></code>
     </DocblockTypeContradiction>
   </file>
+  <file src="src/Utils/Shell.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[Shell]]></code>
+    </ClassMustBeFinal>
+    <UndefinedAttributeClass>
+      <code><![CDATA[CodeCoverageIgnore]]></code>
+    </UndefinedAttributeClass>
+  </file>
   <file src="src/ValueObject/Combination.php">
     <ClassMustBeFinal>
       <code><![CDATA[Combination]]></code>
@@ -58,14 +66,23 @@
     <MissingOverrideAttribute>
       <code><![CDATA[public function __toString(): string]]></code>
     </MissingOverrideAttribute>
-    <PossiblyUnusedMethod>
-      <code><![CDATA[setToRemove]]></code>
-    </PossiblyUnusedMethod>
+  </file>
+  <file src="src/ValueObject/Job.php">
+    <DocblockTypeContradiction>
+      <code><![CDATA[false === is_array($content['strategy'])]]></code>
+      <code><![CDATA[false === is_array($content['strategy']['matrix'])]]></code>
+    </DocblockTypeContradiction>
   </file>
   <file src="src/ValueObject/JobsCollection.php">
     <ClassMustBeFinal>
       <code><![CDATA[JobsCollection]]></code>
     </ClassMustBeFinal>
+  </file>
+  <file src="src/ValueObject/Matrix.php">
+    <DocblockTypeContradiction>
+      <code><![CDATA[false === is_array($matrixValues)]]></code>
+      <code><![CDATA[false === is_string($combinationAsString)]]></code>
+    </DocblockTypeContradiction>
   </file>
   <file src="src/Workflow/Comparator.php">
     <ClassMustBeFinal>
@@ -85,6 +102,92 @@
   <file src="tests/Config/ConfigTest.php">
     <ClassMustBeFinal>
       <code><![CDATA[ConfigTest]]></code>
+    </ClassMustBeFinal>
+  </file>
+  <file src="tests/Console/Command/CompareCommandTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[CompareCommandTest]]></code>
+    </ClassMustBeFinal>
+  </file>
+  <file src="tests/Console/Command/Params/Options/GitHubTokenCommandOptionTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[GitHubTokenCommandOptionTest]]></code>
+    </ClassMustBeFinal>
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function configure(): void]]></code>
+      <code><![CDATA[protected function configure(): void]]></code>
+      <code><![CDATA[protected function execute(InputInterface $input, OutputInterface $output): int]]></code>
+      <code><![CDATA[protected function execute(InputInterface $input, OutputInterface $output): int]]></code>
+      <code><![CDATA[protected function setUp(): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="tests/Console/Command/Params/Options/GitHubUsernameCommandOptionTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[GitHubUsernameCommandOptionTest]]></code>
+    </ClassMustBeFinal>
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function configure(): void]]></code>
+      <code><![CDATA[protected function configure(): void]]></code>
+      <code><![CDATA[protected function execute(InputInterface $input, OutputInterface $output): int]]></code>
+      <code><![CDATA[protected function execute(InputInterface $input, OutputInterface $output): int]]></code>
+      <code><![CDATA[protected function setUp(): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="tests/Console/Command/SyncCommandTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[SyncCommandTest]]></code>
+    </ClassMustBeFinal>
+    <UndefinedMethod>
+      <code><![CDATA[protection]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="tests/Repo/ReaderTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[ReaderTest]]></code>
+    </ClassMustBeFinal>
+  </file>
+  <file src="tests/ValueObject/CombinationTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[CombinationTest]]></code>
+    </ClassMustBeFinal>
+  </file>
+  <file src="tests/ValueObject/JobTest.php">
+    <InvalidArgument>
+      <code><![CDATA[$content]]></code>
+      <code><![CDATA[$invalidContent]]></code>
+      <code><![CDATA[$invalidContent]]></code>
+      <code><![CDATA[$invalidContent]]></code>
+      <code><![CDATA[$invalidContent]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="tests/ValueObject/JobsCollectionTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[JobsCollectionTest]]></code>
+    </ClassMustBeFinal>
+  </file>
+  <file src="tests/ValueObject/MatrixTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[MatrixTest]]></code>
+    </ClassMustBeFinal>
+    <InvalidArgument>
+      <code><![CDATA[$combinations]]></code>
+      <code><![CDATA[$combinations]]></code>
+      <code><![CDATA[$invalidMatrixInput]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="tests/Workflow/ComparatorTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[ComparatorTest]]></code>
+    </ClassMustBeFinal>
+  </file>
+  <file src="tests/Workflow/FinderTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[FinderTest]]></code>
+    </ClassMustBeFinal>
+  </file>
+  <file src="tests/Workflow/ReaderTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[ReaderTest]]></code>
     </ClassMustBeFinal>
   </file>
 </files>

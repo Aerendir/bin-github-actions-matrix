@@ -22,6 +22,10 @@ jobs:
         steps:
             -   name: Checkout
                 uses: actions/checkout@v4
+                with:
+                    # Disable shallow clone
+                    # https://stackoverflow.com/a/62500400/1399706
+                    fetch-depth: 0
 
             -   name: Setup PHP
                 uses: shivammathur/setup-php@2.28.0
@@ -63,7 +67,25 @@ jobs:
 
             -   name: Run PHPUnit
                 run: |
-                    ./vendor-bin/phpunit/vendor/bin/phpunit --coverage-clover var/coverage/clover.xml
+                    ./vendor-bin/phpunit/vendor/bin/phpunit --coverage-clover var/coverage/clover.xml --log-junit junit.xml
+
+            - name: Upload test results to Codecov
+              if: ${{ !cancelled() }}
+              uses: codecov/test-results-action@v1
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  flags: ${{matrix.symfony}},${{matrix.php}}
+
+            -   name: Upload coverage reports to Codecov
+                if: |
+                    matrix.php == '8.3' && matrix.symfony == '~7.2' && contains(github.ref, 'dependabot') == false
+                uses: codecov/codecov-action@v5
+                env:
+                    CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+                with:
+                    fail_ci_if_error: false
+                    verbose: true
+                    files: ./var/coverage/clover.xml
 
             -   name: Change paths in clover.xml
                 run: |
@@ -71,8 +93,8 @@ jobs:
 
             -   name: Sonarcloud
                 if: |
-                    github.ref == 'refs/heads/dev' && matrix.php == '8.3' && matrix.symfony == '~7.2'
-                uses: sonarsource/sonarcloud-github-action@master
+                    matrix.php == '8.3' && matrix.symfony == '~7.2' && github.ref == 'refs/heads/dev'
+                uses: SonarSource/sonarqube-scan-action@v5.1.0
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

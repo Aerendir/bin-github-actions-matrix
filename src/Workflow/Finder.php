@@ -18,30 +18,37 @@ use Symfony\Component\Finder\SplFileInfo;
 
 class Finder
 {
+    /** @var string When installed in the main `composer.json` */
+    private const string FROM_VENDOR = __DIR__ . '/../../.github/workflows';
+
+    /** @var string When installed in `vendor-bin/[namespace]/vendor` by `bamarni/bin-composer-plugin´ */
+    private const string FROM_VENDOR_BIN_VENDOR = __DIR__ . '/../../../../../../../.github/workflows';
+
     private readonly SymfonyFinder $finder;
 
-    public function __construct()
+    /**
+     * @param array<array-key, string> $possibleFolders
+     */
+    public function __construct(array $possibleFolders = [self::FROM_VENDOR, self::FROM_VENDOR_BIN_VENDOR])
     {
         $finder = new SymfonyFinder();
-        $possibleFolders = [
-            __DIR__ . '/../../.github/workflows',
-            __DIR__ . '/../../../../../../../.github/workflows',
-        ];
 
         $foundFolder = null;
         foreach ($possibleFolders as $folder) {
-            echo "Trying to load $folder\n";
-            if (file_exists($folder)) {
-                $foundFolder = $folder;
-                break;
+            if (false === file_exists($folder)) {
+                continue;
             }
+
+            $foundFolder = $folder;
+
+            break;
         }
 
         if (null === $foundFolder) {
             throw new \RuntimeException('Impossible to locate the GitHub workflows folder');
         }
 
-        $this->finder = $finder->files()->name('*.yml')->in($folder);
+        $this->finder = $finder->files()->name('*.yml')->in($foundFolder);
     }
 
     /**

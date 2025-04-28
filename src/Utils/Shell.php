@@ -11,6 +11,17 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-$config = new Aerendir\Bin\GitHubActionsMatrix\Config\Config();
+namespace Aerendir\Bin\GitHubActionsMatrix\Utils;
 
-return $config;
+use PHPUnit\Framework\Attributes\CodeCoverageIgnore;
+
+use function Safe\shell_exec;
+
+#[CodeCoverageIgnore]
+class Shell
+{
+    public function exec(string $command): string
+    {
+        return shell_exec($command);
+    }
+}
