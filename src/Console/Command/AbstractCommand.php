@@ -46,11 +46,12 @@ abstract class AbstractCommand extends Command
     private array $combinationsToRemove;
 
     public function __construct(
-        GitHubUsernameCommandOption $gitHubUsernameCommandOption = null,
-        GitHubTokenCommandOption $gitHubTokenCommandOption = null,
-        RepoReader $repoReader = null,
-        WorkflowsReader $workflowsReader = null,
-        Comparator $comparator = null
+        ?GitHubUsernameCommandOption $gitHubUsernameCommandOption = null,
+        ?GitHubTokenCommandOption $gitHubTokenCommandOption = null,
+        ?RepoReader $repoReader = null,
+        ?WorkflowsReader $workflowsReader = null,
+        ?Comparator $comparator = null,
+        ?Client $githubClient = null,
     ) {
         parent::__construct();
         $this->gitHubUsernameCommandOption = $gitHubUsernameCommandOption ??new GitHubUsernameCommandOption();
@@ -58,14 +59,14 @@ abstract class AbstractCommand extends Command
         $this->repoReader                  = $repoReader                  ?? new RepoReader();
         $this->workflowsReader             = $workflowsReader             ?? new WorkflowsReader();
         $this->comparator                  = $comparator                  ?? new Comparator();
-        $this->githubClient                = Client::createWithHttpClient(new HttplugClient());
+        $this->githubClient                = $githubClient                ?? Client::createWithHttpClient(new HttplugClient());
     }
 
     #[\Override]
     protected function configure(): void
     {
-        $this->addOption(GitHubUsernameCommandOption::OPT_REPO_USERNAME, GitHubUsernameCommandOption::OPT_REPO_USERNAME_SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub username.');
-        $this->addOption(GitHubTokenCommandOption::OPT_REPO_TOKEN, GitHubTokenCommandOption::OPT_REPO_TOKEN_SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub access token.');
+        $this->addOption(GitHubUsernameCommandOption::NAME, GitHubUsernameCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub username.');
+        $this->addOption(GitHubTokenCommandOption::NAME, GitHubTokenCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub access token.');
     }
 
     protected function init(InputInterface $input, OutputInterface $output): void
@@ -97,7 +98,7 @@ abstract class AbstractCommand extends Command
         $this->combinationsToRemove = $this->comparator->compare($this->localJobs, $this->remoteJobsIds);
     }
 
-    protected function getRepoUsername(InputInterface $input = null, OutputInterface $output = null, QuestionHelper $questionHelper = null): string
+    protected function getRepoUsername(?InputInterface $input = null, ?OutputInterface $output = null, ?QuestionHelper $questionHelper = null): string
     {
         if (isset($this->repoUsername)) {
             return $this->repoUsername;
