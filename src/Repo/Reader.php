@@ -38,8 +38,13 @@ readonly class Reader
     public function getRepoName(): string
     {
         $repoUrl  = trim($this->shell->exec('git remote get-url origin'));
+
+        if (str_ends_with($repoUrl, '.git')) {
+            $repoUrl = substr($repoUrl, 0, -4);
+        }
+
         if (
-            0       === preg_match('/\/([^\/]+)\.git$/', $repoUrl, $matches)
+            0       === preg_match('~[:/]([^/]+)(?:\.git)?$~', $repoUrl, $matches)
             || null === $matches
         ) {
             throw new \RuntimeException('Cannot find the name of the repo.');
