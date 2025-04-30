@@ -59,4 +59,39 @@ readonly class Reader
 
         return $repoName;
     }
+
+    /**
+     * @param array<array-key, array{
+     *     name: string,
+     *     commit: array{
+     *         sha: string,
+     *         url: string
+     *     },
+     *     protected: bool,
+     *     protection: array{
+     *         enabled: bool,
+     *         required_status_checks: array{
+     *             enforcement_level: string,
+     *             contexts: array<int, string>,
+     *             checks: array<int, mixed>
+     *         }
+     *     },
+     *     protection_url: string
+     * }> $branches
+     *
+     * @return array<array-key, string>
+     */
+    public function filterProtectedBranches(array $branches): array
+    {
+        $protectedBranches = [];
+        foreach ($branches as $branch) {
+            if (false === $branch['protection']['enabled']) {
+                continue;
+            }
+
+            $protectedBranches[] = $branch['name'];
+        }
+
+        return $protectedBranches;
+    }
 }

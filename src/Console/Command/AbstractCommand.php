@@ -15,6 +15,7 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command;
 
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
+use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoBranchCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\JobsCollection;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Comparator;
@@ -34,6 +35,7 @@ abstract class AbstractCommand extends Command
 {
     private readonly GitHubUsernameCommandOption $gitHubUsernameCommandOption;
     private readonly GitHubTokenCommandOption $gitHubTokenCommandOption;
+    private readonly RepoBranchCommandOption $repoBranchCommandOption;
     private readonly Client $githubClient;
     private readonly RepoReader $repoReader;
     private readonly WorkflowsReader $workflowsReader;
@@ -48,14 +50,16 @@ abstract class AbstractCommand extends Command
     public function __construct(
         ?GitHubUsernameCommandOption $gitHubUsernameCommandOption = null,
         ?GitHubTokenCommandOption $gitHubTokenCommandOption = null,
+        ?RepoBranchCommandOption $repoBranchCommandOption = null,
         ?RepoReader $repoReader = null,
         ?WorkflowsReader $workflowsReader = null,
         ?Comparator $comparator = null,
         ?Client $githubClient = null,
     ) {
         parent::__construct();
-        $this->gitHubUsernameCommandOption = $gitHubUsernameCommandOption ??new GitHubUsernameCommandOption();
-        $this->gitHubTokenCommandOption    = $gitHubTokenCommandOption    ??new GitHubTokenCommandOption();
+        $this->gitHubUsernameCommandOption = $gitHubUsernameCommandOption ?? new GitHubUsernameCommandOption();
+        $this->gitHubTokenCommandOption    = $gitHubTokenCommandOption    ?? new GitHubTokenCommandOption();
+        $this->repoBranchCommandOption     = $repoBranchCommandOption     ?? new RepoBranchCommandOption();
         $this->repoReader                  = $repoReader                  ?? new RepoReader();
         $this->workflowsReader             = $workflowsReader             ?? new WorkflowsReader();
         $this->comparator                  = $comparator                  ?? new Comparator();
@@ -67,6 +71,7 @@ abstract class AbstractCommand extends Command
     {
         $this->addOption(GitHubUsernameCommandOption::NAME, GitHubUsernameCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub username.');
         $this->addOption(GitHubTokenCommandOption::NAME, GitHubTokenCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub access token.');
+        $this->addOption(RepoBranchCommandOption::NAME, RepoBranchCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The branch for which the matrix has to be synchronized.');
     }
 
     protected function init(InputInterface $input, OutputInterface $output): void
@@ -77,7 +82,7 @@ abstract class AbstractCommand extends Command
             throw new \RuntimeException(sprintf('The helper %s is not available.', QuestionHelper::class));
         }
 
-        // 'Cannot get the username from the git config. Pass it explicitly using option "--username"'
+        // Cannot get the username from the git config. Pass it explicitly using the option "--username"'
         $repoUsername   = $this->getRepoUsername($input, $output, $questionHelper);
         $repoToken      = $this->gitHubTokenCommandOption->getValueOrAsk($input, $output, $questionHelper);
         $this->repoName = $this->repoReader->getRepoName();
@@ -89,8 +94,13 @@ abstract class AbstractCommand extends Command
         if (false === $repo instanceof Repo) {
             throw new \RuntimeException('The API returned an unexpected object');
         }
-        $this->protection      = $repo->protection();
-        $protectionRules       = $this->protection->show($repoUsername, $this->repoName, 'dev');
+
+        $allBranches       = $repo->branches($repoUsername, $this->repoName);
+        $protectedBranches = $this->repoReader->filterProtectedBranches($allBranches);
+        $branch            = $this->repoBranchCommandOption->getValueOrAsk($input, $output, $questionHelper, $protectedBranches);
+
+        $this->protection = $repo->protection();
+        $protectionRules  = $this->protection->show($repoUsername, $this->repoName, $branch);
 
         $requiredStatusChecks = $protectionRules['required_status_checks'];
         $this->remoteJobsIds  = $requiredStatusChecks['contexts'];

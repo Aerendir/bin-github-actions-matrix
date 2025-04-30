@@ -61,6 +61,21 @@ parameters:
 			path: src/Console/Command/Params/Options/GitHubUsernameCommandOption.php
 
 		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: src/Console/Command/Params/Options/RepoBranchCommandOption.php
+
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\RepoBranchCommandOption\\:\\:askForValue\\(\\) should return string but returns mixed\\.$#"
+			count: 1
+			path: src/Console/Command/Params/Options/RepoBranchCommandOption.php
+
+		-
+			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\RepoBranchCommandOption\\:\\:getValueOrNull\\(\\) should return string\\|null but returns mixed\\.$#"
+			count: 1
+			path: src/Console/Command/Params/Options/RepoBranchCommandOption.php
+
+		-
 			message: "#^Attribute class PHPUnit\\\\Framework\\\\Attributes\\\\CodeCoverageIgnore does not exist\\.$#"
 			count: 1
 			path: src/Utils/Shell.php
@@ -82,6 +97,16 @@ parameters:
 
 		-
 			message: "#^Call to method method\\(\\) on an unknown class PHPUnit\\\\Framework\\\\MockObject\\\\Builder\\\\InvocationMocker\\.$#"
+			count: 1
+			path: tests/Repo/ReaderTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$branches of method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Repo\\\\Reader\\:\\:filterProtectedBranches\\(\\) expects array\\<array\\{name\\: string, commit\\: array\\{sha\\: string, url\\: string\\}, protected\\: bool, protection\\: array\\{enabled\\: bool, required_status_checks\\: array\\{enforcement_level\\: string, contexts\\: array\\<int, string\\>, checks\\: array\\<int, mixed\\>\\}\\}, protection_url\\: string\\}\\>, array\\{array\\{name\\: 'main', protection\\: array\\{enabled\\: false\\}\\}, array\\{name\\: 'develop', protection\\: array\\{enabled\\: false\\}\\}\\} given\\.$#"
+			count: 1
+			path: tests/Repo/ReaderTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$branches of method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Repo\\\\Reader\\:\\:filterProtectedBranches\\(\\) expects array\\<array\\{name\\: string, commit\\: array\\{sha\\: string, url\\: string\\}, protected\\: bool, protection\\: array\\{enabled\\: bool, required_status_checks\\: array\\{enforcement_level\\: string, contexts\\: array\\<int, string\\>, checks\\: array\\<int, mixed\\>\\}\\}, protection_url\\: string\\}\\>, array\\{array\\{name\\: 'main', protection\\: array\\{enabled\\: true\\}\\}, array\\{name\\: 'develop', protection\\: array\\{enabled\\: false\\}\\}, array\\{name\\: 'feature\\-1', protection\\: array\\{enabled\\: true\\}\\}\\} given\\.$#"
 			count: 1
 			path: tests/Repo/ReaderTest.php
 
