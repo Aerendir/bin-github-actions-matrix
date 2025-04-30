@@ -45,13 +45,49 @@ class ReaderTest extends TestCase
         $this->assertNull($reader->getUsername());
     }
 
-    public function testGetRepoNameParsesCorrectly(): void
+    public function testGetRepoNameParsesCorrectlySshWithGitSuffix(): void
     {
         $shell = $this->createMock(Shell::class);
         $shell
             ->method('exec')
             ->with('git remote get-url origin')
             ->willReturn('git@github.com:vendor/project.git');
+
+        $reader = new Reader($shell);
+        $this->assertSame('project', $reader->getRepoName());
+    }
+
+    public function testGetRepoNameParsesCorrectlySshWithoutGitSuffix(): void
+    {
+        $shell = $this->createMock(Shell::class);
+        $shell
+            ->method('exec')
+            ->with('git remote get-url origin')
+            ->willReturn('git@github.com:vendor/project');
+
+        $reader = new Reader($shell);
+        $this->assertSame('project', $reader->getRepoName());
+    }
+
+    public function testGetRepoNameParsesCorrectlyHttpsWithGitSuffix(): void
+    {
+        $shell = $this->createMock(Shell::class);
+        $shell
+            ->method('exec')
+            ->with('git remote get-url origin')
+            ->willReturn('https://www.github.com/vendor/project.git');
+
+        $reader = new Reader($shell);
+        $this->assertSame('project', $reader->getRepoName());
+    }
+
+    public function testGetRepoNameParsesCorrectlyHttpsWithoutGitSuffix(): void
+    {
+        $shell = $this->createMock(Shell::class);
+        $shell
+            ->method('exec')
+            ->with('git remote get-url origin')
+            ->willReturn('https://www.github.com/vendor/project');
 
         $reader = new Reader($shell);
         $this->assertSame('project', $reader->getRepoName());
