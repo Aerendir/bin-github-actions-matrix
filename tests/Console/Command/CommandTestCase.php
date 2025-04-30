@@ -28,6 +28,7 @@ class CommandTestCase extends TestCase
     {
         $mockReader = $this->createMock(RepoReader::class);
         $mockReader->method('getRepoName')->willReturn($testRepo);
+        $mockReader->method('filterProtectedBranches')->willReturn(['master']);
 
         return $mockReader;
     }
@@ -87,6 +88,7 @@ class CommandTestCase extends TestCase
 
         $mockRepo = $this->createMock(Repo::class);
         $mockRepo->method('protection')->willReturn($mockProtection);
+        $mockRepo->method('branches')->willReturn([]);
 
         $mockClient = $this->createMock(Client::class);
         $mockClient->method('authenticate');

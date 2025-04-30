@@ -6,11 +6,16 @@ declare(strict_types=1);
 // load dependencies
 (function () {
 
-    // OK, it's not, let give Composer autoloader a try!
+    // OK, it's not, lets give Composer autoloader a try!
     $possibleFiles = [
-            __DIR__.'/../../../../../autoload.php',
             __DIR__.'/../autoload.php',
-            __DIR__.'/../vendor/autoload.php'
+            __DIR__.'/../vendor/autoload.php',
+
+            // Installed through bamarni/composer-bin-plugin
+            __DIR__.'/../../../../../autoload.php',
+
+            // When developing locally
+            __DIR__.'/../../../vendor/autoload.php'
     ];
     $file = null;
     foreach ($possibleFiles as $possibleFile) {
@@ -30,13 +35,6 @@ declare(strict_types=1);
 })();
 
 use Aerendir\Bin\GitHubActionsMatrix\Console\Application;
-
-$declared = get_declared_classes();
-foreach ($declared as $class) {
-    if (strpos($class, 'Aerendir') === 0) {
-        echo $class."\n";
-    }
-}
 
 $application = new Application();
 $application->run();
