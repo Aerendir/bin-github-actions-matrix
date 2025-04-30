@@ -63,11 +63,18 @@ mut: ## Opens the report of mutations in the browser
 
 start: ## Starts the containers to run the lib (all in detached mode - no logs).
 	$(MAKE) stop
-	$(DOCKER_COMP) up -d --build
+	$(DOCKER_COMP) up -d
 
 stax: ## Starts, WITH XDEBUG, the containers to run TrustBack.Me (all in detached mode - no logs).
 	$(MAKE) stop
 	XDEBUG_MODE=debug PROJECT_ROOT=`pwd` docker compose up -d
+
+stafu: ## Starts the containers to run Coommercio (all in detached mode - no logs) and also syncs branches and dependencies (both PHP and JS).
+	${MAKE} start
+	git fetch
+	gt sync
+	gt s --stack --update-only
+	${MAKE} composer c='install'
 
 stop: ## Stops all containers for all PHP versions (using `docker compose stop`)
 	for v in $(PHP_VERSIONS); do $(MAKE) stop-v PHP_V=$$v; done
