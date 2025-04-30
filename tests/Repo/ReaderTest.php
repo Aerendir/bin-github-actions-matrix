@@ -106,4 +106,66 @@ class ReaderTest extends TestCase
         $reader = new Reader($shell);
         $reader->getRepoName();
     }
+
+    public function testFilterProtectedBranchesReturnsOnlyProtectedBranches(): void
+    {
+        $branches = [
+            [
+                'name'       => 'main',
+                'protection' => [
+                    'enabled' => true,
+                ],
+            ],
+            [
+                'name'       => 'develop',
+                'protection' => [
+                    'enabled' => false,
+                ],
+            ],
+            [
+                'name'       => 'feature-1',
+                'protection' => [
+                    'enabled' => true,
+                ],
+            ],
+        ];
+
+        $reader = new Reader();
+        $result = $reader->filterProtectedBranches($branches);
+
+        $this->assertEquals(['main', 'feature-1'], $result);
+    }
+
+    public function testFilterProtectedBranchesReturnsEmptyArrayIfNoProtectedBranches(): void
+    {
+        $branches = [
+            [
+                'name'       => 'main',
+                'protection' => [
+                    'enabled' => false,
+                ],
+            ],
+            [
+                'name'       => 'develop',
+                'protection' => [
+                    'enabled' => false,
+                ],
+            ],
+        ];
+
+        $reader = new Reader();
+        $result = $reader->filterProtectedBranches($branches);
+
+        $this->assertEmpty($result);
+    }
+
+    public function testFilterProtectedBranchesHandlesEmptyBranchesArray(): void
+    {
+        $branches = [];
+
+        $reader = new Reader();
+        $result = $reader->filterProtectedBranches($branches);
+
+        $this->assertEmpty($result);
+    }
 }

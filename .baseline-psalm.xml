@@ -38,6 +38,14 @@
       <code><![CDATA[GitHubUsernameCommandOption]]></code>
     </ClassMustBeFinal>
   </file>
+  <file src="src/Console/Command/Params/Options/RepoBranchCommandOption.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[RepoBranchCommandOption]]></code>
+    </ClassMustBeFinal>
+    <TypeDoesNotContainType>
+      <code><![CDATA[$branch]]></code>
+    </TypeDoesNotContainType>
+  </file>
   <file src="src/Console/Command/SyncCommand.php">
     <MissingOverrideAttribute>
       <code><![CDATA[public function execute(InputInterface $input, OutputInterface $output): int]]></code>
@@ -133,6 +141,18 @@
       <code><![CDATA[protected function setUp(): void]]></code>
     </MissingOverrideAttribute>
   </file>
+  <file src="tests/Console/Command/Params/Options/RepoBranchCommandOptionTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[RepoBranchCommandOptionTest]]></code>
+    </ClassMustBeFinal>
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function configure(): void]]></code>
+      <code><![CDATA[protected function configure(): void]]></code>
+      <code><![CDATA[protected function execute(InputInterface $input, OutputInterface $output): int]]></code>
+      <code><![CDATA[protected function execute(InputInterface $input, OutputInterface $output): int]]></code>
+      <code><![CDATA[protected function setUp(): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
   <file src="tests/Console/Command/SyncCommandTest.php">
     <ClassMustBeFinal>
       <code><![CDATA[SyncCommandTest]]></code>
@@ -145,6 +165,10 @@
     <ClassMustBeFinal>
       <code><![CDATA[ReaderTest]]></code>
     </ClassMustBeFinal>
+    <InvalidArgument>
+      <code><![CDATA[$branches]]></code>
+      <code><![CDATA[$branches]]></code>
+    </InvalidArgument>
   </file>
   <file src="tests/ValueObject/CombinationTest.php">
     <ClassMustBeFinal>
