@@ -34,7 +34,7 @@ class CompareCommandTest extends CommandTestCase
         $command = new CompareCommand(repoReader: $mockRepoReader, workflowsReader: $mockWorkflowsReader, githubClient: $mockGitHubClient);
 
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         $commandTester = new CommandTester($command);
 

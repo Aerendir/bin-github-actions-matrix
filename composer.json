@@ -1,8 +1,8 @@
 {
   "name": "aerendir/bin-github-actions-matrix",
   "description": "Updates the matrix of required status checks in branch protection rules of a repository hosted on GitHub.",
-  "type": "application",
   "license": "MIT",
+  "type": "application",
   "keywords": [
     "github",
     "github actions",
@@ -10,16 +10,6 @@
     "branch protection",
     "branch protection rules"
   ],
-  "autoload": {
-    "psr-4": {
-      "Aerendir\\Bin\\GitHubActionsMatrix\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Aerendir\\Bin\\GitHubActionsMatrix\\Tests\\": "tests/"
-    }
-  },
   "authors": [
     {
       "name": "Aerendir",
@@ -30,43 +20,55 @@
     "php": "^8.3",
     "knplabs/github-api": "^3.0",
     "nyholm/psr7": "^1.8",
-    "symfony/console": "~6.4 || ~7.2",
-    "symfony/finder": "~6.4 || ~7.2",
-    "symfony/http-client": "~6.4 || ~7.2",
-    "symfony/yaml": "~6.4 || ~7.2",
+    "symfony/console": "^7.4 || ^8.0",
+    "symfony/finder": "^7.4 || ^8.0",
+    "symfony/http-client": "^7.4 || ^8.0",
+    "symfony/yaml": "^7.4 || ^8.0",
     "thecodingmachine/safe": "^2.0"
   },
   "require-dev": {
     "bamarni/composer-bin-plugin": "^1.4",
-    "phpstan/phpstan": "1.10.47",
-    "phpstan/phpstan-phpunit": "1.3.15",
-    "rector/rector": "0.18.11",
+    "phpstan/phpstan": "2.1.33",
+    "phpstan/phpstan-phpunit": "2.0.10",
+    "rector/rector": "2.2.14",
     "roave/security-advisories": "dev-master",
-    "serendipity_hq/rector-config": "^1.0",
-    "thecodingmachine/phpstan-safe-rule": "1.2.0"
+    "serendipity_hq/rector-config": "1.1.14",
+    "thecodingmachine/phpstan-safe-rule": "1.4.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Aerendir\\Bin\\GitHubActionsMatrix\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Aerendir\\Bin\\GitHubActionsMatrix\\Tests\\": "tests/"
+    }
   },
   "bin": [
     "src/Composer/Bin/github-actions-matrix"
   ],
   "config": {
-    "sort-packages": true,
     "allow-plugins": {
-      "php-http/discovery": true,
-      "bamarni/composer-bin-plugin": true
+      "bamarni/composer-bin-plugin": true,
+      "php-http/discovery": true
+    },
+    "sort-packages": true
+  },
+  "extra": {
+    "bamarni-bin": {
+      "bin-links": false,
+      "forward-command": false
     }
   },
   "scripts": {
-    "bin": "echo 'bin not installed'",
     "post-install-cmd": [
       "@composer bin all install --ansi"
     ],
     "post-update-cmd": [
       "@composer bin all update --ansi"
     ],
-    "fix":[
-      "vendor/bin/rector process",
-      "vendor-bin/phpcs/vendor/bin/php-cs-fixer fix --allow-risky yes -v"
-    ],
+    "bin": "echo 'bin not installed'",
     "bl": [
       "@bl:phpstan",
       "@bl:psalm"
@@ -77,15 +79,26 @@
     "bl:psalm": [
       "vendor-bin/phpunit/vendor/bin/psalm --set-baseline=.baseline-psalm.xml"
     ],
-    "val": [
-      "@val:phpstan",
-      "@val:psalm"
+    "fix": [
+      "@fix:rector",
+      "@fix:phpcs",
+      "@fix:cn"
     ],
-    "val:phpstan": [
-      "vendor/bin/phpstan analyse"
+    "fix:cn": [
+      "composer bin cn normalize ./../../composer.json --no-scripts --no-update-lock"
     ],
-    "val:psalm": [
-      "vendor-bin/phpunit/vendor/bin/psalm"
+    "fix:phpcs": [
+      "vendor-bin/phpcs/vendor/bin/php-cs-fixer fix --allow-risky yes -v"
+    ],
+    "fix:rector": [
+      "Composer\\Config::disableProcessTimeout",
+      "vendor/bin/rector process"
+    ],
+    "matrix:compare": [
+      "@php src/Composer/Bin/github-actions-matrix compare -u Aerendir -b master"
+    ],
+    "matrix:sync": [
+      "@php src/Composer/Bin/github-actions-matrix sync -u Aerendir -b master"
     ],
     "test": [
       "@php vendor-bin/phpunit/vendor/bin/phpunit"
@@ -96,11 +109,34 @@
     ],
     "test:coverage:filter": [
       "@test:coverage --filter"
+    ],
+    "val": [
+      "@val:style",
+      "@val:static"
+    ],
+    "val:cn": [
+      "composer bin cn normalize ./../../composer.json --dry-run"
+    ],
+    "val:composer": [
+      "@val:cn",
+      "composer audit",
+      "composer validate --strict --check-lock"
+    ],
+    "val:phpstan": [
+      "vendor/bin/phpstan analyse"
+    ],
+    "val:psalm": [
+      "vendor-bin/phpunit/vendor/bin/psalm"
+    ],
+    "val:static": [
+      "@val:composer",
+      "@val:phpstan",
+      "@val:psalm"
+    ],
+    "val:style": [
+      "@val:rector",
+      "@val:phpcs",
+      "@val:cn"
     ]
-  },
-  "extra": {
-    "bamarni-bin": {
-      "bin-links": false
-    }
   }
 }

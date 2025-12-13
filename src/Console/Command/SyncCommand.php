@@ -45,7 +45,7 @@ final class SyncCommand extends AbstractCommand
             foreach ($remoteCombinationsToRemove as $combination) {
                 $io->writeln(' - ' . $combination);
             }
-            $protection->removeStatusChecksContexts($repoUsername, $repoName, 'dev', ['contexts' => $remoteCombinationsToRemove]);
+            $protection->removeStatusChecksContexts($repoUsername, $repoName, $this->branchName, ['contexts' => $remoteCombinationsToRemove]);
         }
 
         $remoteCombinationsToCreate = [];
@@ -62,7 +62,7 @@ final class SyncCommand extends AbstractCommand
             foreach ($remoteCombinationsToCreate as $combination) {
                 $io->writeln(' - ' . $combination);
             }
-            $protection->addStatusChecksContexts($repoUsername, $repoName, 'dev', $remoteCombinationsToCreate);
+            $protection->addStatusChecksContexts($repoUsername, $repoName, $this->branchName, $remoteCombinationsToCreate);
         }
 
         $io->success('Sync completed');

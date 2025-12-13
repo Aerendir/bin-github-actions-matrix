@@ -215,4 +215,39 @@ class MatrixTest extends TestCase
 
         $this->assertCount(0, $matrix1->getCombinations());
     }
+
+    public function testExclusionsWithExcludedKeyAreHandledLikeExclude(): void
+    {
+        $matrixInput = [
+            'php' => [
+                '8.3',
+                '8.4',
+            ],
+            'symfony' => [
+                '~7.4',
+                '~8.0',
+            ],
+            'exclude' => [
+                [
+                    'php'     => '8.3',
+                    'symfony' => '~8.0',
+                ],
+            ],
+        ];
+
+        $matrix = Matrix::createFromArray($matrixInput, 'rector.yml', 'Test Rector Workflow', 'rector');
+
+        $combinations = $matrix->getCombinations();
+
+        // Total combinations without exclusions would be 4. Expect 3 if `exclude` is treated like `exclude`.
+        $this->assertCount(3, $combinations);
+
+        // Ensure the excluded pair is not present
+        $this->assertArrayNotHasKey('rector (8.3, ~8.0)', $combinations);
+
+        // Ensure the other combinations are present
+        $this->assertArrayHasKey('rector (8.3, ~7.4)', $combinations);
+        $this->assertArrayHasKey('rector (8.4, ~7.4)', $combinations);
+        $this->assertArrayHasKey('rector (8.4, ~8.0)', $combinations);
+    }
 }
