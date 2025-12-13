@@ -1,151 +1,295 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Config\\\\Config\\:\\:addExcludedCombination\\(\\) has parameter \\$excludedCombination with no value type specified in iterable type array\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Config\\Config\:\:addExcludedCombination\(\) has parameter \$excludedCombination with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Config/Config.php
 
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Config\\\\Config\\:\\:getExcludedCombinations\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Config\\Config\:\:getExcludedCombinations\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Config/Config.php
 
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Config\\\\Config\\:\\:setExcludedCombination\\(\\) has parameter \\$excludedCombinations with no value type specified in iterable type array\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Config\\Config\:\:setExcludedCombination\(\) has parameter \$excludedCombinations with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Config/Config.php
 
 		-
-			message: "#^Property Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Config\\\\Config\\:\\:\\$excludedCombinations type has no value type specified in iterable type array\\.$#"
+			message: '#^Property Aerendir\\Bin\\GitHubActionsMatrix\\Config\\Config\:\:\$excludedCombinations type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: src/Config/Config.php
 
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\AbstractCommand\\:\\:getRemoteJobsIds\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: '#^Cannot access offset ''contexts'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: src/Console/Command/AbstractCommand.php
 
 		-
-			message: "#^Property Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\AbstractCommand\\:\\:\\$combinationsToRemove type has no value type specified in iterable type array\\.$#"
+			message: '#^Class Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\AbstractCommand has an uninitialized readonly property \$branchName\. Assign it in the constructor\.$#'
+			identifier: property.uninitializedReadonly
 			count: 1
 			path: src/Console/Command/AbstractCommand.php
 
 		-
-			message: "#^Property Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\AbstractCommand\\:\\:\\$remoteJobsIds type has no value type specified in iterable type array\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\AbstractCommand\:\:getCombinationsToRemove\(\) should return array\<string\> but returns array\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Console/Command/AbstractCommand.php
 
 		-
-			message: "#^Anonymous function should return string but returns mixed\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\AbstractCommand\:\:getRemoteJobsIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: '#^Parameter \#1 \$branches of method Aerendir\\Bin\\GitHubActionsMatrix\\Repo\\Reader\:\:filterProtectedBranches\(\) expects array\<array\{name\: string, commit\: array\{sha\: string, url\: string\}, protected\: bool, protection\: array\{enabled\: bool, required_status_checks\: array\{enforcement_level\: string, contexts\: array\<int, string\>, checks\: array\<int, mixed\>\}\}, protection_url\: string\}\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: '#^Parameter \#2 \$remoteJobsIds of method Aerendir\\Bin\\GitHubActionsMatrix\\Workflow\\Comparator\:\:compare\(\) expects array\<string\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: '#^Property Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\AbstractCommand\:\:\$combinationsToRemove type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: '#^Property Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\AbstractCommand\:\:\$remoteJobsIds \(array\) does not accept mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: '#^Property Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\AbstractCommand\:\:\$remoteJobsIds type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: '#^Readonly property Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\AbstractCommand\:\:\$branchName is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\CompareCommand\:\:buildTableData\(\) should return array\<string, array\<string, array\<string, array\<int, array\<string, mixed\>\>\>\>\> but returns array\<string, array\<string, array\<string, list\<array\<string\>\>\>\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Console/Command/CompareCommand.php
+
+		-
+			message: '#^Parameter \#3 \$remoteJobsIds of method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\CompareCommand\:\:printResult\(\) expects array\<string\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Console/Command/CompareCommand.php
+
+		-
+			message: '#^Anonymous function should return string but returns mixed\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
 
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubTokenCommandOption\\:\\:askForValue\\(\\) should return string but returns mixed\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubTokenCommandOption\:\:askForValue\(\) should return string but returns mixed\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
 
 		-
-			message: "#^Parameter \\#2 \\$subject of function Safe\\\\preg_match expects string, mixed given\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubTokenCommandOption\:\:getValueOrAsk\(\) should return string but returns mixed\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
 
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubUsernameCommandOption\\:\\:askForValue\\(\\) should return string but returns mixed\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubTokenCommandOption\:\:getValueOrNull\(\) should return string\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function Safe\\preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
+
+		-
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubUsernameCommandOption\:\:askForValue\(\) should return string but returns mixed\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Console/Command/Params/Options/GitHubUsernameCommandOption.php
 
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\GitHubUsernameCommandOption\\:\\:getValueOrNull\\(\\) should return string\\|null but returns mixed\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubUsernameCommandOption\:\:getValueOrNull\(\) should return string\|null but returns mixed\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Console/Command/Params/Options/GitHubUsernameCommandOption.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\RepoBranchCommandOption\:\:askForValue\(\) should return string but returns mixed\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Console/Command/Params/Options/RepoBranchCommandOption.php
 
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\RepoBranchCommandOption\\:\\:askForValue\\(\\) should return string but returns mixed\\.$#"
+			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\RepoBranchCommandOption\:\:getValueOrNull\(\) should return string\|null but returns mixed\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Console/Command/Params/Options/RepoBranchCommandOption.php
 
 		-
-			message: "#^Method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Command\\\\Params\\\\Options\\\\RepoBranchCommandOption\\:\\:getValueOrNull\\(\\) should return string\\|null but returns mixed\\.$#"
+			message: '#^Strict comparison using \=\=\= between null and null will always evaluate to true\.$#'
+			identifier: identical.alwaysTrue
 			count: 1
 			path: src/Console/Command/Params/Options/RepoBranchCommandOption.php
 
 		-
-			message: "#^Attribute class PHPUnit\\\\Framework\\\\Attributes\\\\CodeCoverageIgnore does not exist\\.$#"
+			message: '#^Strict comparison using \=\=\= between null and list\{0\?\: string, 1\?\: non\-empty\-string\} will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Repo/Reader.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between null and non\-empty\-string will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Repo/Reader.php
+
+		-
+			message: '#^Attribute class PHPUnit\\Framework\\Attributes\\CodeCoverageIgnore does not exist\.$#'
+			identifier: attribute.notFound
 			count: 1
 			path: src/Utils/Shell.php
 
 		-
-			message: "#^Strict comparison using \\=\\=\\= between false and true will always evaluate to false\\.$#"
-			count: 3
-			path: src/ValueObject/Job.php
+			message: '#^Call to function is_array\(\) with array\<string\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/ValueObject/Matrix.php
 
 		-
-			message: "#^Strict comparison using \\=\\=\\= between false and true will always evaluate to false\\.$#"
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/ValueObject/Matrix.php
+
+		-
+			message: '#^Instanceof between Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination and Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/ValueObject/Matrix.php
+
+		-
+			message: '#^Property Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Matrix\:\:\$combinations \(array\<string, Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination\>\) does not accept array\<Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/ValueObject/Matrix.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between false and true will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
 			count: 3
 			path: src/ValueObject/Matrix.php
 
 		-
-			message: "#^Call to an undefined method Github\\\\Api\\\\AbstractApi\\:\\:protection\\(\\)\\.$#"
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Workflow/Reader.php
+
+		-
+			message: '#^Cannot access offset mixed on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Workflow/Reader.php
+
+		-
+			message: '#^Parameter \#1 \$jobs of class Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\JobsCollection constructor expects array\<string, Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Job\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Workflow/Reader.php
+
+		-
+			message: '#^Parameter \#1 \$name of static method Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Job\:\:createFromArray\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Workflow/Reader.php
+
+		-
+			message: '#^Parameter \#2 \$content of static method Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Job\:\:createFromArray\(\) expects array\<string, mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Workflow/Reader.php
+
+		-
+			message: '#^Parameter \#4 \$workflowName of static method Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Job\:\:createFromArray\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Workflow/Reader.php
+
+		-
+			message: '#^Parameter \#5 \$job of static method Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Job\:\:createFromArray\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Workflow/Reader.php
+
+		-
+			message: '#^Call to an undefined method Github\\Api\\AbstractApi\:\:protection\(\)\.$#'
+			identifier: method.notFound
 			count: 1
 			path: tests/Console/Command/SyncCommandTest.php
 
 		-
-			message: "#^Call to method method\\(\\) on an unknown class PHPUnit\\\\Framework\\\\MockObject\\\\Builder\\\\InvocationMocker\\.$#"
+			message: '#^Cannot call method method\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Console/Command/SyncCommandTest.php
+
+		-
+			message: '#^Cannot call method with\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Console/Command/SyncCommandTest.php
+
+		-
+			message: '#^Parameter \#1 \$branches of method Aerendir\\Bin\\GitHubActionsMatrix\\Repo\\Reader\:\:filterProtectedBranches\(\) expects array\<array\{name\: string, commit\: array\{sha\: string, url\: string\}, protected\: bool, protection\: array\{enabled\: bool, required_status_checks\: array\{enforcement_level\: string, contexts\: array\<int, string\>, checks\: array\<int, mixed\>\}\}, protection_url\: string\}\>, array\{array\{name\: ''main'', protection\: array\{enabled\: false\}\}, array\{name\: ''develop'', protection\: array\{enabled\: false\}\}\} given\.$#'
+			identifier: argument.type
 			count: 1
 			path: tests/Repo/ReaderTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$branches of method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Repo\\\\Reader\\:\\:filterProtectedBranches\\(\\) expects array\\<array\\{name\\: string, commit\\: array\\{sha\\: string, url\\: string\\}, protected\\: bool, protection\\: array\\{enabled\\: bool, required_status_checks\\: array\\{enforcement_level\\: string, contexts\\: array\\<int, string\\>, checks\\: array\\<int, mixed\\>\\}\\}, protection_url\\: string\\}\\>, array\\{array\\{name\\: 'main', protection\\: array\\{enabled\\: false\\}\\}, array\\{name\\: 'develop', protection\\: array\\{enabled\\: false\\}\\}\\} given\\.$#"
+			message: '#^Parameter \#1 \$branches of method Aerendir\\Bin\\GitHubActionsMatrix\\Repo\\Reader\:\:filterProtectedBranches\(\) expects array\<array\{name\: string, commit\: array\{sha\: string, url\: string\}, protected\: bool, protection\: array\{enabled\: bool, required_status_checks\: array\{enforcement_level\: string, contexts\: array\<int, string\>, checks\: array\<int, mixed\>\}\}, protection_url\: string\}\>, array\{array\{name\: ''main'', protection\: array\{enabled\: true\}\}, array\{name\: ''develop'', protection\: array\{enabled\: false\}\}, array\{name\: ''feature\-1'', protection\: array\{enabled\: true\}\}\} given\.$#'
+			identifier: argument.type
 			count: 1
 			path: tests/Repo/ReaderTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$branches of method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Repo\\\\Reader\\:\\:filterProtectedBranches\\(\\) expects array\\<array\\{name\\: string, commit\\: array\\{sha\\: string, url\\: string\\}, protected\\: bool, protection\\: array\\{enabled\\: bool, required_status_checks\\: array\\{enforcement_level\\: string, contexts\\: array\\<int, string\\>, checks\\: array\\<int, mixed\\>\\}\\}, protection_url\\: string\\}\\>, array\\{array\\{name\\: 'main', protection\\: array\\{enabled\\: true\\}\\}, array\\{name\\: 'develop', protection\\: array\\{enabled\\: false\\}\\}, array\\{name\\: 'feature\\-1', protection\\: array\\{enabled\\: true\\}\\}\\} given\\.$#"
-			count: 1
-			path: tests/Repo/ReaderTest.php
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertInstanceOf\(\) with ''Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Matrix'' and Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Matrix will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 4
+			path: tests/ValueObject/MatrixTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{strategy\\: 'not\\-an\\-array'\\} given\\.$#"
-			count: 1
-			path: tests/ValueObject/JobTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{strategy\\: array\\{matrix\\: 'not\\-an\\-array'\\}\\} given\\.$#"
-			count: 1
-			path: tests/ValueObject/JobTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{strategy\\: array\\{matrix\\: array\\{php\\: array\\{'8\\.0', '8\\.1'\\}\\}\\}\\} given\\.$#"
-			count: 1
-			path: tests/ValueObject/JobTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{strategy\\: array\\{\\}\\} given\\.$#"
-			count: 1
-			path: tests/ValueObject/JobTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$content of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Job\\:\\:createFromArray\\(\\) expects array\\{strategy\\: array\\{matrix\\: array\\{string\\: array\\<string\\>\\}\\}\\}, array\\{\\} given\\.$#"
-			count: 1
-			path: tests/ValueObject/JobTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$combinations of class Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Matrix constructor expects array\\<string, Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Combination\\>, array\\<int, Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Combination\\> given\\.$#"
+			message: '#^Parameter \#1 \$combinations of class Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Matrix constructor expects array\<string, Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination\>, array\<int, Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination\> given\.$#'
+			identifier: argument.type
 			count: 1
 			path: tests/ValueObject/MatrixTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$combinations of class Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Matrix constructor expects array\\<string, Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Combination\\>, array\\<string, string\\> given\\.$#"
-			count: 1
-			path: tests/ValueObject/MatrixTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$matrix of static method Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Matrix\\:\\:createFromArray\\(\\) expects array\\<string, array\\<string\\>\\>, array\\<string, string\\> given\\.$#"
+			message: '#^Parameter \#1 \$combinations of class Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Matrix constructor expects array\<string, Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination\>, array\<string, string\> given\.$#'
+			identifier: argument.type
 			count: 1
 			path: tests/ValueObject/MatrixTest.php

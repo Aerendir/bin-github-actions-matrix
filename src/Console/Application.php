@@ -26,7 +26,7 @@ final class Application extends BaseApplication
     {
         parent::__construct(self::NAME, self::VERSION);
 
-        $this->add(new CompareCommand());
-        $this->add(new SyncCommand());
+        $this->addCommand(new CompareCommand());
+        $this->addCommand(new SyncCommand());
     }
 }

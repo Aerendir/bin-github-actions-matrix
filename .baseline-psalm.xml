@@ -11,7 +11,16 @@
     </UnusedClass>
   </file>
   <file src="src/Console/Command/AbstractCommand.php">
+    <InaccessibleProperty>
+      <code><![CDATA[$this->branchName]]></code>
+    </InaccessibleProperty>
+    <PossiblyNullArgument>
+      <code><![CDATA[$input]]></code>
+      <code><![CDATA[$output]]></code>
+      <code><![CDATA[$questionHelper]]></code>
+    </PossiblyNullArgument>
     <PropertyNotSetInConstructor>
+      <code><![CDATA[$branchName]]></code>
       <code><![CDATA[$combinationsToRemove]]></code>
       <code><![CDATA[$localJobs]]></code>
       <code><![CDATA[$protection]]></code>
@@ -27,6 +36,9 @@
     <MissingOverrideAttribute>
       <code><![CDATA[public function execute(InputInterface $input, OutputInterface $output): int]]></code>
     </MissingOverrideAttribute>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[CompareCommand]]></code>
+    </PropertyNotSetInConstructor>
   </file>
   <file src="src/Console/Command/Params/Options/GitHubTokenCommandOption.php">
     <ClassMustBeFinal>
@@ -50,6 +62,9 @@
     <MissingOverrideAttribute>
       <code><![CDATA[public function execute(InputInterface $input, OutputInterface $output): int]]></code>
     </MissingOverrideAttribute>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[SyncCommand]]></code>
+    </PropertyNotSetInConstructor>
   </file>
   <file src="src/Repo/Reader.php">
     <ClassMustBeFinal>
@@ -74,12 +89,6 @@
     <MissingOverrideAttribute>
       <code><![CDATA[public function __toString(): string]]></code>
     </MissingOverrideAttribute>
-  </file>
-  <file src="src/ValueObject/Job.php">
-    <DocblockTypeContradiction>
-      <code><![CDATA[false === is_array($content['strategy'])]]></code>
-      <code><![CDATA[false === is_array($content['strategy']['matrix'])]]></code>
-    </DocblockTypeContradiction>
   </file>
   <file src="src/ValueObject/JobsCollection.php">
     <ClassMustBeFinal>
@@ -175,15 +184,6 @@
       <code><![CDATA[CombinationTest]]></code>
     </ClassMustBeFinal>
   </file>
-  <file src="tests/ValueObject/JobTest.php">
-    <InvalidArgument>
-      <code><![CDATA[$content]]></code>
-      <code><![CDATA[$invalidContent]]></code>
-      <code><![CDATA[$invalidContent]]></code>
-      <code><![CDATA[$invalidContent]]></code>
-      <code><![CDATA[$invalidContent]]></code>
-    </InvalidArgument>
-  </file>
   <file src="tests/ValueObject/JobsCollectionTest.php">
     <ClassMustBeFinal>
       <code><![CDATA[JobsCollectionTest]]></code>
@@ -196,7 +196,6 @@
     <InvalidArgument>
       <code><![CDATA[$combinations]]></code>
       <code><![CDATA[$combinations]]></code>
-      <code><![CDATA[$invalidMatrixInput]]></code>
     </InvalidArgument>
   </file>
   <file src="tests/Workflow/ComparatorTest.php">
