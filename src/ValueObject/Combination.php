@@ -90,4 +90,24 @@ class Combination implements \Stringable
 
         return $action;
     }
+
+    public function contains(self $combination): bool
+    {
+        if ([] === $this->combination) {
+            return false;
+        }
+
+        $combination = $combination->getCombination();
+        foreach ($this->combination as $key => $value) {
+            if (false === array_key_exists($key, $combination)) {
+                return false;
+            }
+
+            if ($combination[$key] !== $value) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
