@@ -97,7 +97,7 @@ jobs:
             -   name: Sonarcloud
                 if: |
                     matrix.php == '8.3' && matrix.symfony == '~7.2' && github.ref == 'refs/heads/dev'
-                uses: SonarSource/sonarqube-scan-action@v5.1.0
+                uses: SonarSource/sonarqube-scan-action@v6.0.0
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
