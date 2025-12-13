@@ -127,10 +127,18 @@ final class Matrix
     {
         $filteredCombinations = [];
         foreach ($combinations as $id => $combination) {
+            $shouldExclude = false;
+
             foreach ($excludedCombinations as $excludedCombination) {
-                if (false === $excludedCombination->contains($combination)) {
-                    $filteredCombinations[$id] = $combination;
+                if (true === $excludedCombination->contains($combination)) {
+                    $shouldExclude = true;
+
+                    break;
                 }
+            }
+
+            if (false === $shouldExclude) {
+                $filteredCombinations[$id] = $combination;
             }
         }
 
