@@ -248,4 +248,53 @@ class CombinationTest extends TestCase
 
         $this->assertSame(Combination::ACTION_REMOVE, $instance->getAction());
     }
+
+    public function testContainsReturnsFalseWhenSelfCombinationEmpty(): void
+    {
+        $self  = new Combination([], 'rector.yml', 'Workflow', 'job');
+        $other = new Combination(['php' => '8.3'], 'rector.yml', 'Workflow', 'job');
+
+        $this->assertFalse($self->contains($other));
+    }
+
+    public function testContainsReturnsTrueForExactMatch(): void
+    {
+        $self  = new Combination(['php' => '8.3', 'symfony' => '~7.4'], 'rector.yml', 'Workflow', 'job');
+        $other = new Combination(['php' => '8.3', 'symfony' => '~7.4'], 'rector.yml', 'Workflow', 'job');
+
+        $this->assertTrue($self->contains($other));
+    }
+
+    public function testContainsReturnsTrueWhenOtherIsSuperset(): void
+    {
+        $self  = new Combination(['php' => '8.3'], 'rector.yml', 'Workflow', 'job');
+        $other = new Combination(['php' => '8.3', 'symfony' => '~7.4'], 'rector.yml', 'Workflow', 'job');
+
+        $this->assertTrue($self->contains($other));
+    }
+
+    public function testContainsReturnsFalseWhenKeyMissingInOther(): void
+    {
+        $self  = new Combination(['php' => '8.3', 'symfony' => '~7.4'], 'rector.yml', 'Workflow', 'job');
+        $other = new Combination(['php' => '8.3'], 'rector.yml', 'Workflow', 'job');
+
+        $this->assertFalse($self->contains($other));
+    }
+
+    public function testContainsReturnsFalseWhenValueDiffers(): void
+    {
+        $self  = new Combination(['php' => '8.3'], 'rector.yml', 'Workflow', 'job');
+        $other = new Combination(['php' => '8.4'], 'rector.yml', 'Workflow', 'job');
+
+        $this->assertFalse($self->contains($other));
+    }
+
+    public function testContainsIgnoresOrderOfKeys(): void
+    {
+        // Same key/value pairs, different insertion order
+        $self  = new Combination(['php' => '8.3', 'symfony' => '~7.4'], 'rector.yml', 'Workflow', 'job');
+        $other = new Combination(['symfony' => '~7.4', 'php' => '8.3'], 'rector.yml', 'Workflow', 'job');
+
+        $this->assertTrue($self->contains($other));
+    }
 }

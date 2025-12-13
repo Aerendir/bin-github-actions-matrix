@@ -32,13 +32,20 @@ final class Matrix
     }
 
     /**
-     * @param array<string, array<string>> $matrix
+     * @param array<string, mixed> $matrix
      */
     public static function createFromArray(array $matrix, string $workflowFilename, string $workflowName, string $job): self
     {
+        /** @phpstan-ignore argument.type */
+        $excludedCombinations = self::prepareExcludedCombinations($matrix['exclude'] ?? [], $workflowFilename, $workflowName, $job);
+        unset($matrix['exclude']);
+
+        /** @phpstan-ignore argument.type */
         $combinations = self::generateCombinations($matrix, $workflowFilename, $workflowName, $job);
 
-        return new self($combinations);
+        $filteredCombinations = self::filterOutExcludedCombinations($combinations, $excludedCombinations);
+
+        return new self($filteredCombinations);
     }
 
     /**
@@ -58,7 +65,7 @@ final class Matrix
      * @param array<string, array<string>> $matrix
      * @param array<string>                $currentCombination
      *
-     * @return array<Combination>
+     * @return array<string, Combination>
      */
     private static function generateCombinations(array $matrix, string $workflowFilename, string $workflowName, string $job, array $currentCombination = []): array
     {
@@ -84,5 +91,49 @@ final class Matrix
         }
 
         return $combinations;
+    }
+
+    /**
+     * @param array<array-key, array<string, string>> $excludedCombinations
+     *
+     * @return array<string, Combination>
+     */
+    private static function prepareExcludedCombinations(array $excludedCombinations, string $workflowFilename, string $workflowName, string $job): array
+    {
+        $result = [];
+        foreach ($excludedCombinations as $combination) {
+            foreach ($combination as $key => $value) {
+                if ( ! isset($result[$key])) {
+                    $result[$key] = [];
+                }
+
+                // Add value only if it does not already exist
+                if ( ! in_array($value, $result[$key], true)) {
+                    $result[$key][] = $value;
+                }
+            }
+        }
+
+        return self::generateCombinations($result, $workflowFilename, $workflowName, $job);
+    }
+
+    /**
+     * @param array<string, Combination> $combinations
+     * @param array<string, Combination> $excludedCombinations
+     *
+     * @return array<string, Combination>
+     */
+    private static function filterOutExcludedCombinations(array $combinations, array $excludedCombinations): array
+    {
+        $filteredCombinations = [];
+        foreach ($combinations as $id => $combination) {
+            foreach ($excludedCombinations as $excludedCombination) {
+                if (false === $excludedCombination->contains($combination)) {
+                    $filteredCombinations[$id] = $combination;
+                }
+            }
+        }
+
+        return $filteredCombinations;
     }
 }

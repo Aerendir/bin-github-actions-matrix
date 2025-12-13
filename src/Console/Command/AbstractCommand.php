@@ -33,6 +33,7 @@ use Symfony\Component\HttpClient\HttplugClient;
 
 abstract class AbstractCommand extends Command
 {
+    protected readonly string $branchName;
     private readonly GitHubUsernameCommandOption $gitHubUsernameCommandOption;
     private readonly GitHubTokenCommandOption $gitHubTokenCommandOption;
     private readonly RepoBranchCommandOption $repoBranchCommandOption;
@@ -97,10 +98,10 @@ abstract class AbstractCommand extends Command
 
         $allBranches       = $repo->branches($repoUsername, $this->repoName);
         $protectedBranches = $this->repoReader->filterProtectedBranches($allBranches);
-        $branch            = $this->repoBranchCommandOption->getValueOrAsk($input, $output, $questionHelper, $protectedBranches);
+        $this->branchName  = $this->repoBranchCommandOption->getValueOrAsk($input, $output, $questionHelper, $protectedBranches);
 
         $this->protection = $repo->protection();
-        $protectionRules  = $this->protection->show($repoUsername, $this->repoName, $branch);
+        $protectionRules  = $this->protection->show($repoUsername, $this->repoName, $this->branchName);
 
         $requiredStatusChecks = $protectionRules['required_status_checks'];
         $this->remoteJobsIds  = $requiredStatusChecks['contexts'];
@@ -119,7 +120,7 @@ abstract class AbstractCommand extends Command
             return $this->repoUsername = $repoUsername;
         }
 
-        if (null === $input || null === $output || null === $questionHelper) {
+        if (in_array(null, [$input, $output, $questionHelper], true)) {
             throw new \RuntimeException('You must pass the input and output objects and the question helper to get the username.');
         }
 

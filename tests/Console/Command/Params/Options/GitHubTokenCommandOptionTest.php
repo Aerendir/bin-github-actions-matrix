@@ -45,7 +45,7 @@ class GitHubTokenCommandOptionTest extends TestCase
         $command = $this->createCommandForGetValueOrAsk();
 
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         $commandTester = new CommandTester($command);
 
@@ -65,7 +65,7 @@ class GitHubTokenCommandOptionTest extends TestCase
 
         $command     = $this->createCommandForGetValueOrAsk();
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         $commandTester = new CommandTester($command);
         $commandTester->setInputs([$testGitHubToken]);
@@ -83,7 +83,7 @@ class GitHubTokenCommandOptionTest extends TestCase
 
         $command     = $this->createCommandForGetValueOrAsk();
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         $commandTester = new CommandTester($command);
         $commandTester->setInputs([$invalidGitHubToken]);

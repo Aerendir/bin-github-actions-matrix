@@ -20,15 +20,9 @@ final class Job
     }
 
     /**
-     * @param array{
-     *      strategy: array{
-     *          matrix: array{
-     *              string: array<string>,
-     *          }
-     *      }
-     *  } $content Array containing the details necessary to create an instance.
-     *             The 'strategy' key should contain an array with a 'matrix' key,
-     *             which in turn holds the configuration details for the matrix.
+     * @param array<string, mixed> $content Array containing the details necessary to create an instance.
+     *                                      The 'strategy' key should contain an array with a 'matrix' key,
+     *                                      which in turn holds the configuration details for the matrix.
      */
     public static function createFromArray(string $name, array $content, string $workflowFilename, string $workflowName, string $job): self
     {
@@ -48,6 +42,7 @@ final class Job
             throw new \InvalidArgumentException('The "matrix" key must be an array.');
         }
 
+        /** @phpstan-ignore argument.type */
         $matrix = Matrix::createFromArray($content['strategy']['matrix'], $workflowFilename, $workflowName, $job);
 
         return new Job($name, $matrix);

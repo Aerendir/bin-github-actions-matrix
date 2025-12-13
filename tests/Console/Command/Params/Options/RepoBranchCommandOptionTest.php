@@ -43,7 +43,7 @@ class RepoBranchCommandOptionTest extends TestCase
         $command = $this->createCommandForGetValueOrAsk();
 
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         $commandTester = new CommandTester($command);
 
@@ -63,7 +63,7 @@ class RepoBranchCommandOptionTest extends TestCase
 
         $command     = $this->createCommandForGetValueOrAsk();
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         $commandTester = new CommandTester($command);
         $commandTester->setInputs([$testRepoBranch]);
