@@ -177,14 +177,20 @@ abstract class AbstractCommand extends Command
             // Get the repository root
             $repoRoot = $this->repoReader->getRepoRoot();
             
+            // Resolve the repository root to its real path
+            $realRepoRoot = realpath($repoRoot);
+            if (false === $realRepoRoot) {
+                return null;
+            }
+            
             // Build the full path (tokenFilePath is relative to repo root)
-            $fullPath = $repoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
+            $fullPath = $realRepoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
             
             // Resolve the real path to prevent directory traversal attacks
             $realPath = realpath($fullPath);
             
             // Verify the resolved path exists and is within the repository root
-            if (false === $realPath || !str_starts_with($realPath, realpath($repoRoot))) {
+            if (false === $realPath || !str_starts_with($realPath, $realRepoRoot)) {
                 return null;
             }
             
