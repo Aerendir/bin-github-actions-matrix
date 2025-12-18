@@ -54,7 +54,12 @@ final class Application extends BaseApplication
                     $config = require $realConfigPath;
 
                     if (!$config instanceof GHMatrixConfig) {
-                        throw new \RuntimeException('The config file must return an instance of ' . GHMatrixConfig::class);
+                        throw new \RuntimeException(sprintf(
+                            'The config file "%s" must return an instance of %s, got %s',
+                            $configFile,
+                            GHMatrixConfig::class,
+                            get_debug_type($config)
+                        ));
                     }
 
                     return $config;

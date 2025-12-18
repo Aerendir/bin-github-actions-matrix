@@ -172,12 +172,8 @@ abstract class AbstractCommand extends Command
             ));
         }
 
-        // Priority 3: If only one protected branch, use it automatically
-        if (1 === count($protectedBranches)) {
-            return $protectedBranches[0];
-        }
-
-        // Priority 4: Ask the user
+        // Priority 3: Auto-select if single branch or ask user
+        // RepoBranchCommandOption handles both single branch auto-selection and prompting
         return $this->repoBranchCommandOption->getValueOrAsk($input, $output, $questionHelper, $protectedBranches);
     }
 
