@@ -40,29 +40,37 @@ final class Application extends BaseApplication
             return new GHMatrixConfig();
         }
 
-        $configFile = $currentDir . '/gh-actions-matrix.php';
+        // Try to load gh-actions-matrix.php first, then fallback to gh-actions-matrix.dist.php
+        $configFiles = [
+            'gh-actions-matrix.php',
+            'gh-actions-matrix.dist.php',
+        ];
 
-        // Security check: ensure the file exists and is within the current directory
-        if (file_exists($configFile)) {
-            $realConfigPath = realpath($configFile);
-            $realCurrentDir = realpath($currentDir);
+        foreach ($configFiles as $configFileName) {
+            $configFile = $currentDir . '/' . $configFileName;
 
-            // Validate both paths resolved successfully and config is within current directory
-            if (false !== $realConfigPath && false !== $realCurrentDir) {
-                $expectedPath = $realCurrentDir . DIRECTORY_SEPARATOR . 'gh-actions-matrix.php';
-                if ($realConfigPath === $expectedPath) {
-                    $config = require $realConfigPath;
+            // Security check: ensure the file exists and is within the current directory
+            if (file_exists($configFile)) {
+                $realConfigPath = realpath($configFile);
+                $realCurrentDir = realpath($currentDir);
 
-                    if (!$config instanceof GHMatrixConfig) {
-                        throw new \RuntimeException(sprintf(
-                            'The config file "%s" must return an instance of %s, got %s',
-                            $configFile,
-                            GHMatrixConfig::class,
-                            get_debug_type($config)
-                        ));
+                // Validate both paths resolved successfully and config is within current directory
+                if (false !== $realConfigPath && false !== $realCurrentDir) {
+                    $expectedPath = $realCurrentDir . DIRECTORY_SEPARATOR . $configFileName;
+                    if ($realConfigPath === $expectedPath) {
+                        $config = require $realConfigPath;
+
+                        if (!$config instanceof GHMatrixConfig) {
+                            throw new \RuntimeException(sprintf(
+                                'The config file "%s" must return an instance of %s, got %s',
+                                $configFile,
+                                GHMatrixConfig::class,
+                                get_debug_type($config)
+                            ));
+                        }
+
+                        return $config;
                     }
-
-                    return $config;
                 }
             }
         }
