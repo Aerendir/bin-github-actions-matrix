@@ -30,7 +30,7 @@ class Comparator
      */
     public function compare(JobsCollection $localJobs, array $remoteJobsIds): array
     {
-        $this->applySoftCombinations($localJobs);
+        $this->applyOptionalCombinations($localJobs);
         $toSync = $this->getToSync($localJobs, $remoteJobsIds);
 
         foreach ($localJobs->getJobs() as $localJob) {
@@ -45,63 +45,63 @@ class Comparator
     }
 
     /**
-     * Apply soft combination markings to the jobs collection.
+     * Apply optional combination markings to the jobs collection.
      */
-    private function applySoftCombinations(JobsCollection $localJobs): void
+    private function applyOptionalCombinations(JobsCollection $localJobs): void
     {
         if (null === $this->config) {
             return;
         }
 
         foreach ($localJobs->getJobs() as $localJob) {
-            $workflowName       = $localJob->getName();
-            $softCombinations   = $this->config->getSoftCombinations($workflowName);
+            $workflowName           = $localJob->getName();
+            $optionalCombinations   = $this->config->getOptionalCombinations($workflowName);
 
-            if ([] === $softCombinations) {
+            if ([] === $optionalCombinations) {
                 continue;
             }
 
-            foreach ($softCombinations as $softCombination) {
-                $this->validateAndMarkSoftCombination($localJob->getMatrix()->getCombinations(), $softCombination, $workflowName);
+            foreach ($optionalCombinations as $optionalCombination) {
+                $this->validateAndMarkOptionalCombination($localJob->getMatrix()->getCombinations(), $optionalCombination, $workflowName);
             }
         }
     }
 
     /**
-     * Validate that a soft combination exists in the matrix and mark it as soft.
+     * Validate that an optional combination exists in the matrix and mark it as optional.
      *
      * @param array<string, Combination> $combinations
-     * @param array<string, string>      $softCombination
+     * @param array<string, string>      $optionalCombination
      */
-    private function validateAndMarkSoftCombination(array $combinations, array $softCombination, string $workflowName): void
+    private function validateAndMarkOptionalCombination(array $combinations, array $optionalCombination, string $workflowName): void
     {
         $found = false;
 
         foreach ($combinations as $combination) {
-            if ($this->combinationMatches($combination->getCombination(), $softCombination)) {
-                $combination->setIsSoft();
+            if ($this->combinationMatches($combination->getCombination(), $optionalCombination)) {
+                $combination->setIsOptional();
                 $found = true;
             }
         }
 
         if (false === $found) {
             throw new \InvalidArgumentException(sprintf(
-                'The soft combination %s for workflow "%s" does not exist in the matrix or is explicitly excluded.',
-                json_encode($softCombination),
+                'The optional combination %s for workflow "%s" does not exist in the matrix or is explicitly excluded.',
+                json_encode($optionalCombination),
                 $workflowName
             ));
         }
     }
 
     /**
-     * Check if a combination matches the soft combination criteria.
+     * Check if a combination matches the optional combination criteria.
      *
      * @param array<string, string> $combination
-     * @param array<string, string> $softCombination
+     * @param array<string, string> $optionalCombination
      */
-    private function combinationMatches(array $combination, array $softCombination): bool
+    private function combinationMatches(array $combination, array $optionalCombination): bool
     {
-        foreach ($softCombination as $key => $value) {
+        foreach ($optionalCombination as $key => $value) {
             if (!array_key_exists($key, $combination) || $combination[$key] !== $value) {
                 return false;
             }

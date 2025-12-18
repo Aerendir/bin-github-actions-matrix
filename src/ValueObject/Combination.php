@@ -19,9 +19,9 @@ class Combination implements \Stringable
     final public const string ACTION_SYNC    = 'Sync';
     final public const string ACTION_REMOVE  = 'Remove';
 
-    private bool $toSync   = false;
-    private bool $toRemove = false;
-    private bool $isSoft   = false;
+    private bool $toSync     = false;
+    private bool $toRemove   = false;
+    private bool $isOptional = false;
 
     /**
      * @param array<string> $combination
@@ -78,14 +78,14 @@ class Combination implements \Stringable
         return $this->toSync;
     }
 
-    public function setIsSoft(bool $isSoft = true): void
+    public function setIsOptional(bool $isOptional = true): void
     {
-        $this->isSoft = $isSoft;
+        $this->isOptional = $isOptional;
     }
 
-    public function isSoft(): bool
+    public function isOptional(): bool
     {
-        return $this->isSoft;
+        return $this->isOptional;
     }
 
     public function getAction(): string

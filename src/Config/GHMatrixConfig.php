@@ -22,7 +22,7 @@ final class GHMatrixConfig
     /**
      * @var array<string, array<array<string, string>>>
      */
-    private array $softCombinations = [];
+    private array $optionalCombinations = [];
 
     public function getUser(): ?string
     {
@@ -55,12 +55,12 @@ final class GHMatrixConfig
     }
 
     /**
-     * Mark a combination as "soft" (not required in branch protection rules).
+     * Mark a combination as "optional" (not required in branch protection rules).
      *
      * @param string                $workflowName The name of the workflow
-     * @param array<string, string> $combination  The combination to mark as soft (e.g., ['php' => '8.4', 'symfony' => '~7.4'])
+     * @param array<string, string> $combination  The combination to mark as optional (e.g., ['php' => '8.4', 'symfony' => '~7.4'])
      */
-    public function markSoftCombination(string $workflowName, array $combination): void
+    public function markOptionalCombination(string $workflowName, array $combination): void
     {
         if ('' === $workflowName) {
             throw new \InvalidArgumentException('The workflow name cannot be empty.');
@@ -70,32 +70,32 @@ final class GHMatrixConfig
             throw new \InvalidArgumentException('The combination cannot be empty.');
         }
 
-        if (!isset($this->softCombinations[$workflowName])) {
-            $this->softCombinations[$workflowName] = [];
+        if (!isset($this->optionalCombinations[$workflowName])) {
+            $this->optionalCombinations[$workflowName] = [];
         }
 
-        $this->softCombinations[$workflowName][] = $combination;
+        $this->optionalCombinations[$workflowName][] = $combination;
     }
 
     /**
-     * Get all soft combinations for a specific workflow.
+     * Get all optional combinations for a specific workflow.
      *
      * @param string $workflowName The name of the workflow
      *
      * @return array<array<string, string>>
      */
-    public function getSoftCombinations(string $workflowName): array
+    public function getOptionalCombinations(string $workflowName): array
     {
-        return $this->softCombinations[$workflowName] ?? [];
+        return $this->optionalCombinations[$workflowName] ?? [];
     }
 
     /**
-     * Get all soft combinations.
+     * Get all optional combinations.
      *
      * @return array<string, array<array<string, string>>>
      */
-    public function getAllSoftCombinations(): array
+    public function getAllOptionalCombinations(): array
     {
-        return $this->softCombinations;
+        return $this->optionalCombinations;
     }
 }

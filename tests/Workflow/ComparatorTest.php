@@ -87,10 +87,10 @@ class ComparatorTest extends TestCase
         $this->assertFalse($rectorMatrix->getCombinations()['rector (8.3)']->isToSync());
     }
 
-    public function testCompareMarksSoftCombinationsCorrectly(): void
+    public function testCompareMarksOptionalCombinationsCorrectly(): void
     {
         $config = new GHMatrixConfig();
-        $config->markSoftCombination('phpunit', ['php' => '8.4']);
+        $config->markOptionalCombination('phpunit', ['php' => '8.4']);
 
         $phpunitMatrix = Matrix::createFromArray(['php' => ['8.3', '8.4']], 'phpunit.yml', 'PHPUnit Tests', 'phpunit');
         $phpunitJob    = new Job('phpunit', $phpunitMatrix);
@@ -102,14 +102,14 @@ class ComparatorTest extends TestCase
         $comparator->compare($localJobsCollection, []);
 
         $combinations = $phpunitMatrix->getCombinations();
-        $this->assertFalse($combinations['phpunit (8.3)']->isSoft());
-        $this->assertTrue($combinations['phpunit (8.4)']->isSoft());
+        $this->assertFalse($combinations['phpunit (8.3)']->isOptional());
+        $this->assertTrue($combinations['phpunit (8.4)']->isOptional());
     }
 
-    public function testCompareThrowsExceptionForInvalidSoftCombination(): void
+    public function testCompareThrowsExceptionForInvalidOptionalCombination(): void
     {
         $config = new GHMatrixConfig();
-        $config->markSoftCombination('phpunit', ['php' => '8.2']);
+        $config->markOptionalCombination('phpunit', ['php' => '8.2']);
 
         $phpunitMatrix = Matrix::createFromArray(['php' => ['8.3', '8.4']], 'phpunit.yml', 'PHPUnit Tests', 'phpunit');
         $phpunitJob    = new Job('phpunit', $phpunitMatrix);
@@ -120,15 +120,15 @@ class ComparatorTest extends TestCase
         $comparator = new Comparator($config);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('The soft combination {"php":"8.2"} for workflow "phpunit" does not exist in the matrix or is explicitly excluded.');
+        $this->expectExceptionMessage('The optional combination {"php":"8.2"} for workflow "phpunit" does not exist in the matrix or is explicitly excluded.');
 
         $comparator->compare($localJobsCollection, []);
     }
 
-    public function testCompareThrowsExceptionForExcludedSoftCombination(): void
+    public function testCompareThrowsExceptionForExcludedOptionalCombination(): void
     {
         $config = new GHMatrixConfig();
-        $config->markSoftCombination('phpunit', ['php' => '8.3', 'symfony' => '~6.4']);
+        $config->markOptionalCombination('phpunit', ['php' => '8.3', 'symfony' => '~6.4']);
 
         $matrix = [
             'php'     => ['8.3', '8.4'],
@@ -146,15 +146,15 @@ class ComparatorTest extends TestCase
         $comparator = new Comparator($config);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('The soft combination {"php":"8.3","symfony":"~6.4"} for workflow "phpunit" does not exist in the matrix or is explicitly excluded.');
+        $this->expectExceptionMessage('The optional combination {"php":"8.3","symfony":"~6.4"} for workflow "phpunit" does not exist in the matrix or is explicitly excluded.');
 
         $comparator->compare($localJobsCollection, []);
     }
 
-    public function testCompareSupportsSoftCombinationsWithPartialMatch(): void
+    public function testCompareSupportsOptionalCombinationsWithPartialMatch(): void
     {
         $config = new GHMatrixConfig();
-        $config->markSoftCombination('phpunit', ['php' => '8.4']);
+        $config->markOptionalCombination('phpunit', ['php' => '8.4']);
 
         $matrix = [
             'php'     => ['8.3', '8.4'],
@@ -170,17 +170,17 @@ class ComparatorTest extends TestCase
         $comparator->compare($localJobsCollection, []);
 
         $combinations = $phpunitMatrix->getCombinations();
-        // PHP 8.4 with any symfony version should be marked as soft
-        $this->assertFalse($combinations['phpunit (8.3, ~6.4)']->isSoft());
-        $this->assertFalse($combinations['phpunit (8.3, ~7.4)']->isSoft());
-        $this->assertTrue($combinations['phpunit (8.4, ~6.4)']->isSoft());
-        $this->assertTrue($combinations['phpunit (8.4, ~7.4)']->isSoft());
+        // PHP 8.4 with any symfony version should be marked as optional
+        $this->assertFalse($combinations['phpunit (8.3, ~6.4)']->isOptional());
+        $this->assertFalse($combinations['phpunit (8.3, ~7.4)']->isOptional());
+        $this->assertTrue($combinations['phpunit (8.4, ~6.4)']->isOptional());
+        $this->assertTrue($combinations['phpunit (8.4, ~7.4)']->isOptional());
     }
 
-    public function testCompareExcludesSoftCombinationsFromJobIds(): void
+    public function testCompareExcludesOptionalCombinationsFromJobIds(): void
     {
         $config = new GHMatrixConfig();
-        $config->markSoftCombination('phpunit', ['php' => '8.4']);
+        $config->markOptionalCombination('phpunit', ['php' => '8.4']);
 
         $phpunitMatrix = Matrix::createFromArray(['php' => ['8.3', '8.4']], 'phpunit.yml', 'PHPUnit Tests', 'phpunit');
         $phpunitJob    = new Job('phpunit', $phpunitMatrix);

@@ -298,53 +298,53 @@ class CombinationTest extends TestCase
         $this->assertTrue($self->contains($other));
     }
 
-    public function testSetIsSoftEnablesSoftByDefault(): void
+    public function testSetIsOptionalEnablesOptionalByDefault(): void
     {
         $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
-        $instance->setIsSoft();
+        $instance->setIsOptional();
 
-        $this->assertTrue($instance->isSoft());
+        $this->assertTrue($instance->isOptional());
     }
 
-    public function testSetIsSoftDisablesSoftWhenSetToFalse(): void
+    public function testSetIsOptionalDisablesOptionalWhenSetToFalse(): void
     {
         $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
-        $instance->setIsSoft(false);
+        $instance->setIsOptional(false);
 
-        $this->assertFalse($instance->isSoft());
+        $this->assertFalse($instance->isOptional());
     }
 
-    public function testSetIsSoftUpdatesBasedOnRepeatedCalls(): void
+    public function testSetIsOptionalUpdatesBasedOnRepeatedCalls(): void
     {
         $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
 
-        $instance->setIsSoft(true);
-        $this->assertTrue($instance->isSoft());
+        $instance->setIsOptional(true);
+        $this->assertTrue($instance->isOptional());
 
-        $instance->setIsSoft(false);
-        $this->assertFalse($instance->isSoft());
+        $instance->setIsOptional(false);
+        $this->assertFalse($instance->isOptional());
     }
 
-    public function testIsSoftDefaultsToFalse(): void
+    public function testIsOptionalDefaultsToFalse(): void
     {
         $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
 
-        $this->assertFalse($instance->isSoft());
+        $this->assertFalse($instance->isOptional());
     }
 
-    public function testIsSoftReturnsTrueWhenSetToTrue(): void
+    public function testIsOptionalReturnsTrueWhenSetToTrue(): void
     {
         $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
-        $instance->setIsSoft(true);
+        $instance->setIsOptional(true);
 
-        $this->assertTrue($instance->isSoft());
+        $this->assertTrue($instance->isOptional());
     }
 
-    public function testIsSoftReturnsFalseWhenSetToFalse(): void
+    public function testIsOptionalReturnsFalseWhenSetToFalse(): void
     {
         $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
-        $instance->setIsSoft(false);
+        $instance->setIsOptional(false);
 
-        $this->assertFalse($instance->isSoft());
+        $this->assertFalse($instance->isOptional());
     }
 }

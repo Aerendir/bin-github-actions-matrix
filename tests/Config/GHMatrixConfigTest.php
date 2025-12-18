@@ -93,20 +93,20 @@ class GHMatrixConfigTest extends TestCase
         $this->assertNull($config->getTokenFile());
     }
 
-    public function testMarkSoftCombinationAddsValidCombination(): void
+    public function testMarkOptionalCombinationAddsValidCombination(): void
     {
         $config       = new GHMatrixConfig();
         $workflowName = 'phpunit';
         $combination  = ['php' => '8.4', 'symfony' => '~7.4'];
 
-        $config->markSoftCombination($workflowName, $combination);
+        $config->markOptionalCombination($workflowName, $combination);
 
-        $softCombinations = $config->getSoftCombinations($workflowName);
-        $this->assertCount(1, $softCombinations);
-        $this->assertSame($combination, $softCombinations[0]);
+        $optionalCombinations = $config->getOptionalCombinations($workflowName);
+        $this->assertCount(1, $optionalCombinations);
+        $this->assertSame($combination, $optionalCombinations[0]);
     }
 
-    public function testMarkSoftCombinationThrowsExceptionForEmptyCombination(): void
+    public function testMarkOptionalCombinationThrowsExceptionForEmptyCombination(): void
     {
         $config       = new GHMatrixConfig();
         $workflowName = 'phpunit';
@@ -114,77 +114,77 @@ class GHMatrixConfigTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('The combination cannot be empty.');
 
-        $config->markSoftCombination($workflowName, []);
+        $config->markOptionalCombination($workflowName, []);
     }
 
-    public function testMarkSoftCombinationThrowsExceptionForEmptyWorkflowName(): void
+    public function testMarkOptionalCombinationThrowsExceptionForEmptyWorkflowName(): void
     {
         $config = new GHMatrixConfig();
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('The workflow name cannot be empty.');
 
-        $config->markSoftCombination('', ['php' => '8.4']);
+        $config->markOptionalCombination('', ['php' => '8.4']);
     }
 
-    public function testMarkSoftCombinationSupportsMultipleCombinations(): void
+    public function testMarkOptionalCombinationSupportsMultipleCombinations(): void
     {
         $config        = new GHMatrixConfig();
         $workflowName  = 'phpunit';
         $combination1  = ['php' => '8.4'];
         $combination2  = ['php' => '8.3', 'symfony' => '~8.0'];
 
-        $config->markSoftCombination($workflowName, $combination1);
-        $config->markSoftCombination($workflowName, $combination2);
+        $config->markOptionalCombination($workflowName, $combination1);
+        $config->markOptionalCombination($workflowName, $combination2);
 
-        $softCombinations = $config->getSoftCombinations($workflowName);
-        $this->assertCount(2, $softCombinations);
-        $this->assertSame($combination1, $softCombinations[0]);
-        $this->assertSame($combination2, $softCombinations[1]);
+        $optionalCombinations = $config->getOptionalCombinations($workflowName);
+        $this->assertCount(2, $optionalCombinations);
+        $this->assertSame($combination1, $optionalCombinations[0]);
+        $this->assertSame($combination2, $optionalCombinations[1]);
     }
 
-    public function testGetSoftCombinationsReturnsEmptyArrayWhenNoSoftCombinations(): void
+    public function testGetOptionalCombinationsReturnsEmptyArrayWhenNoOptionalCombinations(): void
     {
         $config = new GHMatrixConfig();
 
-        $this->assertSame([], $config->getSoftCombinations('phpunit'));
+        $this->assertSame([], $config->getOptionalCombinations('phpunit'));
     }
 
-    public function testMarkSoftCombinationSupportsMultipleWorkflows(): void
+    public function testMarkOptionalCombinationSupportsMultipleWorkflows(): void
     {
         $config           = new GHMatrixConfig();
         $phpunitCombo     = ['php' => '8.4'];
         $rectorCombo      = ['php' => '8.3'];
 
-        $config->markSoftCombination('phpunit', $phpunitCombo);
-        $config->markSoftCombination('rector', $rectorCombo);
+        $config->markOptionalCombination('phpunit', $phpunitCombo);
+        $config->markOptionalCombination('rector', $rectorCombo);
 
-        $this->assertSame([$phpunitCombo], $config->getSoftCombinations('phpunit'));
-        $this->assertSame([$rectorCombo], $config->getSoftCombinations('rector'));
+        $this->assertSame([$phpunitCombo], $config->getOptionalCombinations('phpunit'));
+        $this->assertSame([$rectorCombo], $config->getOptionalCombinations('rector'));
     }
 
-    public function testGetAllSoftCombinationsReturnsAllWorkflows(): void
+    public function testGetAllOptionalCombinationsReturnsAllWorkflows(): void
     {
         $config       = new GHMatrixConfig();
         $phpunitCombo = ['php' => '8.4'];
         $rectorCombo  = ['php' => '8.3'];
 
-        $config->markSoftCombination('phpunit', $phpunitCombo);
-        $config->markSoftCombination('rector', $rectorCombo);
+        $config->markOptionalCombination('phpunit', $phpunitCombo);
+        $config->markOptionalCombination('rector', $rectorCombo);
 
-        $allSoftCombinations = $config->getAllSoftCombinations();
+        $allOptionalCombinations = $config->getAllOptionalCombinations();
 
-        $this->assertCount(2, $allSoftCombinations);
-        $this->assertArrayHasKey('phpunit', $allSoftCombinations);
-        $this->assertArrayHasKey('rector', $allSoftCombinations);
-        $this->assertSame([$phpunitCombo], $allSoftCombinations['phpunit']);
-        $this->assertSame([$rectorCombo], $allSoftCombinations['rector']);
+        $this->assertCount(2, $allOptionalCombinations);
+        $this->assertArrayHasKey('phpunit', $allOptionalCombinations);
+        $this->assertArrayHasKey('rector', $allOptionalCombinations);
+        $this->assertSame([$phpunitCombo], $allOptionalCombinations['phpunit']);
+        $this->assertSame([$rectorCombo], $allOptionalCombinations['rector']);
     }
 
-    public function testGetAllSoftCombinationsReturnsEmptyArrayInitially(): void
+    public function testGetAllOptionalCombinationsReturnsEmptyArrayInitially(): void
     {
         $config = new GHMatrixConfig();
 
-        $this->assertSame([], $config->getAllSoftCombinations());
+        $this->assertSame([], $config->getAllOptionalCombinations());
     }
 }
