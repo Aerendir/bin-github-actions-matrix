@@ -91,6 +91,12 @@ parameters:
 			path: src/Console/Command/AbstractCommand.php
 
 		-
+			message: '#^Strict comparison using \=\=\= between false and string will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 3
+			path: src/Console/Command/AbstractCommand.php
+
+		-
 			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\CompareCommand\:\:buildTableData\(\) should return array\<string, array\<string, array\<string, array\<int, array\<string, mixed\>\>\>\>\> but returns array\<string, array\<string, array\<string, list\<array\<string\>\>\>\>\>\.$#'
 			identifier: return.type
 			count: 1
