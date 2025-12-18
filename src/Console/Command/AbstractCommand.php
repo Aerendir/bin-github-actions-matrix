@@ -180,13 +180,21 @@ abstract class AbstractCommand extends Command
             // Build the full path (tokenFilePath is relative to repo root)
             $fullPath = $repoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
             
-            // Check if file exists
-            if (!file_exists($fullPath)) {
+            // Resolve the real path to prevent directory traversal attacks
+            $realPath = realpath($fullPath);
+            
+            // Verify the resolved path exists and is within the repository root
+            if (false === $realPath || !str_starts_with($realPath, realpath($repoRoot))) {
+                return null;
+            }
+            
+            // Check if it's a file (not a directory)
+            if (!is_file($realPath)) {
                 return null;
             }
             
             // Read the file content
-            $content = file_get_contents($fullPath);
+            $content = file_get_contents($realPath);
             if (false === $content) {
                 return null;
             }
@@ -195,22 +203,14 @@ abstract class AbstractCommand extends Command
             $token = trim($content);
             
             // Validate the token format using the same validation as the option
-            $validationCallback = $this->getTokenValidationCallback();
-            return $validationCallback($token);
+            if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $token)) {
+                return null;
+            }
+            
+            return $token;
         } catch (\Throwable) {
             return null;
         }
-    }
-
-    private function getTokenValidationCallback(): callable
-    {
-        return static function (mixed $gitHubToken): string {
-            if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $gitHubToken)) {
-                throw new InvalidOptionException('The GitHub Token format is invalid.');
-            }
-
-            return $gitHubToken;
-        };
     }
 
     /**

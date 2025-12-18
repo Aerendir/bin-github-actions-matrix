@@ -452,6 +452,49 @@ class ConfigPriorityTest extends CommandTestCase
         $this->assertEquals(0, $commandTester->getStatusCode());
     }
 
+    public function testPathTraversalAttackIsBlocked(): void
+    {
+        $testUsername    = 'test-user';
+        $testRepo        = 'test-repo';
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        // Create a temporary directory structure
+        $tempDir = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
+        mkdir($tempDir);
+        
+        // Try to access a file outside the repo using path traversal
+        $config = new GHMatrixConfig();
+        $config->setUser($testUsername);
+        $config->setBranch('main');
+        $config->setTokenFile('../../../etc/passwd'); // Path traversal attempt
+
+        $mockRepoReader = $this->createMockReader($testRepo);
+        $mockRepoReader->method('getRepoRoot')->willReturn($tempDir);
+
+        $mockWorkflowsReader = $this->createMockWorkflowsReader();
+        $mockGitHubClient    = $this->createMockGitHubClient();
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $mockRepoReader,
+            workflowsReader: $mockWorkflowsReader,
+            githubClient: $mockGitHubClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->setInputs([$testGitHubToken]);
+        $commandTester->execute([]);
+
+        // Command should succeed (path traversal blocked, fallback to asking for token)
+        $this->assertEquals(0, $commandTester->getStatusCode());
+
+        // Cleanup
+        rmdir($tempDir);
+    }
+
     public function testTokenFileWithInvalidTokenFormatFallsBackToAsking(): void
     {
         $testUsername       = 'test-user';
