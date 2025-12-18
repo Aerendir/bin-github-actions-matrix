@@ -149,6 +149,12 @@
       <code><![CDATA[method]]></code>
       <code><![CDATA[method]]></code>
       <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
     </UndefinedMethod>
   </file>
   <file src="tests/Console/Command/Params/Options/GitHubTokenCommandOptionTest.php">

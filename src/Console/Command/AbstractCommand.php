@@ -238,9 +238,6 @@ abstract class AbstractCommand extends Command
 
             // Resolve the repository root to its real path
             $realRepoRoot = realpath($repoRoot);
-            if (false === $realRepoRoot) {
-                return null;
-            }
 
             // Normalize to use forward slashes and ensure trailing separator
             $realRepoRoot = rtrim(str_replace('\\', '/', $realRepoRoot), '/') . '/';
@@ -250,11 +247,6 @@ abstract class AbstractCommand extends Command
 
             // Resolve the real path to prevent directory traversal attacks
             $realPath = realpath($fullPath);
-
-            // Verify the resolved path exists
-            if (false === $realPath) {
-                return null;
-            }
 
             // Normalize to use forward slashes
             $realPath = str_replace('\\', '/', $realPath);
@@ -272,9 +264,6 @@ abstract class AbstractCommand extends Command
 
             // Read the file content
             $content = file_get_contents($realPath);
-            if (false === $content) {
-                return null;
-            }
 
             // Trim whitespace and newlines
             $token = trim($content);

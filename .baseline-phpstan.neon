@@ -261,13 +261,13 @@ parameters:
 		-
 			message: '#^Call to an undefined method Aerendir\\Bin\\GitHubActionsMatrix\\Repo\\Reader\:\:method\(\)\.$#'
 			identifier: method.notFound
-			count: 5
+			count: 11
 			path: tests/Console/Command/ConfigPriorityTest.php
 
 		-
 			message: '#^Cannot call method willReturn\(\) on mixed\.$#'
 			identifier: method.nonObject
-			count: 5
+			count: 11
 			path: tests/Console/Command/ConfigPriorityTest.php
 
 		-
