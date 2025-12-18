@@ -97,12 +97,6 @@ parameters:
 			path: src/Console/Command/AbstractCommand.php
 
 		-
-			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\CompareCommand\:\:buildTableData\(\) should return array\<string, array\<string, array\<string, array\<int, array\<string, mixed\>\>\>\>\> but returns array\<string, array\<string, array\<string, list\<array\<string\>\>\>\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Console/Command/CompareCommand.php
-
-		-
 			message: '#^Parameter \#3 \$remoteJobsIds of method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\CompareCommand\:\:printResult\(\) expects array\<string\>, array given\.$#'
 			identifier: argument.type
 			count: 1
@@ -205,6 +199,12 @@ parameters:
 			path: src/ValueObject/Matrix.php
 
 		-
+			message: '#^Parameter \#1 \$combination of class Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination constructor expects array\<string, string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ValueObject/Matrix.php
+
+		-
 			message: '#^Property Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Matrix\:\:\$combinations \(array\<string, Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination\>\) does not accept array\<Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination\>\.$#'
 			identifier: assign.propertyType
 			count: 1
@@ -215,6 +215,12 @@ parameters:
 			identifier: identical.alwaysFalse
 			count: 3
 			path: src/ValueObject/Matrix.php
+
+		-
+			message: '#^Parameter \#1 \$combinations of method Aerendir\\Bin\\GitHubActionsMatrix\\Workflow\\Comparator\:\:validateAndMarkOptionalCombination\(\) expects array\<string, Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination\>, array\<Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Workflow/Comparator.php
 
 		-
 			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
@@ -305,6 +311,18 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: tests/Repo/ReaderTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertSame\(\) with array\{''PHP 8\.3'', ''MySQL''\} and array\<string, string\> will always evaluate to false\.$#'
+			identifier: method.impossibleType
+			count: 1
+			path: tests/ValueObject/CombinationTest.php
+
+		-
+			message: '#^Parameter \#1 \$combination of class Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Combination constructor expects array\<string, string\>, array\<int, string\> given\.$#'
+			identifier: argument.type
+			count: 6
+			path: tests/ValueObject/CombinationTest.php
 
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertInstanceOf\(\) with ''Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\ValueObject\\\\Matrix'' and Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Matrix will always evaluate to true\.$#'

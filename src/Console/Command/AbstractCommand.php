@@ -71,7 +71,7 @@ abstract class AbstractCommand extends Command
         $this->repoBranchCommandOption     = $repoBranchCommandOption     ?? new RepoBranchCommandOption();
         $this->repoReader                  = $repoReader                  ?? new RepoReader();
         $this->workflowsReader             = $workflowsReader             ?? new WorkflowsReader();
-        $this->comparator                  = $comparator                  ?? new Comparator();
+        $this->comparator                  = $comparator                  ?? new Comparator($this->config);
         $this->githubClient                = $githubClient                ?? Client::createWithHttpClient(new HttplugClient());
     }
 

@@ -92,4 +92,99 @@ class GHMatrixConfigTest extends TestCase
 
         $this->assertNull($config->getTokenFile());
     }
+
+    public function testMarkOptionalCombinationAddsValidCombination(): void
+    {
+        $config       = new GHMatrixConfig();
+        $workflowName = 'phpunit';
+        $combination  = ['php' => '8.4', 'symfony' => '~7.4'];
+
+        $config->markOptionalCombination($workflowName, $combination);
+
+        $optionalCombinations = $config->getOptionalCombinations($workflowName);
+        $this->assertCount(1, $optionalCombinations);
+        $this->assertSame($combination, $optionalCombinations[0]);
+    }
+
+    public function testMarkOptionalCombinationThrowsExceptionForEmptyCombination(): void
+    {
+        $config       = new GHMatrixConfig();
+        $workflowName = 'phpunit';
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The combination cannot be empty.');
+
+        $config->markOptionalCombination($workflowName, []);
+    }
+
+    public function testMarkOptionalCombinationThrowsExceptionForEmptyWorkflowName(): void
+    {
+        $config = new GHMatrixConfig();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The workflow name cannot be empty.');
+
+        $config->markOptionalCombination('', ['php' => '8.4']);
+    }
+
+    public function testMarkOptionalCombinationSupportsMultipleCombinations(): void
+    {
+        $config        = new GHMatrixConfig();
+        $workflowName  = 'phpunit';
+        $combination1  = ['php' => '8.4'];
+        $combination2  = ['php' => '8.3', 'symfony' => '~8.0'];
+
+        $config->markOptionalCombination($workflowName, $combination1);
+        $config->markOptionalCombination($workflowName, $combination2);
+
+        $optionalCombinations = $config->getOptionalCombinations($workflowName);
+        $this->assertCount(2, $optionalCombinations);
+        $this->assertSame($combination1, $optionalCombinations[0]);
+        $this->assertSame($combination2, $optionalCombinations[1]);
+    }
+
+    public function testGetOptionalCombinationsReturnsEmptyArrayWhenNoOptionalCombinations(): void
+    {
+        $config = new GHMatrixConfig();
+
+        $this->assertSame([], $config->getOptionalCombinations('phpunit'));
+    }
+
+    public function testMarkOptionalCombinationSupportsMultipleWorkflows(): void
+    {
+        $config           = new GHMatrixConfig();
+        $phpunitCombo     = ['php' => '8.4'];
+        $rectorCombo      = ['php' => '8.3'];
+
+        $config->markOptionalCombination('phpunit', $phpunitCombo);
+        $config->markOptionalCombination('rector', $rectorCombo);
+
+        $this->assertSame([$phpunitCombo], $config->getOptionalCombinations('phpunit'));
+        $this->assertSame([$rectorCombo], $config->getOptionalCombinations('rector'));
+    }
+
+    public function testGetAllOptionalCombinationsReturnsAllWorkflows(): void
+    {
+        $config       = new GHMatrixConfig();
+        $phpunitCombo = ['php' => '8.4'];
+        $rectorCombo  = ['php' => '8.3'];
+
+        $config->markOptionalCombination('phpunit', $phpunitCombo);
+        $config->markOptionalCombination('rector', $rectorCombo);
+
+        $allOptionalCombinations = $config->getAllOptionalCombinations();
+
+        $this->assertCount(2, $allOptionalCombinations);
+        $this->assertArrayHasKey('phpunit', $allOptionalCombinations);
+        $this->assertArrayHasKey('rector', $allOptionalCombinations);
+        $this->assertSame([$phpunitCombo], $allOptionalCombinations['phpunit']);
+        $this->assertSame([$rectorCombo], $allOptionalCombinations['rector']);
+    }
+
+    public function testGetAllOptionalCombinationsReturnsEmptyArrayInitially(): void
+    {
+        $config = new GHMatrixConfig();
+
+        $this->assertSame([], $config->getAllOptionalCombinations());
+    }
 }

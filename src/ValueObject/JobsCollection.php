@@ -75,7 +75,9 @@ class JobsCollection
             $ids = [];
             foreach ($this->getJobs() as $job) {
                 foreach ($job->getMatrix()->getCombinations() as $combination) {
-                    $ids[] = (string) $combination;
+                    if (false === $combination->isOptional()) {
+                        $ids[] = (string) $combination;
+                    }
                 }
             }
 
