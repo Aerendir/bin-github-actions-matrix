@@ -318,7 +318,7 @@ class ConfigPriorityTest extends CommandTestCase
 
         // Command should succeed using config branch 'develop'
         $this->assertEquals(0, $commandTester->getStatusCode());
-        
+
         // Should NOT contain warning since branch is valid
         $output = $commandTester->getDisplay();
         $this->assertStringNotContainsString('Warning', $output);

@@ -255,7 +255,7 @@ parameters:
 		-
 			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertInstanceOf\(\) with ''Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Application'' and Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Application will always evaluate to true\.$#'
 			identifier: method.alreadyNarrowedType
-			count: 5
+			count: 6
 			path: tests/Console/ApplicationConfigTest.php
 
 		-

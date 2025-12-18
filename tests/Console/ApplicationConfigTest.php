@@ -21,6 +21,7 @@ use function Safe\file_put_contents;
 use function Safe\getcwd;
 use function Safe\mkdir;
 use function Safe\rmdir;
+use function Safe\symlink;
 use function Safe\unlink;
 
 class ApplicationConfigTest extends TestCase
@@ -184,15 +185,14 @@ PHP;
 
         // Create symlink in temp dir pointing to config in another dir
         chdir($tempDir);
-        if (symlink($symlinkDir . '/gh-actions-matrix.php', $tempDir . '/gh-actions-matrix.php')) {
-            $application = new Application();
+        symlink($symlinkDir . '/gh-actions-matrix.php', $tempDir . '/gh-actions-matrix.php');
+        $application = new Application();
 
-            // Application should work but should not load symlinked config from outside directory
-            $this->assertInstanceOf(Application::class, $application);
+        // Application should work but should not load symlinked config from outside directory
+        $this->assertInstanceOf(Application::class, $application);
 
-            // Clean up
-            unlink($tempDir . '/gh-actions-matrix.php');
-        }
+        // Clean up
+        unlink($tempDir . '/gh-actions-matrix.php');
 
         unlink($symlinkDir . '/gh-actions-matrix.php');
         rmdir($symlinkDir);
