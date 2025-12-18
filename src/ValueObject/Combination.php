@@ -19,11 +19,12 @@ class Combination implements \Stringable
     final public const string ACTION_SYNC    = 'Sync';
     final public const string ACTION_REMOVE  = 'Remove';
 
-    private bool $toSync   = false;
-    private bool $toRemove = false;
+    private bool $toSync     = false;
+    private bool $toRemove   = false;
+    private bool $isOptional = false;
 
     /**
-     * @param array<string> $combination
+     * @param array<string, string> $combination
      */
     public function __construct(private readonly array $combination, private readonly string $workflowFilename, private readonly string $workflowName, private readonly string $job)
     {
@@ -35,7 +36,7 @@ class Combination implements \Stringable
     }
 
     /**
-     * @return array<string>
+     * @return array<string, string>
      */
     public function getCombination(): array
     {
@@ -75,6 +76,16 @@ class Combination implements \Stringable
     public function isToSync(): bool
     {
         return $this->toSync;
+    }
+
+    public function setIsOptional(bool $isOptional = true): void
+    {
+        $this->isOptional = $isOptional;
+    }
+
+    public function isOptional(): bool
+    {
+        return $this->isOptional;
     }
 
     public function getAction(): string

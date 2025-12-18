@@ -297,4 +297,54 @@ class CombinationTest extends TestCase
 
         $this->assertTrue($self->contains($other));
     }
+
+    public function testSetIsOptionalEnablesOptionalByDefault(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+        $instance->setIsOptional();
+
+        $this->assertTrue($instance->isOptional());
+    }
+
+    public function testSetIsOptionalDisablesOptionalWhenSetToFalse(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+        $instance->setIsOptional(false);
+
+        $this->assertFalse($instance->isOptional());
+    }
+
+    public function testSetIsOptionalUpdatesBasedOnRepeatedCalls(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+
+        $instance->setIsOptional(true);
+        $this->assertTrue($instance->isOptional());
+
+        $instance->setIsOptional(false);
+        $this->assertFalse($instance->isOptional());
+    }
+
+    public function testIsOptionalDefaultsToFalse(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+
+        $this->assertFalse($instance->isOptional());
+    }
+
+    public function testIsOptionalReturnsTrueWhenSetToTrue(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+        $instance->setIsOptional(true);
+
+        $this->assertTrue($instance->isOptional());
+    }
+
+    public function testIsOptionalReturnsFalseWhenSetToFalse(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+        $instance->setIsOptional(false);
+
+        $this->assertFalse($instance->isOptional());
+    }
 }

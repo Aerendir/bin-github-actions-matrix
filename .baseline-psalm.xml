@@ -217,6 +217,14 @@
     <ClassMustBeFinal>
       <code><![CDATA[CombinationTest]]></code>
     </ClassMustBeFinal>
+    <InvalidArgument>
+      <code><![CDATA[$combination]]></code>
+      <code><![CDATA[$combination]]></code>
+      <code><![CDATA[$combination]]></code>
+      <code><![CDATA[$combination]]></code>
+      <code><![CDATA[$combination]]></code>
+      <code><![CDATA[$combination]]></code>
+    </InvalidArgument>
   </file>
   <file src="tests/ValueObject/JobsCollectionTest.php">
     <ClassMustBeFinal>
