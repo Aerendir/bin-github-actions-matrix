@@ -13,39 +13,33 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Console;
 
-use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Application;
 use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
+
+use function Safe\chdir;
+use function Safe\file_put_contents;
+use function Safe\getcwd;
+use function Safe\mkdir;
+use function Safe\rmdir;
+use function Safe\unlink;
 
 class ApplicationConfigTest extends TestCase
 {
     private string $originalDir;
 
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
         $this->originalDir = getcwd();
     }
 
+    #[\Override]
     protected function tearDown(): void
     {
         // Change back to original directory
         chdir($this->originalDir);
         parent::tearDown();
-    }
-
-    private function createConfigContent(?string $user = null, ?string $branch = null): string
-    {
-        $userLine   = null !== $user ? "\$config->setUser('$user');" : '';
-        $branchLine = null !== $branch ? "\$config->setBranch('$branch');" : '';
-
-        return <<<PHP
-<?php
-\$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
-$userLine
-$branchLine
-return \$config;
-PHP;
     }
 
     public function testApplicationLoadsPhpConfigFile(): void
@@ -176,5 +170,19 @@ PHP;
         unlink($parentDir . '/gh-actions-matrix.php');
         rmdir($childDir);
         rmdir($parentDir);
+    }
+
+    private function createConfigContent(?string $user = null, ?string $branch = null): string
+    {
+        $userLine   = null !== $user ? "\$config->setUser('{$user}');" : '';
+        $branchLine = null !== $branch ? "\$config->setBranch('{$branch}');" : '';
+
+        return <<<PHP
+<?php
+\$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
+{$userLine}
+{$branchLine}
+return \$config;
+PHP;
     }
 }

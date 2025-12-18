@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Config;
 
-class GHMatrixConfig
+final class GHMatrixConfig
 {
-    private ?string $user = null;
+    private ?string $user   = null;
     private ?string $branch = null;
 
     public function getUser(): ?string

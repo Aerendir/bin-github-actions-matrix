@@ -18,7 +18,6 @@ use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenC
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoBranchCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
-use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 

@@ -18,6 +18,9 @@ use Aerendir\Bin\GitHubActionsMatrix\Console\Command\CompareCommand;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
 use Symfony\Component\Console\Application as BaseApplication;
 
+use function Safe\getcwd;
+use function Safe\realpath;
+
 final class Application extends BaseApplication
 {
     public const string NAME    = 'Github Actions Matrix';
@@ -54,23 +57,16 @@ final class Application extends BaseApplication
                 $realConfigPath = realpath($configFile);
                 $realCurrentDir = realpath($currentDir);
 
-                // Validate both paths resolved successfully and config is within current directory
-                if (false !== $realConfigPath && false !== $realCurrentDir) {
-                    $expectedPath = $realCurrentDir . DIRECTORY_SEPARATOR . $configFileName;
-                    if ($realConfigPath === $expectedPath) {
-                        $config = require $realConfigPath;
+                // Validate config is within the current directory
+                $expectedPath = $realCurrentDir . DIRECTORY_SEPARATOR . $configFileName;
+                if ($realConfigPath === $expectedPath) {
+                    $config = require $realConfigPath;
 
-                        if (!$config instanceof GHMatrixConfig) {
-                            throw new \RuntimeException(sprintf(
-                                'The config file "%s" must return an instance of %s, got %s',
-                                $configFile,
-                                GHMatrixConfig::class,
-                                get_debug_type($config)
-                            ));
-                        }
-
-                        return $config;
+                    if ( ! $config instanceof GHMatrixConfig) {
+                        throw new \RuntimeException(sprintf('The config file "%s" must return an instance of %s, got %s', $configFile, GHMatrixConfig::class, get_debug_type($config)));
                     }
+
+                    return $config;
                 }
             }
         }
