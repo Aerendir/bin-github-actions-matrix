@@ -102,19 +102,11 @@ final class Matrix
     {
         $result = [];
         foreach ($excludedCombinations as $combination) {
-            foreach ($combination as $key => $value) {
-                if ( ! isset($result[$key])) {
-                    $result[$key] = [];
-                }
-
-                // Add value only if it does not already exist
-                if ( ! in_array($value, $result[$key], true)) {
-                    $result[$key][] = $value;
-                }
-            }
+            $combinationObject                  = new Combination($combination, $workflowFilename, $workflowName, $job);
+            $result[(string) $combinationObject] = $combinationObject;
         }
 
-        return self::generateCombinations($result, $workflowFilename, $workflowName, $job);
+        return $result;
     }
 
     /**
