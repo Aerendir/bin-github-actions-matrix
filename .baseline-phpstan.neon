@@ -91,6 +91,12 @@ parameters:
 			path: src/Console/Command/AbstractCommand.php
 
 		-
+			message: '#^Strict comparison using \=\=\= between false and string will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Console/Command/AbstractCommand.php
+
+		-
 			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\CompareCommand\:\:buildTableData\(\) should return array\<string, array\<string, array\<string, array\<int, array\<string, mixed\>\>\>\>\> but returns array\<string, array\<string, array\<string, list\<array\<string\>\>\>\>\>\.$#'
 			identifier: return.type
 			count: 1
@@ -261,13 +267,13 @@ parameters:
 		-
 			message: '#^Call to an undefined method Aerendir\\Bin\\GitHubActionsMatrix\\Repo\\Reader\:\:method\(\)\.$#'
 			identifier: method.notFound
-			count: 5
+			count: 11
 			path: tests/Console/Command/ConfigPriorityTest.php
 
 		-
 			message: '#^Cannot call method willReturn\(\) on mixed\.$#'
 			identifier: method.nonObject
-			count: 5
+			count: 11
 			path: tests/Console/Command/ConfigPriorityTest.php
 
 		-

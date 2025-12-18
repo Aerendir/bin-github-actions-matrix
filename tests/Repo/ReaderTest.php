@@ -168,4 +168,32 @@ class ReaderTest extends TestCase
 
         $this->assertEmpty($result);
     }
+
+    public function testGetRepoRootReturnsRepoRootPath(): void
+    {
+        $shell = $this->createMock(Shell::class);
+        $shell
+            ->expects(self::once())
+            ->method('exec')
+            ->with('git rev-parse --show-toplevel')
+            ->willReturn("/home/user/project\n");
+
+        $reader = new Reader($shell);
+        $this->assertSame('/home/user/project', $reader->getRepoRoot());
+    }
+
+    public function testGetRepoRootThrowsOnEmptyOutput(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Cannot find the root of the git repository.');
+
+        $shell = $this->createMock(Shell::class);
+        $shell
+            ->method('exec')
+            ->with('git rev-parse --show-toplevel')
+            ->willReturn('');
+
+        $reader = new Reader($shell);
+        $reader->getRepoRoot();
+    }
 }

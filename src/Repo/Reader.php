@@ -60,6 +60,17 @@ readonly class Reader
         return $repoName;
     }
 
+    public function getRepoRoot(): string
+    {
+        $repoRoot = trim($this->shell->exec('git rev-parse --show-toplevel'));
+
+        if ('' === $repoRoot || '0' === $repoRoot) {
+            throw new \RuntimeException('Cannot find the root of the git repository.');
+        }
+
+        return $repoRoot;
+    }
+
     /**
      * @param array<array-key, array{
      *     name: string,
