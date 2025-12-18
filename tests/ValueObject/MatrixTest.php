@@ -292,12 +292,11 @@ class MatrixTest extends TestCase
     }
 
     /**
-     * @dataProvider combinationsDataProvider
-     *
      * @param array<string, mixed> $matrixInput
      * @param array<string>        $expectedCombinations
      * @param array<string>        $excludedCombinations
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('combinationsDataProvider')]
     public function testCombinations(array $matrixInput, array $expectedCombinations, array $excludedCombinations): void
     {
         $matrix = Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPunit', 'phpunit');
@@ -319,13 +318,13 @@ class MatrixTest extends TestCase
     }
 
     /**
-     * @return array<string, array{0: array<string, mixed>, 1: array<string>, 2: array<string>}>
+     * @return array<string, array<string, mixed>>
      */
     public static function combinationsDataProvider(): array
     {
         return [
             'Issue: Some combinations are skipped incorrectly' => [
-                [
+                'matrixInput' => [
                     'os' => ['ubuntu-latest'],
                     'php' => ['8.1', '8.2', '8.3'],
                     'symfony' => ['~6.4', '~7.4', '~8.0'],
@@ -336,14 +335,14 @@ class MatrixTest extends TestCase
                         ['php' => '8.3', 'symfony' => '~8.0'],
                     ],
                 ],
-                [
+                'expectedCombinations' => [
                     'phpunit (ubuntu-latest, 8.1, ~6.4)',
                     'phpunit (ubuntu-latest, 8.2, ~6.4)',
                     'phpunit (ubuntu-latest, 8.2, ~7.4)',
                     'phpunit (ubuntu-latest, 8.3, ~6.4)',
                     'phpunit (ubuntu-latest, 8.3, ~7.4)',
                 ],
-                [
+                'excludedCombinations' => [
                     'phpunit (ubuntu-latest, 8.1, ~7.4)',
                     'phpunit (ubuntu-latest, 8.1, ~8.0)',
                     'phpunit (ubuntu-latest, 8.2, ~8.0)',
