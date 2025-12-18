@@ -261,12 +261,12 @@ abstract class AbstractCommand extends Command
 
             // Verify the resolved path is within the repository root
             // Using trailing slash ensures we don't match paths that start with repo path as prefix
-            if (!str_starts_with($realPath . '/', $realRepoRoot)) {
+            if ( ! str_starts_with($realPath . '/', $realRepoRoot)) {
                 return null;
             }
 
             // Check if it's a file (not a directory)
-            if (!is_file($realPath)) {
+            if ( ! is_file($realPath)) {
                 return null;
             }
 
