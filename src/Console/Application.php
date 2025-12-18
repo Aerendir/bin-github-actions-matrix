@@ -42,16 +42,21 @@ final class Application extends BaseApplication
 
         $configFile = $currentDir . '/gh-actions-matrix.php';
 
-        // Security check: ensure the file path is within the current directory
-        $realConfigPath = realpath($configFile);
-        if (false !== $realConfigPath && str_starts_with($realConfigPath, $currentDir) && file_exists($realConfigPath)) {
-            $config = require $realConfigPath;
+        // Security check: ensure the file exists and is within the current directory
+        if (file_exists($configFile)) {
+            $realConfigPath = realpath($configFile);
+            $realCurrentDir = realpath($currentDir);
 
-            if (!$config instanceof GHMatrixConfig) {
-                throw new \RuntimeException('The config file must return an instance of ' . GHMatrixConfig::class);
+            // Validate both paths resolved successfully and config is within current directory
+            if (false !== $realConfigPath && false !== $realCurrentDir && str_starts_with($realConfigPath, $realCurrentDir . DIRECTORY_SEPARATOR)) {
+                $config = require $realConfigPath;
+
+                if (!$config instanceof GHMatrixConfig) {
+                    throw new \RuntimeException('The config file must return an instance of ' . GHMatrixConfig::class);
+                }
+
+                return $config;
             }
-
-            return $config;
         }
 
         return new GHMatrixConfig();

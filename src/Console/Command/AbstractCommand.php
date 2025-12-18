@@ -151,7 +151,11 @@ abstract class AbstractCommand extends Command
             if (in_array($configBranch, $protectedBranches, true)) {
                 return $configBranch;
             }
-            // If configured branch is not in protected branches, fall through to option/prompt
+            // If configured branch is not in protected branches, warn and fall through
+            $output->writeln(sprintf(
+                '<comment>Warning: Configured branch "%s" is not in the list of protected branches. Falling back to selection.</comment>',
+                $configBranch
+            ));
         }
 
         // Otherwise, use the standard option logic
