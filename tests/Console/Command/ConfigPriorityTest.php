@@ -291,7 +291,7 @@ class ConfigPriorityTest extends CommandTestCase
         $testUsername       = 'test-user';
         $testRepo           = 'test-repo';
         $testGitHubToken    = 'ghp_1234567890abcdef1234567890abcdef1234';
-        $tokenFileToken     = 'ghp_filetoken123456789012345678901234';
+        $tokenFileToken     = 'ghp_1234567890123456789012345678901234ab';
 
         // Create a temporary token file
         $tempDir   = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
@@ -344,7 +344,7 @@ class ConfigPriorityTest extends CommandTestCase
     {
         $testUsername    = 'test-user';
         $testRepo        = 'test-repo';
-        $tokenFileToken  = 'ghp_filetoken123456789012345678901234';
+        $tokenFileToken  = 'ghp_1234567890123456789012345678901234ab';
 
         // Create a temporary token file
         $tempDir   = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
@@ -394,7 +394,7 @@ class ConfigPriorityTest extends CommandTestCase
     {
         $testUsername    = 'test-user';
         $testRepo        = 'test-repo';
-        $tokenFileToken  = 'ghp_filetoken123456789012345678901234';
+        $tokenFileToken  = 'ghp_1234567890123456789012345678901234ab';
 
         // Create a temporary token file with whitespace
         $tempDir   = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
