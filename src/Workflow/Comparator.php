@@ -107,7 +107,7 @@ class Comparator
     private function combinationMatches(array $combination, array $softCombination): bool
     {
         foreach ($softCombination as $key => $value) {
-            if ( ! array_key_exists($key, $combination) || $combination[$key] !== $value) {
+            if (!array_key_exists($key, $combination) || $combination[$key] !== $value) {
                 return false;
             }
         }

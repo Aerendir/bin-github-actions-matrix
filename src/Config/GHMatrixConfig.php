@@ -66,7 +66,7 @@ final class GHMatrixConfig
             throw new \InvalidArgumentException('The combination cannot be empty.');
         }
 
-        if ( ! isset($this->softCombinations[$workflowName])) {
+        if (!isset($this->softCombinations[$workflowName])) {
             $this->softCombinations[$workflowName] = [];
         }
 
