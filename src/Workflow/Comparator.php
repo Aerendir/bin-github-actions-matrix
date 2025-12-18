@@ -53,11 +53,6 @@ class Comparator
             return;
         }
 
-        $allSoftCombinations = $this->config->getAllSoftCombinations();
-        if ([] === $allSoftCombinations) {
-            return;
-        }
-
         foreach ($localJobs->getJobs() as $localJob) {
             $workflowName       = $localJob->getName();
             $softCombinations   = $this->config->getSoftCombinations($workflowName);

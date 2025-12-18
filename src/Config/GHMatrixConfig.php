@@ -62,6 +62,10 @@ final class GHMatrixConfig
      */
     public function markSoftCombination(string $workflowName, array $combination): void
     {
+        if ('' === $workflowName) {
+            throw new \InvalidArgumentException('The workflow name cannot be empty.');
+        }
+
         if ([] === $combination) {
             throw new \InvalidArgumentException('The combination cannot be empty.');
         }

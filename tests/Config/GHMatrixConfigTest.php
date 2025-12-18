@@ -117,6 +117,16 @@ class GHMatrixConfigTest extends TestCase
         $config->markSoftCombination($workflowName, []);
     }
 
+    public function testMarkSoftCombinationThrowsExceptionForEmptyWorkflowName(): void
+    {
+        $config = new GHMatrixConfig();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The workflow name cannot be empty.');
+
+        $config->markSoftCombination('', ['php' => '8.4']);
+    }
+
     public function testMarkSoftCombinationSupportsMultipleCombinations(): void
     {
         $config        = new GHMatrixConfig();
