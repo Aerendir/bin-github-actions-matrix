@@ -26,7 +26,6 @@ use Github\Api\Repository\Protection;
 use Github\AuthMethod;
 use Github\Client;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -183,14 +182,26 @@ abstract class AbstractCommand extends Command
                 return null;
             }
             
+            // Normalize to use forward slashes and ensure trailing separator
+            $realRepoRoot = rtrim(str_replace('\\', '/', $realRepoRoot), '/') . '/';
+            
             // Build the full path (tokenFilePath is relative to repo root)
-            $fullPath = $realRepoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
+            $fullPath = $repoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
             
             // Resolve the real path to prevent directory traversal attacks
             $realPath = realpath($fullPath);
             
-            // Verify the resolved path exists and is within the repository root
-            if (false === $realPath || !str_starts_with($realPath, $realRepoRoot)) {
+            // Verify the resolved path exists
+            if (false === $realPath) {
+                return null;
+            }
+            
+            // Normalize to use forward slashes
+            $realPath = str_replace('\\', '/', $realPath);
+            
+            // Verify the resolved path is within the repository root
+            // Using trailing slash ensures we don't match paths that start with repo path as prefix
+            if (!str_starts_with($realPath . '/', $realRepoRoot)) {
                 return null;
             }
             
