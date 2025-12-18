@@ -34,19 +34,27 @@ class ApplicationConfigTest extends TestCase
         parent::tearDown();
     }
 
+    private function createConfigContent(?string $user = null, ?string $branch = null): string
+    {
+        $userLine   = null !== $user ? "\$config->setUser('$user');" : '';
+        $branchLine = null !== $branch ? "\$config->setBranch('$branch');" : '';
+
+        return <<<PHP
+<?php
+\$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
+$userLine
+$branchLine
+return \$config;
+PHP;
+    }
+
     public function testApplicationLoadsPhpConfigFile(): void
     {
         $tempDir = sys_get_temp_dir() . '/ghmatrix-test-' . uniqid();
         mkdir($tempDir);
         chdir($tempDir);
 
-        $configContent = <<<'PHP'
-<?php
-$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
-$config->setUser('test-user');
-$config->setBranch('main');
-return $config;
-PHP;
+        $configContent = $this->createConfigContent('test-user', 'main');
 
         file_put_contents($tempDir . '/gh-actions-matrix.php', $configContent);
 
@@ -66,13 +74,7 @@ PHP;
         mkdir($tempDir);
         chdir($tempDir);
 
-        $configContent = <<<'PHP'
-<?php
-$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
-$config->setUser('dist-user');
-$config->setBranch('develop');
-return $config;
-PHP;
+        $configContent = $this->createConfigContent('dist-user', 'develop');
 
         file_put_contents($tempDir . '/gh-actions-matrix.dist.php', $configContent);
 
@@ -92,19 +94,8 @@ PHP;
         mkdir($tempDir);
         chdir($tempDir);
 
-        $phpConfigContent = <<<'PHP'
-<?php
-$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
-$config->setUser('php-user');
-return $config;
-PHP;
-
-        $distConfigContent = <<<'PHP'
-<?php
-$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
-$config->setUser('dist-user');
-return $config;
-PHP;
+        $phpConfigContent  = $this->createConfigContent('php-user');
+        $distConfigContent = $this->createConfigContent('dist-user');
 
         file_put_contents($tempDir . '/gh-actions-matrix.php', $phpConfigContent);
         file_put_contents($tempDir . '/gh-actions-matrix.dist.php', $distConfigContent);
@@ -148,14 +139,20 @@ PHP;
 
         file_put_contents($tempDir . '/gh-actions-matrix.php', $invalidConfigContent);
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('must return an instance of');
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('must return an instance of');
 
-        new Application();
-
-        // Clean up
-        unlink($tempDir . '/gh-actions-matrix.php');
-        rmdir($tempDir);
+            new Application();
+        } finally {
+            // Clean up - ensure this runs even if assertion fails
+            if (file_exists($tempDir . '/gh-actions-matrix.php')) {
+                unlink($tempDir . '/gh-actions-matrix.php');
+            }
+            if (is_dir($tempDir)) {
+                rmdir($tempDir);
+            }
+        }
     }
 
     public function testApplicationRejectsConfigFromParentDirectory(): void
@@ -165,12 +162,7 @@ PHP;
         mkdir($parentDir);
         mkdir($childDir);
 
-        $configContent = <<<'PHP'
-<?php
-$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
-$config->setUser('parent-user');
-return $config;
-PHP;
+        $configContent = $this->createConfigContent('parent-user');
 
         file_put_contents($parentDir . '/gh-actions-matrix.php', $configContent);
         chdir($childDir);
