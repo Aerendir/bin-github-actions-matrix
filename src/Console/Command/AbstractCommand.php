@@ -147,7 +147,11 @@ abstract class AbstractCommand extends Command
         // First, try to get from config
         $configBranch = $this->config->getBranch();
         if (null !== $configBranch) {
-            return $configBranch;
+            // Validate that the configured branch exists in protected branches
+            if (in_array($configBranch, $protectedBranches, true)) {
+                return $configBranch;
+            }
+            // If configured branch is not in protected branches, fall through to option/prompt
         }
 
         // Otherwise, use the standard option logic

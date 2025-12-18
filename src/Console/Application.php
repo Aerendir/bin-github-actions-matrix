@@ -35,10 +35,17 @@ final class Application extends BaseApplication
 
     private function loadConfig(): GHMatrixConfig
     {
-        $configFile = getcwd() . '/gh-actions-matrix.php';
+        $currentDir = getcwd();
+        if (false === $currentDir) {
+            return new GHMatrixConfig();
+        }
 
-        if (file_exists($configFile)) {
-            $config = require $configFile;
+        $configFile = $currentDir . '/gh-actions-matrix.php';
+
+        // Security check: ensure the file path is within the current directory
+        $realConfigPath = realpath($configFile);
+        if (false !== $realConfigPath && str_starts_with($realConfigPath, $currentDir) && file_exists($realConfigPath)) {
+            $config = require $realConfigPath;
 
             if (!$config instanceof GHMatrixConfig) {
                 throw new \RuntimeException('The config file must return an instance of ' . GHMatrixConfig::class);
