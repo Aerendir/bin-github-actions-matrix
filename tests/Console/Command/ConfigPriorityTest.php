@@ -22,6 +22,11 @@ use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
+use function Safe\file_put_contents;
+use function Safe\mkdir;
+use function Safe\rmdir;
+use function Safe\unlink;
+
 class ConfigPriorityTest extends CommandTestCase
 {
     public function testCliOptionOverridesConfigForUsername(): void
@@ -479,7 +484,7 @@ class ConfigPriorityTest extends CommandTestCase
         // Create a temporary directory structure
         $tempDir = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
         mkdir($tempDir, 0777, true);
-        
+
         try {
             // Try to access a file outside the repo using path traversal
             $config = new GHMatrixConfig();

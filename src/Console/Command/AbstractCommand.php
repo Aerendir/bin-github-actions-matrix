@@ -32,7 +32,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpClient\HttplugClient;
 
+use function Safe\file_get_contents;
 use function Safe\preg_match;
+use function Safe\realpath;
 
 abstract class AbstractCommand extends Command
 {
@@ -170,66 +172,6 @@ abstract class AbstractCommand extends Command
         return $this->gitHubTokenCommandOption->getValueOrAsk($input, $output, $questionHelper);
     }
 
-    private function readTokenFromFile(string $tokenFilePath): ?string
-    {
-        try {
-            // Get the repository root
-            $repoRoot = $this->repoReader->getRepoRoot();
-            
-            // Resolve the repository root to its real path
-            $realRepoRoot = realpath($repoRoot);
-            if (false === $realRepoRoot) {
-                return null;
-            }
-            
-            // Normalize to use forward slashes and ensure trailing separator
-            $realRepoRoot = rtrim(str_replace('\\', '/', $realRepoRoot), '/') . '/';
-            
-            // Build the full path (tokenFilePath is relative to repo root)
-            $fullPath = $repoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
-            
-            // Resolve the real path to prevent directory traversal attacks
-            $realPath = realpath($fullPath);
-            
-            // Verify the resolved path exists
-            if (false === $realPath) {
-                return null;
-            }
-            
-            // Normalize to use forward slashes
-            $realPath = str_replace('\\', '/', $realPath);
-            
-            // Verify the resolved path is within the repository root
-            // Using trailing slash ensures we don't match paths that start with repo path as prefix
-            if (!str_starts_with($realPath . '/', $realRepoRoot)) {
-                return null;
-            }
-            
-            // Check if it's a file (not a directory)
-            if (!is_file($realPath)) {
-                return null;
-            }
-            
-            // Read the file content
-            $content = file_get_contents($realPath);
-            if (false === $content) {
-                return null;
-            }
-            
-            // Trim whitespace and newlines
-            $token = trim($content);
-            
-            // Validate the token format using the same validation as the option
-            if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $token)) {
-                return null;
-            }
-            
-            return $token;
-        } catch (\Throwable) {
-            return null;
-        }
-    }
-
     /**
      * @param array<array-key, string> $protectedBranches
      */
@@ -286,5 +228,65 @@ abstract class AbstractCommand extends Command
     protected function getCombinationsToRemove(): array
     {
         return $this->combinationsToRemove;
+    }
+
+    private function readTokenFromFile(string $tokenFilePath): ?string
+    {
+        try {
+            // Get the repository root
+            $repoRoot = $this->repoReader->getRepoRoot();
+
+            // Resolve the repository root to its real path
+            $realRepoRoot = realpath($repoRoot);
+            if (false === $realRepoRoot) {
+                return null;
+            }
+
+            // Normalize to use forward slashes and ensure trailing separator
+            $realRepoRoot = rtrim(str_replace('\\', '/', $realRepoRoot), '/') . '/';
+
+            // Build the full path (tokenFilePath is relative to repo root)
+            $fullPath = $repoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
+
+            // Resolve the real path to prevent directory traversal attacks
+            $realPath = realpath($fullPath);
+
+            // Verify the resolved path exists
+            if (false === $realPath) {
+                return null;
+            }
+
+            // Normalize to use forward slashes
+            $realPath = str_replace('\\', '/', $realPath);
+
+            // Verify the resolved path is within the repository root
+            // Using trailing slash ensures we don't match paths that start with repo path as prefix
+            if ( ! str_starts_with($realPath . '/', $realRepoRoot)) {
+                return null;
+            }
+
+            // Check if it's a file (not a directory)
+            if ( ! is_file($realPath)) {
+                return null;
+            }
+
+            // Read the file content
+            $content = file_get_contents($realPath);
+            if (false === $content) {
+                return null;
+            }
+
+            // Trim whitespace and newlines
+            $token = trim($content);
+
+            // Validate the token format using the same validation as the option
+            if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $token)) {
+                return null;
+            }
+
+            return $token;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

@@ -64,7 +64,7 @@ readonly class Reader
     {
         $repoRoot = trim($this->shell->exec('git rev-parse --show-toplevel'));
 
-        if (empty($repoRoot)) {
+        if ('' === $repoRoot || '0' === $repoRoot) {
             throw new \RuntimeException('Cannot find the root of the git repository.');
         }
 
