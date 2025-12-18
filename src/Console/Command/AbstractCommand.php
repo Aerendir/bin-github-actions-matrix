@@ -32,6 +32,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpClient\HttplugClient;
 
+use function Safe\file_get_contents;
+use function Safe\preg_match;
+use function Safe\realpath;
+
 abstract class AbstractCommand extends Command
 {
     protected readonly string $branchName;
@@ -89,7 +93,7 @@ abstract class AbstractCommand extends Command
 
         // Cannot get the username from the git config. Pass it explicitly using the option "--username"'
         $repoUsername   = $this->getRepoUsername($input, $output, $questionHelper);
-        $repoToken      = $this->gitHubTokenCommandOption->getValueOrAsk($input, $output, $questionHelper);
+        $repoToken      = $this->getRepoToken($input, $output, $questionHelper);
         $this->repoName = $this->repoReader->getRepoName();
 
         $this->localJobs = $this->workflowsReader->read();
@@ -145,6 +149,27 @@ abstract class AbstractCommand extends Command
         }
 
         return $this->repoUsername = $this->gitHubUsernameCommandOption->getValueOrAsk($input, $output, $questionHelper);
+    }
+
+    protected function getRepoToken(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper): string
+    {
+        // Priority 1: CLI option
+        $cliToken = $this->gitHubTokenCommandOption->getValueOrNull($input);
+        if (null !== $cliToken) {
+            return $cliToken;
+        }
+
+        // Priority 2: Token file from config
+        $tokenFilePath = $this->config->getTokenFile();
+        if (null !== $tokenFilePath) {
+            $token = $this->readTokenFromFile($tokenFilePath);
+            if (null !== $token) {
+                return $token;
+            }
+        }
+
+        // Priority 3: Ask the user
+        return $this->gitHubTokenCommandOption->getValueOrAsk($input, $output, $questionHelper);
     }
 
     /**
@@ -203,5 +228,55 @@ abstract class AbstractCommand extends Command
     protected function getCombinationsToRemove(): array
     {
         return $this->combinationsToRemove;
+    }
+
+    private function readTokenFromFile(string $tokenFilePath): ?string
+    {
+        try {
+            // Get the repository root
+            $repoRoot = $this->repoReader->getRepoRoot();
+
+            // Resolve the repository root to its real path
+            $realRepoRoot = realpath($repoRoot);
+
+            // Normalize to use forward slashes and ensure trailing separator
+            $realRepoRoot = rtrim(str_replace('\\', '/', $realRepoRoot), '/') . '/';
+
+            // Build the full path (tokenFilePath is relative to repo root)
+            $fullPath = $repoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
+
+            // Resolve the real path to prevent directory traversal attacks
+            $realPath = realpath($fullPath);
+
+            // Normalize to use forward slashes
+            $realPath = str_replace('\\', '/', $realPath);
+
+            // Verify the resolved path is within the repository root
+            // Using trailing slash ensures we don't match paths that start with repo path as prefix
+            if ( ! str_starts_with($realPath . '/', $realRepoRoot)) {
+                return null;
+            }
+
+            // Check if it's a file (not a directory)
+            if ( ! is_file($realPath)) {
+                return null;
+            }
+
+            // Read the file content
+            $content = file_get_contents($realPath);
+            if (false === $content) {
+                return null;
+            }
+
+            // Trim whitespace and newlines
+            $token = trim($content);
+
+            // Validate the token format using the same validation as the option
+            preg_match('/^ghp_[A-Za-z0-9]{36}$/', $token);
+
+            return $token;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

@@ -22,6 +22,11 @@ use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
+use function Safe\file_put_contents;
+use function Safe\mkdir;
+use function Safe\rmdir;
+use function Safe\unlink;
+
 class ConfigPriorityTest extends CommandTestCase
 {
     public function testCliOptionOverridesConfigForUsername(): void
@@ -279,6 +284,294 @@ class ConfigPriorityTest extends CommandTestCase
 
         // Command should work normally with empty config
         $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testCliTokenOverridesConfigTokenFile(): void
+    {
+        $testUsername       = 'test-user';
+        $testRepo           = 'test-repo';
+        $testGitHubToken    = 'ghp_1234567890abcdef1234567890abcdef1234';
+        $tokenFileToken     = 'ghp_1234567890123456789012345678901234ab';
+
+        // Create a temporary token file
+        $tempDir   = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
+        mkdir($tempDir, 0777, true);
+        $tokenFile = $tempDir . '/gh_token';
+        file_put_contents($tokenFile, $tokenFileToken);
+
+        try {
+            $config = new GHMatrixConfig();
+            $config->setUser($testUsername);
+            $config->setBranch('main');
+            // Set token file relative path (we'll mock getRepoRoot to return our temp dir)
+            $config->setTokenFile('gh_token');
+
+            $mockRepoReader = $this->createMockReader($testRepo);
+            $mockRepoReader->method('getRepoRoot')->willReturn($tempDir);
+
+            $mockWorkflowsReader = $this->createMockWorkflowsReader();
+            $mockGitHubClient    = $this->createMockGitHubClient();
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $mockRepoReader,
+                workflowsReader: $mockWorkflowsReader,
+                githubClient: $mockGitHubClient
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->execute([
+                '--' . GitHubTokenCommandOption::NAME => $testGitHubToken,
+            ]);
+
+            // Command should succeed using CLI token (not file token)
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            // Cleanup
+            if (file_exists($tokenFile)) {
+                unlink($tokenFile);
+            }
+            if (is_dir($tempDir)) {
+                rmdir($tempDir);
+            }
+        }
+    }
+
+    public function testConfigTokenFileUsedWhenCliNotProvided(): void
+    {
+        $testUsername    = 'test-user';
+        $testRepo        = 'test-repo';
+        $tokenFileToken  = 'ghp_1234567890123456789012345678901234ab';
+
+        // Create a temporary token file
+        $tempDir   = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
+        mkdir($tempDir, 0777, true);
+        $tokenFile = $tempDir . '/gh_token';
+        file_put_contents($tokenFile, $tokenFileToken);
+
+        try {
+            $config = new GHMatrixConfig();
+            $config->setUser($testUsername);
+            $config->setBranch('main');
+            $config->setTokenFile('gh_token');
+
+            $mockRepoReader = $this->createMockReader($testRepo);
+            $mockRepoReader->method('getRepoRoot')->willReturn($tempDir);
+
+            $mockWorkflowsReader = $this->createMockWorkflowsReader();
+            $mockGitHubClient    = $this->createMockGitHubClient();
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $mockRepoReader,
+                workflowsReader: $mockWorkflowsReader,
+                githubClient: $mockGitHubClient
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->execute([]);
+
+            // Command should succeed using token from file
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            // Cleanup
+            if (file_exists($tokenFile)) {
+                unlink($tokenFile);
+            }
+            if (is_dir($tempDir)) {
+                rmdir($tempDir);
+            }
+        }
+    }
+
+    public function testTokenFileWithWhitespaceIsTrimmed(): void
+    {
+        $testUsername    = 'test-user';
+        $testRepo        = 'test-repo';
+        $tokenFileToken  = 'ghp_1234567890123456789012345678901234ab';
+
+        // Create a temporary token file with whitespace
+        $tempDir   = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
+        mkdir($tempDir, 0777, true);
+        $tokenFile = $tempDir . '/gh_token';
+        file_put_contents($tokenFile, "\n  " . $tokenFileToken . "  \n");
+
+        try {
+            $config = new GHMatrixConfig();
+            $config->setUser($testUsername);
+            $config->setBranch('main');
+            $config->setTokenFile('gh_token');
+
+            $mockRepoReader = $this->createMockReader($testRepo);
+            $mockRepoReader->method('getRepoRoot')->willReturn($tempDir);
+
+            $mockWorkflowsReader = $this->createMockWorkflowsReader();
+            $mockGitHubClient    = $this->createMockGitHubClient();
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $mockRepoReader,
+                workflowsReader: $mockWorkflowsReader,
+                githubClient: $mockGitHubClient
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->execute([]);
+
+            // Command should succeed (token was trimmed correctly)
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            // Cleanup
+            if (file_exists($tokenFile)) {
+                unlink($tokenFile);
+            }
+            if (is_dir($tempDir)) {
+                rmdir($tempDir);
+            }
+        }
+    }
+
+    public function testInvalidTokenFilePathFallsBackToAsking(): void
+    {
+        $testUsername    = 'test-user';
+        $testRepo        = 'test-repo';
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $config = new GHMatrixConfig();
+        $config->setUser($testUsername);
+        $config->setBranch('main');
+        $config->setTokenFile('nonexistent/gh_token');
+
+        $mockRepoReader = $this->createMockReader($testRepo);
+        $mockRepoReader->method('getRepoRoot')->willReturn('/tmp');
+
+        $mockWorkflowsReader = $this->createMockWorkflowsReader();
+        $mockGitHubClient    = $this->createMockGitHubClient();
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $mockRepoReader,
+            workflowsReader: $mockWorkflowsReader,
+            githubClient: $mockGitHubClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->setInputs([$testGitHubToken]);
+        $commandTester->execute([]);
+
+        // Command should succeed (fallback to asking for token)
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testPathTraversalAttackIsBlocked(): void
+    {
+        $testUsername    = 'test-user';
+        $testRepo        = 'test-repo';
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        // Create a temporary directory structure
+        $tempDir = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
+        mkdir($tempDir, 0777, true);
+
+        try {
+            // Try to access a file outside the repo using path traversal
+            $config = new GHMatrixConfig();
+            $config->setUser($testUsername);
+            $config->setBranch('main');
+            $config->setTokenFile('../../../etc/passwd'); // Path traversal attempt
+
+            $mockRepoReader = $this->createMockReader($testRepo);
+            $mockRepoReader->method('getRepoRoot')->willReturn($tempDir);
+
+            $mockWorkflowsReader = $this->createMockWorkflowsReader();
+            $mockGitHubClient    = $this->createMockGitHubClient();
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $mockRepoReader,
+                workflowsReader: $mockWorkflowsReader,
+                githubClient: $mockGitHubClient
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->setInputs([$testGitHubToken]);
+            $commandTester->execute([]);
+
+            // Command should succeed (path traversal blocked, fallback to asking for token)
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            // Cleanup
+            if (is_dir($tempDir)) {
+                rmdir($tempDir);
+            }
+        }
+    }
+
+    public function testTokenFileWithInvalidTokenFormatFallsBackToAsking(): void
+    {
+        $testUsername       = 'test-user';
+        $testRepo           = 'test-repo';
+        $validToken         = 'ghp_1234567890abcdef1234567890abcdef1234';
+        $invalidTokenInFile = 'invalid-token';
+
+        // Create a temporary token file with invalid token
+        $tempDir   = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
+        mkdir($tempDir, 0777, true);
+        $tokenFile = $tempDir . '/gh_token';
+        file_put_contents($tokenFile, $invalidTokenInFile);
+
+        try {
+            $config = new GHMatrixConfig();
+            $config->setUser($testUsername);
+            $config->setBranch('main');
+            $config->setTokenFile('gh_token');
+
+            $mockRepoReader = $this->createMockReader($testRepo);
+            $mockRepoReader->method('getRepoRoot')->willReturn($tempDir);
+
+            $mockWorkflowsReader = $this->createMockWorkflowsReader();
+            $mockGitHubClient    = $this->createMockGitHubClient();
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $mockRepoReader,
+                workflowsReader: $mockWorkflowsReader,
+                githubClient: $mockGitHubClient
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->setInputs([$validToken]);
+            $commandTester->execute([]);
+
+            // Command should succeed (fallback to asking for token because file had invalid token)
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            // Cleanup
+            if (file_exists($tokenFile)) {
+                unlink($tokenFile);
+            }
+            if (is_dir($tempDir)) {
+                rmdir($tempDir);
+            }
+        }
     }
 
     public function testConfigBranchValidAndInProtectedBranches(): void

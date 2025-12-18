@@ -34,6 +34,9 @@
     <RedundantPropertyInitializationCheck>
       <code><![CDATA[isset($this->repoUsername)]]></code>
     </RedundantPropertyInitializationCheck>
+    <TypeDoesNotContainType>
+      <code><![CDATA[false === $content]]></code>
+    </TypeDoesNotContainType>
   </file>
   <file src="src/Console/Command/CompareCommand.php">
     <MissingOverrideAttribute>
@@ -144,6 +147,12 @@
       <code><![CDATA[ConfigPriorityTest]]></code>
     </ClassMustBeFinal>
     <UndefinedMethod>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
       <code><![CDATA[method]]></code>
       <code><![CDATA[method]]></code>
       <code><![CDATA[method]]></code>
