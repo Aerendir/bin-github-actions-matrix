@@ -26,6 +26,7 @@ use Github\Api\Repository\Protection;
 use Github\AuthMethod;
 use Github\Client;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -205,7 +206,7 @@ abstract class AbstractCommand extends Command
     {
         return static function (mixed $gitHubToken): string {
             if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $gitHubToken)) {
-                throw new \InvalidArgumentException('The GitHub Token format is invalid.');
+                throw new InvalidOptionException('The GitHub Token format is invalid.');
             }
 
             return $gitHubToken;
