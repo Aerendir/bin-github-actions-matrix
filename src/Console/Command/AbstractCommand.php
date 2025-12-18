@@ -32,6 +32,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpClient\HttplugClient;
 
+use function Safe\preg_match;
+
 abstract class AbstractCommand extends Command
 {
     protected readonly string $branchName;
@@ -89,7 +91,7 @@ abstract class AbstractCommand extends Command
 
         // Cannot get the username from the git config. Pass it explicitly using the option "--username"'
         $repoUsername   = $this->getRepoUsername($input, $output, $questionHelper);
-        $repoToken      = $this->gitHubTokenCommandOption->getValueOrAsk($input, $output, $questionHelper);
+        $repoToken      = $this->getRepoToken($input, $output, $questionHelper);
         $this->repoName = $this->repoReader->getRepoName();
 
         $this->localJobs = $this->workflowsReader->read();
@@ -145,6 +147,69 @@ abstract class AbstractCommand extends Command
         }
 
         return $this->repoUsername = $this->gitHubUsernameCommandOption->getValueOrAsk($input, $output, $questionHelper);
+    }
+
+    protected function getRepoToken(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper): string
+    {
+        // Priority 1: CLI option
+        $cliToken = $this->gitHubTokenCommandOption->getValueOrNull($input);
+        if (null !== $cliToken) {
+            return $cliToken;
+        }
+
+        // Priority 2: Token file from config
+        $tokenFilePath = $this->config->getTokenFile();
+        if (null !== $tokenFilePath) {
+            $token = $this->readTokenFromFile($tokenFilePath);
+            if (null !== $token) {
+                return $token;
+            }
+        }
+
+        // Priority 3: Ask the user
+        return $this->gitHubTokenCommandOption->getValueOrAsk($input, $output, $questionHelper);
+    }
+
+    private function readTokenFromFile(string $tokenFilePath): ?string
+    {
+        try {
+            // Get the repository root
+            $repoRoot = $this->repoReader->getRepoRoot();
+            
+            // Build the full path (tokenFilePath is relative to repo root)
+            $fullPath = $repoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
+            
+            // Check if file exists
+            if (!file_exists($fullPath)) {
+                return null;
+            }
+            
+            // Read the file content
+            $content = file_get_contents($fullPath);
+            if (false === $content) {
+                return null;
+            }
+            
+            // Trim whitespace and newlines
+            $token = trim($content);
+            
+            // Validate the token format using the same validation as the option
+            $validationCallback = $this->getTokenValidationCallback();
+            return $validationCallback($token);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function getTokenValidationCallback(): callable
+    {
+        return static function (mixed $gitHubToken): string {
+            if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $gitHubToken)) {
+                throw new \InvalidArgumentException('The GitHub Token format is invalid.');
+            }
+
+            return $gitHubToken;
+        };
     }
 
     /**

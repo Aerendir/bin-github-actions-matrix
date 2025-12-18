@@ -15,8 +15,9 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Config;
 
 final class GHMatrixConfig
 {
-    private ?string $user   = null;
-    private ?string $branch = null;
+    private ?string $user      = null;
+    private ?string $branch    = null;
+    private ?string $tokenFile = null;
 
     public function getUser(): ?string
     {
@@ -36,5 +37,15 @@ final class GHMatrixConfig
     public function setBranch(?string $branch): void
     {
         $this->branch = $branch;
+    }
+
+    public function getTokenFile(): ?string
+    {
+        return $this->tokenFile;
+    }
+
+    public function setTokenFile(?string $tokenFile): void
+    {
+        $this->tokenFile = $tokenFile;
     }
 }

@@ -19,4 +19,7 @@ $config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
 // Set the default branch to sync/compare
 // $config->setBranch('main');
 
+// Set the name of the file that contains the GitHub token
+// $config->setTokenFile('gh_token');
+
 return $config;

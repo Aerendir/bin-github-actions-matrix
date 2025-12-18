@@ -67,4 +67,29 @@ class GHMatrixConfigTest extends TestCase
 
         $this->assertNull($config->getBranch());
     }
+
+    public function testGetTokenFileReturnsNullInitially(): void
+    {
+        $config = new GHMatrixConfig();
+        $this->assertNull($config->getTokenFile());
+    }
+
+    public function testSetTokenFileAndGetTokenFile(): void
+    {
+        $config    = new GHMatrixConfig();
+        $tokenFile = 'gh_token';
+
+        $config->setTokenFile($tokenFile);
+
+        $this->assertSame($tokenFile, $config->getTokenFile());
+    }
+
+    public function testSetTokenFileWithNull(): void
+    {
+        $config = new GHMatrixConfig();
+        $config->setTokenFile('gh_token');
+        $config->setTokenFile(null);
+
+        $this->assertNull($config->getTokenFile());
+    }
 }
