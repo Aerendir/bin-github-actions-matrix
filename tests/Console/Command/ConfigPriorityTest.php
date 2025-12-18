@@ -183,6 +183,7 @@ class ConfigPriorityTest extends CommandTestCase
         $config->setBranch($configBranch);
 
         $mockRepoReader = $this->createMockReader($testRepo);
+        // Only one protected branch, so it will auto-select after warning
         $mockRepoReader->method('filterProtectedBranches')->willReturn(['main']);
 
         $mockWorkflowsReader = $this->createMockWorkflowsReader();
@@ -201,8 +202,8 @@ class ConfigPriorityTest extends CommandTestCase
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             '--' . GitHubUsernameCommandOption::NAME => $testUsername,
-            '--' . RepoBranchCommandOption::NAME     => 'main', // Provide valid branch via CLI
             '--' . GitHubTokenCommandOption::NAME    => $testGitHubToken,
+            // Do NOT provide CLI branch - let it try to use config branch
         ]);
 
         // Command should succeed and output should contain warning about invalid config branch
