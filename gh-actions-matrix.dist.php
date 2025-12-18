@@ -11,6 +11,12 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-$config = new Aerendir\Bin\GitHubActionsMatrix\Config\Config();
+$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
+
+// Set the default GitHub username for the repository
+// $config->setUser('your-github-username');
+
+// Set the default branch to sync/compare
+// $config->setBranch('main');
 
 return $config;

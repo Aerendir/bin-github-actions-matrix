@@ -25,6 +25,12 @@ parameters:
 			path: src/Config/Config.php
 
 		-
+			message: '#^Strict comparison using \=\=\= between false and string will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Console/Application.php
+
+		-
 			message: '#^Cannot access offset ''contexts'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
@@ -245,6 +251,24 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Workflow/Reader.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertInstanceOf\(\) with ''Aerendir\\\\Bin\\\\GitHubActionsMatrix\\\\Console\\\\Application'' and Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Application will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 6
+			path: tests/Console/ApplicationConfigTest.php
+
+		-
+			message: '#^Call to an undefined method Aerendir\\Bin\\GitHubActionsMatrix\\Repo\\Reader\:\:method\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: tests/Console/Command/ConfigPriorityTest.php
+
+		-
+			message: '#^Cannot call method willReturn\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: tests/Console/Command/ConfigPriorityTest.php
 
 		-
 			message: '#^Call to an undefined method Github\\Api\\AbstractApi\:\:protection\(\)\.$#'

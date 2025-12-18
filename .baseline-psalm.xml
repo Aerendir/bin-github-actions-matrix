@@ -6,9 +6,12 @@
     </ClassMustBeFinal>
   </file>
   <file src="src/Console/Application.php">
-    <UnusedClass>
-      <code><![CDATA[Application]]></code>
-    </UnusedClass>
+    <TypeDoesNotContainType>
+      <code><![CDATA[false === $currentDir]]></code>
+    </TypeDoesNotContainType>
+    <UnresolvableInclude>
+      <code><![CDATA[require $realConfigPath]]></code>
+    </UnresolvableInclude>
   </file>
   <file src="src/Console/Command/AbstractCommand.php">
     <InaccessibleProperty>
@@ -121,10 +124,32 @@
       <code><![CDATA[ConfigTest]]></code>
     </ClassMustBeFinal>
   </file>
+  <file src="tests/Config/GHMatrixConfigTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[GHMatrixConfigTest]]></code>
+    </ClassMustBeFinal>
+  </file>
+  <file src="tests/Console/ApplicationConfigTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[ApplicationConfigTest]]></code>
+    </ClassMustBeFinal>
+  </file>
   <file src="tests/Console/Command/CompareCommandTest.php">
     <ClassMustBeFinal>
       <code><![CDATA[CompareCommandTest]]></code>
     </ClassMustBeFinal>
+  </file>
+  <file src="tests/Console/Command/ConfigPriorityTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[ConfigPriorityTest]]></code>
+    </ClassMustBeFinal>
+    <UndefinedMethod>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+      <code><![CDATA[method]]></code>
+    </UndefinedMethod>
   </file>
   <file src="tests/Console/Command/Params/Options/GitHubTokenCommandOptionTest.php">
     <ClassMustBeFinal>

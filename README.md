@@ -63,6 +63,124 @@
 
 This library follows the http://semver.org/ versioning conventions.
 
+## Usage
+
+This tool provides two commands to manage GitHub branch protection rules for your repository's workflows.
+
+### Available Commands
+
+#### `compare` - Compare workflows with protection rules
+
+Compare the workflows configured in your repository with the current matrix of protection rules on GitHub.
+
+```bash
+vendor/bin/github-actions-matrix compare [options]
+```
+
+**Options:**
+- `-u, --username=USERNAME` - Your GitHub username
+- `-b, --branch=BRANCH` - The branch to compare
+- `-t, --token=TOKEN` - Your GitHub access token
+
+**Example:**
+```bash
+vendor/bin/github-actions-matrix compare --username=myuser --branch=main
+```
+
+This command will display a comparison table showing:
+- Local workflows and their job matrices
+- Current protection rules on GitHub
+- Actions needed (sync, remove, or nothing)
+
+#### `sync` - Sync workflows with protection rules
+
+Synchronize workflows configured in the repository with the current matrix of protection rules on GitHub.
+
+```bash
+vendor/bin/github-actions-matrix sync [options]
+```
+
+**Options:**
+- `-u, --username=USERNAME` - Your GitHub username
+- `-b, --branch=BRANCH` - The branch to sync
+- `-t, --token=TOKEN` - Your GitHub access token
+
+**Example:**
+```bash
+vendor/bin/github-actions-matrix sync --username=myuser --branch=main
+```
+
+This command will:
+1. Remove obsolete protection rules
+2. Add new protection rules based on your workflow matrices
+
+### Configuration File
+
+To avoid repeatedly providing the same options, you can create a configuration file `gh-actions-matrix.php` in your project root.
+
+#### Setup
+
+1. Copy the example configuration file:
+   ```bash
+   cp gh-actions-matrix.dist.php gh-actions-matrix.php
+   ```
+
+2. Edit `gh-actions-matrix.php` to set your default values:
+   ```php
+   <?php
+   
+   $config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
+   
+   // Set the default GitHub username for the repository
+   $config->setUser('your-github-username');
+   
+   // Set the default branch to sync/compare
+   $config->setBranch('main');
+   
+   return $config;
+   ```
+
+3. Add `gh-actions-matrix.php` to your `.gitignore` file to keep local configurations private.
+
+#### Priority Order
+
+The commands use the following priority order to determine values:
+
+1. **CLI options** (highest priority) - `--username`, `--branch`
+2. **Configuration file** - values from `gh-actions-matrix.php`
+3. **Git configuration** - for username only, read from git config
+4. **Auto-selection** - for branch only, if there's only one protected branch
+5. **Interactive prompt** (lowest priority) - asks for missing values
+
+#### Benefits
+
+- **No repeated prompts**: Once configured, commands won't ask for user/branch
+- **Flexible**: Command-line options still override config file values
+- **Project-specific**: Each project can have its own configuration
+- **Secure**: Keep sensitive config out of version control
+
+#### Examples
+
+**Without config file:**
+```bash
+$ vendor/bin/github-actions-matrix sync
+# Prompts for username
+# Prompts for token
+# Prompts for branch (if multiple protected branches)
+```
+
+**With config file:**
+```bash
+$ vendor/bin/github-actions-matrix sync
+# Only prompts for token (username and branch taken from config)
+```
+
+**Overriding config file:**
+```bash
+$ vendor/bin/github-actions-matrix sync --username different-user --branch dev
+# Uses 'different-user' and 'dev' instead of config values
+```
+
 <hr />
 <h3 align="center">
     <b>Do you like this library?</b><br />
