@@ -119,19 +119,27 @@ abstract class AbstractCommand extends Command
             return $this->repoUsername;
         }
 
-        // First, try to get from config
+        // Priority 1: CLI option (if input is provided)
+        if (null !== $input) {
+            $cliUsername = $this->gitHubUsernameCommandOption->getValueOrNull($input);
+            if (null !== $cliUsername) {
+                return $this->repoUsername = $cliUsername;
+            }
+        }
+
+        // Priority 2: Config file
         $configUsername = $this->config->getUser();
         if (null !== $configUsername) {
             return $this->repoUsername = $configUsername;
         }
 
-        // Second, try to get from repo reader
+        // Priority 3: Git repository config
         $repoUsername = $this->repoReader->getUsername();
         if (null !== $repoUsername) {
             return $this->repoUsername = $repoUsername;
         }
 
-        // Finally, ask the user
+        // Priority 4: Ask the user
         if (in_array(null, [$input, $output, $questionHelper], true)) {
             throw new \RuntimeException('You must pass the input and output objects and the question helper to get the username.');
         }
@@ -144,7 +152,13 @@ abstract class AbstractCommand extends Command
      */
     protected function getBranchName(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, array $protectedBranches): string
     {
-        // First, try to get from config
+        // Priority 1: CLI option
+        $cliBranch = $this->repoBranchCommandOption->getValueOrNull($input);
+        if (null !== $cliBranch) {
+            return $cliBranch;
+        }
+
+        // Priority 2: Config file
         $configBranch = $this->config->getBranch();
         if (null !== $configBranch) {
             // Validate that the configured branch exists in protected branches
@@ -158,7 +172,12 @@ abstract class AbstractCommand extends Command
             ));
         }
 
-        // Otherwise, use the standard option logic
+        // Priority 3: If only one protected branch, use it automatically
+        if (1 === count($protectedBranches)) {
+            return $protectedBranches[0];
+        }
+
+        // Priority 4: Ask the user
         return $this->repoBranchCommandOption->getValueOrAsk($input, $output, $questionHelper, $protectedBranches);
     }
 
