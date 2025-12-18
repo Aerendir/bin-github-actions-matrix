@@ -291,7 +291,9 @@ class ConfigPriorityTest extends CommandTestCase
         $config->setUser($testUsername);
         $config->setBranch($configBranch);
 
-        $mockRepoReader = $this->createMockReader($testRepo);
+        // Create custom mock to avoid conflicts with default filterProtectedBranches
+        $mockRepoReader = $this->createMock(RepoReader::class);
+        $mockRepoReader->method('getRepoName')->willReturn($testRepo);
         $mockRepoReader->method('filterProtectedBranches')->willReturn(['main', 'develop', 'staging']);
 
         $mockWorkflowsReader = $this->createMockWorkflowsReader();
