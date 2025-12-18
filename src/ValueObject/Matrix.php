@@ -102,7 +102,7 @@ final class Matrix
     {
         $result = [];
         foreach ($excludedCombinations as $combination) {
-            $combinationObject                  = new Combination($combination, $workflowFilename, $workflowName, $job);
+            $combinationObject                   = new Combination($combination, $workflowFilename, $workflowName, $job);
             $result[(string) $combinationObject] = $combinationObject;
         }
 

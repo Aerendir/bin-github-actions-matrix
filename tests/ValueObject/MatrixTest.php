@@ -15,6 +15,7 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Tests\ValueObject;
 
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\Combination;
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\Matrix;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class MatrixTest extends TestCase
@@ -296,7 +297,7 @@ class MatrixTest extends TestCase
      * @param array<string>        $expectedCombinations
      * @param array<string>        $excludedCombinations
      */
-    #[\PHPUnit\Framework\Attributes\DataProvider('combinationsDataProvider')]
+    #[DataProvider('combinationsDataProvider')]
     public function testCombinations(array $matrixInput, array $expectedCombinations, array $excludedCombinations): void
     {
         $matrix = Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPunit', 'phpunit');
@@ -308,12 +309,12 @@ class MatrixTest extends TestCase
 
         // Verify each expected combination is present
         foreach ($expectedCombinations as $expectedCombination) {
-            $this->assertArrayHasKey($expectedCombination, $combinations, "Expected combination '$expectedCombination' to be present");
+            $this->assertArrayHasKey($expectedCombination, $combinations, "Expected combination '{$expectedCombination}' to be present");
         }
 
         // Verify each excluded combination is NOT present
         foreach ($excludedCombinations as $excludedCombination) {
-            $this->assertArrayNotHasKey($excludedCombination, $combinations, "Expected combination '$excludedCombination' to be excluded");
+            $this->assertArrayNotHasKey($excludedCombination, $combinations, "Expected combination '{$excludedCombination}' to be excluded");
         }
     }
 
@@ -325,8 +326,8 @@ class MatrixTest extends TestCase
         return [
             'Issue: Some combinations are skipped incorrectly' => [
                 'matrixInput' => [
-                    'os' => ['ubuntu-latest'],
-                    'php' => ['8.1', '8.2', '8.3'],
+                    'os'      => ['ubuntu-latest'],
+                    'php'     => ['8.1', '8.2', '8.3'],
                     'symfony' => ['~6.4', '~7.4', '~8.0'],
                     'exclude' => [
                         ['php' => '8.1', 'symfony' => '~7.4'],
