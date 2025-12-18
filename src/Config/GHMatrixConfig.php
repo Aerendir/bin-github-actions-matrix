@@ -19,9 +19,7 @@ final class GHMatrixConfig
     private ?string $branch    = null;
     private ?string $tokenFile = null;
 
-    /**
-     * @var array<string, array<array<string, string>>>
-     */
+    /** @var array<string, array<array<string, string>>> */
     private array $optionalCombinations = [];
 
     public function getUser(): ?string
@@ -70,7 +68,7 @@ final class GHMatrixConfig
             throw new \InvalidArgumentException('The combination cannot be empty.');
         }
 
-        if (!isset($this->optionalCombinations[$workflowName])) {
+        if ( ! isset($this->optionalCombinations[$workflowName])) {
             $this->optionalCombinations[$workflowName] = [];
         }
 
