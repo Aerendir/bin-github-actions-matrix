@@ -21,6 +21,7 @@ class Combination implements \Stringable
 
     private bool $toSync   = false;
     private bool $toRemove = false;
+    private bool $isSoft   = false;
 
     /**
      * @param array<string> $combination
@@ -75,6 +76,16 @@ class Combination implements \Stringable
     public function isToSync(): bool
     {
         return $this->toSync;
+    }
+
+    public function setIsSoft(bool $isSoft = true): void
+    {
+        $this->isSoft = $isSoft;
+    }
+
+    public function isSoft(): bool
+    {
+        return $this->isSoft;
     }
 
     public function getAction(): string

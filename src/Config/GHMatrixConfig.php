@@ -19,6 +19,11 @@ final class GHMatrixConfig
     private ?string $branch    = null;
     private ?string $tokenFile = null;
 
+    /**
+     * @var array<string, array<array<string, string>>>
+     */
+    private array $softCombinations = [];
+
     public function getUser(): ?string
     {
         return $this->user;
@@ -47,5 +52,46 @@ final class GHMatrixConfig
     public function setTokenFile(?string $tokenFile): void
     {
         $this->tokenFile = $tokenFile;
+    }
+
+    /**
+     * Mark a combination as "soft" (not required in branch protection rules).
+     *
+     * @param string                $workflowName The name of the workflow
+     * @param array<string, string> $combination  The combination to mark as soft (e.g., ['php' => '8.4', 'symfony' => '~7.4'])
+     */
+    public function markSoftCombination(string $workflowName, array $combination): void
+    {
+        if ([] === $combination) {
+            throw new \InvalidArgumentException('The combination cannot be empty.');
+        }
+
+        if ( ! isset($this->softCombinations[$workflowName])) {
+            $this->softCombinations[$workflowName] = [];
+        }
+
+        $this->softCombinations[$workflowName][] = $combination;
+    }
+
+    /**
+     * Get all soft combinations for a specific workflow.
+     *
+     * @param string $workflowName The name of the workflow
+     *
+     * @return array<array<string, string>>
+     */
+    public function getSoftCombinations(string $workflowName): array
+    {
+        return $this->softCombinations[$workflowName] ?? [];
+    }
+
+    /**
+     * Get all soft combinations.
+     *
+     * @return array<string, array<array<string, string>>>
+     */
+    public function getAllSoftCombinations(): array
+    {
+        return $this->softCombinations;
     }
 }

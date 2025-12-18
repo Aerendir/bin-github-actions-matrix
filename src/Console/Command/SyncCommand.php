@@ -51,7 +51,7 @@ final class SyncCommand extends AbstractCommand
         $remoteCombinationsToCreate = [];
         foreach ($localJobs->getJobs() as $job) {
             foreach ($job->getMatrix()->getCombinations() as $combination) {
-                if ($combination->isToSync()) {
+                if ($combination->isToSync() && false === $combination->isSoft()) {
                     $remoteCombinationsToCreate[] = (string) $combination;
                 }
             }

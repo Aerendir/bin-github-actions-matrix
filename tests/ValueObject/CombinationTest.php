@@ -297,4 +297,54 @@ class CombinationTest extends TestCase
 
         $this->assertTrue($self->contains($other));
     }
+
+    public function testSetIsSoftEnablesSoftByDefault(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+        $instance->setIsSoft();
+
+        $this->assertTrue($instance->isSoft());
+    }
+
+    public function testSetIsSoftDisablesSoftWhenSetToFalse(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+        $instance->setIsSoft(false);
+
+        $this->assertFalse($instance->isSoft());
+    }
+
+    public function testSetIsSoftUpdatesBasedOnRepeatedCalls(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+
+        $instance->setIsSoft(true);
+        $this->assertTrue($instance->isSoft());
+
+        $instance->setIsSoft(false);
+        $this->assertFalse($instance->isSoft());
+    }
+
+    public function testIsSoftDefaultsToFalse(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+
+        $this->assertFalse($instance->isSoft());
+    }
+
+    public function testIsSoftReturnsTrueWhenSetToTrue(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+        $instance->setIsSoft(true);
+
+        $this->assertTrue($instance->isSoft());
+    }
+
+    public function testIsSoftReturnsFalseWhenSetToFalse(): void
+    {
+        $instance = new Combination([], 'workflow.yml', 'Workflow Name', 'test-job');
+        $instance->setIsSoft(false);
+
+        $this->assertFalse($instance->isSoft());
+    }
 }

@@ -159,6 +159,79 @@ The commands use the following priority order to determine values:
 - **Project-specific**: Each project can have its own configuration
 - **Secure**: Keep sensitive config out of version control
 
+### Soft Combinations
+
+Sometimes you want to test your code with a new version of PHP or a dependency to know if it's already compatible, but you don't want the entire workflow to fail if the tests don't pass. This is where "soft combinations" come in.
+
+A soft combination is a matrix combination that is **not marked as required** in your branch protection rules. This means:
+- The job will still run in your GitHub Actions workflow
+- If it fails, it won't block merging or mark the overall workflow as failed
+- It appears as an optional check in pull requests
+
+#### Configuring Soft Combinations
+
+Use the `markSoftCombination()` method in your `gh-actions-matrix.php` configuration file:
+
+```php
+<?php
+
+$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
+
+// Set your default configuration
+$config->setUser('your-github-username');
+$config->setBranch('main');
+
+// Mark specific combinations as soft (not required)
+// First argument: workflow name (as defined in your workflow file)
+// Second argument: combination to mark as soft
+
+// Example 1: Test PHP 8.4 without making it required
+$config->markSoftCombination('phpunit', ['php' => '8.4']);
+
+// Example 2: Test a specific combination of PHP and Symfony
+$config->markSoftCombination('phpunit', ['php' => '8.3', 'symfony' => '~8.0']);
+
+// You can mark multiple combinations for the same workflow
+$config->markSoftCombination('integration-tests', ['php' => '8.4', 'database' => 'postgresql']);
+
+return $config;
+```
+
+#### How It Works
+
+When you specify a soft combination:
+
+1. **The combination must exist** in your workflow matrix. If it doesn't exist or is explicitly excluded, you'll get an error.
+2. **The job still runs** in your GitHub Actions workflow as normal.
+3. **It's not added to required status checks** when you run the `sync` command.
+4. **Pull requests can be merged** even if the soft combination fails.
+
+#### Partial Matching
+
+Soft combinations support partial matching. For example:
+
+```php
+// This marks ALL combinations with PHP 8.4 as soft, regardless of other matrix values
+$config->markSoftCombination('phpunit', ['php' => '8.4']);
+
+// If your matrix is:
+// matrix:
+//   php: ['8.3', '8.4']
+//   symfony: ['~6.4', '~7.4']
+//
+// Then these combinations will be marked as soft:
+// - phpunit (8.4, ~6.4)
+// - phpunit (8.4, ~7.4)
+```
+
+#### Use Cases
+
+- **Testing new PHP versions** before they're officially supported
+- **Experimental dependency versions** (e.g., testing Symfony 8.0 before stable release)
+- **Optional database engines** that you want to test but not require
+- **Performance tests** that might be flaky but provide useful information
+- **Nightly builds** or bleeding-edge combinations
+
 #### Examples
 
 **Without config file:**
