@@ -15,6 +15,7 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Tests\ValueObject;
 
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\Combination;
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\Matrix;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class MatrixTest extends TestCase
@@ -289,5 +290,66 @@ class MatrixTest extends TestCase
         $this->assertArrayHasKey('rector (8.3, ~7.4)', $combinations);
         $this->assertArrayHasKey('rector (8.4, ~7.4)', $combinations);
         $this->assertArrayHasKey('rector (8.4, ~8.0)', $combinations);
+    }
+
+    /**
+     * @param array<string, mixed> $matrixInput
+     * @param array<string>        $expectedCombinations
+     * @param array<string>        $excludedCombinations
+     */
+    #[DataProvider('combinationsDataProvider')]
+    public function testCombinations(array $matrixInput, array $expectedCombinations, array $excludedCombinations): void
+    {
+        $matrix = Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPunit', 'phpunit');
+
+        $combinations = $matrix->getCombinations();
+
+        // Verify the expected count
+        $this->assertCount(count($expectedCombinations), $combinations);
+
+        // Verify each expected combination is present
+        foreach ($expectedCombinations as $expectedCombination) {
+            $this->assertArrayHasKey($expectedCombination, $combinations, "Expected combination '{$expectedCombination}' to be present");
+        }
+
+        // Verify each excluded combination is NOT present
+        foreach ($excludedCombinations as $excludedCombination) {
+            $this->assertArrayNotHasKey($excludedCombination, $combinations, "Expected combination '{$excludedCombination}' to be excluded");
+        }
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public static function combinationsDataProvider(): array
+    {
+        return [
+            'Issue: Some combinations are skipped incorrectly' => [
+                'matrixInput' => [
+                    'os'      => ['ubuntu-latest'],
+                    'php'     => ['8.1', '8.2', '8.3'],
+                    'symfony' => ['~6.4', '~7.4', '~8.0'],
+                    'exclude' => [
+                        ['php' => '8.1', 'symfony' => '~7.4'],
+                        ['php' => '8.1', 'symfony' => '~8.0'],
+                        ['php' => '8.2', 'symfony' => '~8.0'],
+                        ['php' => '8.3', 'symfony' => '~8.0'],
+                    ],
+                ],
+                'expectedCombinations' => [
+                    'phpunit (ubuntu-latest, 8.1, ~6.4)',
+                    'phpunit (ubuntu-latest, 8.2, ~6.4)',
+                    'phpunit (ubuntu-latest, 8.2, ~7.4)',
+                    'phpunit (ubuntu-latest, 8.3, ~6.4)',
+                    'phpunit (ubuntu-latest, 8.3, ~7.4)',
+                ],
+                'excludedCombinations' => [
+                    'phpunit (ubuntu-latest, 8.1, ~7.4)',
+                    'phpunit (ubuntu-latest, 8.1, ~8.0)',
+                    'phpunit (ubuntu-latest, 8.2, ~8.0)',
+                    'phpunit (ubuntu-latest, 8.3, ~8.0)',
+                ],
+            ],
+        ];
     }
 }

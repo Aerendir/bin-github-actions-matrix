@@ -231,6 +231,11 @@
       <code><![CDATA[$combinations]]></code>
       <code><![CDATA[$combinations]]></code>
     </InvalidArgument>
+    <PossiblyInvalidArgument>
+      <code><![CDATA[testCombinations]]></code>
+      <code><![CDATA[testCombinations]]></code>
+      <code><![CDATA[testCombinations]]></code>
+    </PossiblyInvalidArgument>
   </file>
   <file src="tests/Workflow/ComparatorTest.php">
     <ClassMustBeFinal>
