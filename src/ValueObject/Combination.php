@@ -24,7 +24,7 @@ class Combination implements \Stringable
     private bool $isOptional = false;
 
     /**
-     * @param array<string> $combination
+     * @param array<string, string> $combination
      */
     public function __construct(private readonly array $combination, private readonly string $workflowFilename, private readonly string $workflowName, private readonly string $job)
     {
@@ -36,7 +36,7 @@ class Combination implements \Stringable
     }
 
     /**
-     * @return array<string>
+     * @return array<string, string>
      */
     public function getCombination(): array
     {
