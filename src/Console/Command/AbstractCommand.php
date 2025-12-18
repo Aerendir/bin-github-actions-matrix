@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command;
 
+use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoBranchCommandOption;
@@ -34,6 +35,7 @@ use Symfony\Component\HttpClient\HttplugClient;
 abstract class AbstractCommand extends Command
 {
     protected readonly string $branchName;
+    private readonly GHMatrixConfig $config;
     private readonly GitHubUsernameCommandOption $gitHubUsernameCommandOption;
     private readonly GitHubTokenCommandOption $gitHubTokenCommandOption;
     private readonly RepoBranchCommandOption $repoBranchCommandOption;
@@ -49,6 +51,7 @@ abstract class AbstractCommand extends Command
     private array $combinationsToRemove;
 
     public function __construct(
+        ?GHMatrixConfig $config = null,
         ?GitHubUsernameCommandOption $gitHubUsernameCommandOption = null,
         ?GitHubTokenCommandOption $gitHubTokenCommandOption = null,
         ?RepoBranchCommandOption $repoBranchCommandOption = null,
@@ -58,6 +61,7 @@ abstract class AbstractCommand extends Command
         ?Client $githubClient = null,
     ) {
         parent::__construct();
+        $this->config                      = $config                      ?? new GHMatrixConfig();
         $this->gitHubUsernameCommandOption = $gitHubUsernameCommandOption ?? new GitHubUsernameCommandOption();
         $this->gitHubTokenCommandOption    = $gitHubTokenCommandOption    ?? new GitHubTokenCommandOption();
         $this->repoBranchCommandOption     = $repoBranchCommandOption     ?? new RepoBranchCommandOption();
@@ -98,7 +102,7 @@ abstract class AbstractCommand extends Command
 
         $allBranches       = $repo->branches($repoUsername, $this->repoName);
         $protectedBranches = $this->repoReader->filterProtectedBranches($allBranches);
-        $this->branchName  = $this->repoBranchCommandOption->getValueOrAsk($input, $output, $questionHelper, $protectedBranches);
+        $this->branchName  = $this->getBranchName($input, $output, $questionHelper, $protectedBranches);
 
         $this->protection = $repo->protection();
         $protectionRules  = $this->protection->show($repoUsername, $this->repoName, $this->branchName);
@@ -115,16 +119,39 @@ abstract class AbstractCommand extends Command
             return $this->repoUsername;
         }
 
+        // First, try to get from config
+        $configUsername = $this->config->getUser();
+        if (null !== $configUsername) {
+            return $this->repoUsername = $configUsername;
+        }
+
+        // Second, try to get from repo reader
         $repoUsername = $this->repoReader->getUsername();
         if (null !== $repoUsername) {
             return $this->repoUsername = $repoUsername;
         }
 
+        // Finally, ask the user
         if (in_array(null, [$input, $output, $questionHelper], true)) {
             throw new \RuntimeException('You must pass the input and output objects and the question helper to get the username.');
         }
 
         return $this->repoUsername = $this->gitHubUsernameCommandOption->getValueOrAsk($input, $output, $questionHelper);
+    }
+
+    /**
+     * @param array<array-key, string> $protectedBranches
+     */
+    protected function getBranchName(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, array $protectedBranches): string
+    {
+        // First, try to get from config
+        $configBranch = $this->config->getBranch();
+        if (null !== $configBranch) {
+            return $configBranch;
+        }
+
+        // Otherwise, use the standard option logic
+        return $this->repoBranchCommandOption->getValueOrAsk($input, $output, $questionHelper, $protectedBranches);
     }
 
     protected function getRepoName(): string

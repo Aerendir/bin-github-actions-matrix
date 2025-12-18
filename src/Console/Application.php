@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Console;
 
+use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\CompareCommand;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
 use Symfony\Component\Console\Application as BaseApplication;
@@ -26,7 +27,26 @@ final class Application extends BaseApplication
     {
         parent::__construct(self::NAME, self::VERSION);
 
-        $this->addCommand(new CompareCommand());
-        $this->addCommand(new SyncCommand());
+        $config = $this->loadConfig();
+
+        $this->addCommand(new CompareCommand(config: $config));
+        $this->addCommand(new SyncCommand(config: $config));
+    }
+
+    private function loadConfig(): GHMatrixConfig
+    {
+        $configFile = getcwd() . '/gh-actions-matrix.php';
+
+        if (file_exists($configFile)) {
+            $config = require $configFile;
+
+            if (!$config instanceof GHMatrixConfig) {
+                throw new \RuntimeException('The config file must return an instance of ' . GHMatrixConfig::class);
+            }
+
+            return $config;
+        }
+
+        return new GHMatrixConfig();
     }
 }
