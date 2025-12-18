@@ -279,4 +279,45 @@ class ConfigPriorityTest extends CommandTestCase
         // Command should work normally with empty config
         $this->assertEquals(0, $commandTester->getStatusCode());
     }
+
+    public function testConfigBranchValidAndInProtectedBranches(): void
+    {
+        $configBranch    = 'develop';
+        $testUsername    = 'test-user';
+        $testRepo        = 'test-repo';
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $config = new GHMatrixConfig();
+        $config->setUser($testUsername);
+        $config->setBranch($configBranch);
+
+        $mockRepoReader = $this->createMockReader($testRepo);
+        $mockRepoReader->method('filterProtectedBranches')->willReturn(['main', 'develop', 'staging']);
+
+        $mockWorkflowsReader = $this->createMockWorkflowsReader();
+        $mockGitHubClient    = $this->createMockGitHubClient();
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $mockRepoReader,
+            workflowsReader: $mockWorkflowsReader,
+            githubClient: $mockGitHubClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => $testUsername,
+            '--' . GitHubTokenCommandOption::NAME    => $testGitHubToken,
+        ]);
+
+        // Command should succeed using config branch 'develop'
+        $this->assertEquals(0, $commandTester->getStatusCode());
+        
+        // Should NOT contain warning since branch is valid
+        $output = $commandTester->getDisplay();
+        $this->assertStringNotContainsString('Warning', $output);
+    }
 }

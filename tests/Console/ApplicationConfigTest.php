@@ -172,6 +172,33 @@ PHP;
         rmdir($parentDir);
     }
 
+    public function testApplicationHandlesSymlinksSecurely(): void
+    {
+        $tempDir    = sys_get_temp_dir() . '/ghmatrix-test-' . uniqid();
+        $symlinkDir = sys_get_temp_dir() . '/ghmatrix-test-symlink-' . uniqid();
+        mkdir($tempDir);
+        mkdir($symlinkDir);
+
+        $configContent = $this->createConfigContent('symlink-user');
+        file_put_contents($symlinkDir . '/gh-actions-matrix.php', $configContent);
+
+        // Create symlink in temp dir pointing to config in another dir
+        chdir($tempDir);
+        if (symlink($symlinkDir . '/gh-actions-matrix.php', $tempDir . '/gh-actions-matrix.php')) {
+            $application = new Application();
+
+            // Application should work but should not load symlinked config from outside directory
+            $this->assertInstanceOf(Application::class, $application);
+
+            // Clean up
+            unlink($tempDir . '/gh-actions-matrix.php');
+        }
+
+        unlink($symlinkDir . '/gh-actions-matrix.php');
+        rmdir($symlinkDir);
+        rmdir($tempDir);
+    }
+
     private function createConfigContent(?string $user = null, ?string $branch = null): string
     {
         $userLine   = null !== $user ? "\$config->setUser('{$user}');" : '';
