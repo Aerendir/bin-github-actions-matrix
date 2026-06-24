@@ -623,7 +623,7 @@ class ConfigPriorityTest extends CommandTestCase
         $cliRepoName     = 'cli-repo';
         $configRepoName  = 'config-repo';
         $testUsername    = 'test-user';
-        $testGitHubToken = '******';
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
 
         $config = new GHMatrixConfig();
         $config->setUser($testUsername);
@@ -658,7 +658,7 @@ class ConfigPriorityTest extends CommandTestCase
     {
         $configRepoName  = 'config-repo';
         $testUsername    = 'test-user';
-        $testGitHubToken = '******';
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
 
         $config = new GHMatrixConfig();
         $config->setUser($testUsername);
@@ -696,7 +696,7 @@ class ConfigPriorityTest extends CommandTestCase
     {
         $gitRepoName     = 'git-repo';
         $testUsername    = 'test-user';
-        $testGitHubToken = '******';
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
 
         $config = new GHMatrixConfig();
         $config->setUser($testUsername);
@@ -733,7 +733,7 @@ class ConfigPriorityTest extends CommandTestCase
     {
         $promptedRepoName = 'prompted-repo';
         $testUsername     = 'test-user';
-        $testGitHubToken  = '******';
+        $testGitHubToken  = 'ghp_1234567890abcdef1234567890abcdef1234';
 
         $config = new GHMatrixConfig();
         $config->setUser($testUsername);

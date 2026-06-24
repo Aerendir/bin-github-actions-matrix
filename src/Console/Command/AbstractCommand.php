@@ -231,6 +231,8 @@ abstract class AbstractCommand extends Command
         try {
             return $this->repoName = $this->repoReader->getRepoName();
         } catch (\Throwable) {
+            // Intentionally ignored: git remote may not be available in containerised/monorepo environments.
+            // Fall through to prompt the user for the repo name.
         }
 
         // Priority 4: Ask the user
