@@ -122,11 +122,17 @@
       "composer audit",
       "composer validate --strict --check-lock"
     ],
+    "val:phpcs": [
+      "vendor-bin/phpcs/vendor/bin/php-cs-fixer fix --allow-risky yes --dry-run -v"
+    ],
     "val:phpstan": [
       "vendor/bin/phpstan analyse"
     ],
     "val:psalm": [
       "vendor-bin/phpunit/vendor/bin/psalm"
+    ],
+    "val:rector": [
+      "vendor/bin/rector process --dry-run"
     ],
     "val:static": [
       "@val:composer",
