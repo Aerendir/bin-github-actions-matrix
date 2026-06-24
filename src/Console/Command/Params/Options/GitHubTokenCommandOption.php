@@ -60,8 +60,8 @@ class GitHubTokenCommandOption
 
         try {
             $token = $questionHelper->ask($input, $output, $question);
-        } catch (MissingInputException $missingInputException) {
-            throw new MissingInputException('You must pass a valid token of the repo.', previous: $missingInputException);
+        } catch (InvalidOptionException $invalidOptionException) {
+            throw new MissingInputException('You must pass a valid token of the repo.', previous: $invalidOptionException);
         }
 
         return $token;
