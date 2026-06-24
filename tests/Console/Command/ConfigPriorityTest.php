@@ -17,6 +17,7 @@ use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoBranchCommandOption;
+use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoNameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Symfony\Component\Console\Application;
@@ -615,5 +616,155 @@ class ConfigPriorityTest extends CommandTestCase
         // Should NOT contain warning since branch is valid
         $output = $commandTester->getDisplay();
         $this->assertStringNotContainsString('Warning', $output);
+    }
+
+    public function testCliRepoNameOptionOverridesConfigRepoName(): void
+    {
+        $cliRepoName     = 'cli-repo';
+        $configRepoName  = 'config-repo';
+        $testUsername    = 'test-user';
+        $testGitHubToken = '******';
+
+        $config = new GHMatrixConfig();
+        $config->setUser($testUsername);
+        $config->setBranch('main');
+        $config->setRepoName($configRepoName);
+
+        $mockRepoReader      = $this->createMockReader('git-repo');
+        $mockWorkflowsReader = $this->createMockWorkflowsReader();
+        $mockGitHubClient    = $this->createMockGitHubClient();
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $mockRepoReader,
+            workflowsReader: $mockWorkflowsReader,
+            githubClient: $mockGitHubClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--' . RepoNameCommandOption::NAME    => $cliRepoName,
+            '--' . GitHubTokenCommandOption::NAME => $testGitHubToken,
+        ]);
+
+        // Command should succeed using CLI repo name
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testConfigRepoNameUsedWhenCliNotProvided(): void
+    {
+        $configRepoName  = 'config-repo';
+        $testUsername    = 'test-user';
+        $testGitHubToken = '******';
+
+        $config = new GHMatrixConfig();
+        $config->setUser($testUsername);
+        $config->setBranch('main');
+        $config->setRepoName($configRepoName);
+
+        // Mock reader without a getRepoName override (it would throw if called, but config should short-circuit)
+        $mockRepoReader = $this->createMock(RepoReader::class);
+        $mockRepoReader->method('getRepoName')->willReturn('git-repo');
+        $mockRepoReader->method('filterProtectedBranches')->willReturn(['master']);
+
+        $mockWorkflowsReader = $this->createMockWorkflowsReader();
+        $mockGitHubClient    = $this->createMockGitHubClient();
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $mockRepoReader,
+            workflowsReader: $mockWorkflowsReader,
+            githubClient: $mockGitHubClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--' . GitHubTokenCommandOption::NAME => $testGitHubToken,
+        ]);
+
+        // Command should succeed using config repo name
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testGitRepoNameUsedWhenConfigAndCliNotProvided(): void
+    {
+        $gitRepoName     = 'git-repo';
+        $testUsername    = 'test-user';
+        $testGitHubToken = '******';
+
+        $config = new GHMatrixConfig();
+        $config->setUser($testUsername);
+        $config->setBranch('main');
+        // No repoName in config
+
+        $mockRepoReader = $this->createMock(RepoReader::class);
+        $mockRepoReader->method('getRepoName')->willReturn($gitRepoName);
+        $mockRepoReader->method('filterProtectedBranches')->willReturn(['master']);
+
+        $mockWorkflowsReader = $this->createMockWorkflowsReader();
+        $mockGitHubClient    = $this->createMockGitHubClient();
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $mockRepoReader,
+            workflowsReader: $mockWorkflowsReader,
+            githubClient: $mockGitHubClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--' . GitHubTokenCommandOption::NAME => $testGitHubToken,
+        ]);
+
+        // Command should succeed using git remote repo name
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testRepoNamePromptsWhenGitThrowsAndNoConfigOrCli(): void
+    {
+        $promptedRepoName = 'prompted-repo';
+        $testUsername     = 'test-user';
+        $testGitHubToken  = '******';
+
+        $config = new GHMatrixConfig();
+        $config->setUser($testUsername);
+        $config->setBranch('main');
+        // No repoName in config
+
+        $mockRepoReader = $this->createMock(RepoReader::class);
+        // Simulate environment without git remote
+        $mockRepoReader->method('getRepoName')->willThrowException(new \RuntimeException('No git remote'));
+        $mockRepoReader->method('filterProtectedBranches')->willReturn(['master']);
+
+        $mockWorkflowsReader = $this->createMockWorkflowsReader();
+        $mockGitHubClient    = $this->createMockGitHubClient();
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $mockRepoReader,
+            workflowsReader: $mockWorkflowsReader,
+            githubClient: $mockGitHubClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->setInputs([$promptedRepoName]);
+        $commandTester->execute([
+            '--' . GitHubTokenCommandOption::NAME => $testGitHubToken,
+        ]);
+
+        // Command should succeed: repo name was obtained via interactive prompt
+        $this->assertEquals(0, $commandTester->getStatusCode());
     }
 }

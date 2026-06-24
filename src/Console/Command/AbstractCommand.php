@@ -17,6 +17,7 @@ use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoBranchCommandOption;
+use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoNameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\JobsCollection;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Comparator;
@@ -43,6 +44,7 @@ abstract class AbstractCommand extends Command
     private readonly GitHubUsernameCommandOption $gitHubUsernameCommandOption;
     private readonly GitHubTokenCommandOption $gitHubTokenCommandOption;
     private readonly RepoBranchCommandOption $repoBranchCommandOption;
+    private readonly RepoNameCommandOption $repoNameCommandOption;
     private readonly Client $githubClient;
     private readonly RepoReader $repoReader;
     private readonly WorkflowsReader $workflowsReader;
@@ -59,6 +61,7 @@ abstract class AbstractCommand extends Command
         ?GitHubUsernameCommandOption $gitHubUsernameCommandOption = null,
         ?GitHubTokenCommandOption $gitHubTokenCommandOption = null,
         ?RepoBranchCommandOption $repoBranchCommandOption = null,
+        ?RepoNameCommandOption $repoNameCommandOption = null,
         ?RepoReader $repoReader = null,
         ?WorkflowsReader $workflowsReader = null,
         ?Comparator $comparator = null,
@@ -69,6 +72,7 @@ abstract class AbstractCommand extends Command
         $this->gitHubUsernameCommandOption = $gitHubUsernameCommandOption ?? new GitHubUsernameCommandOption();
         $this->gitHubTokenCommandOption    = $gitHubTokenCommandOption    ?? new GitHubTokenCommandOption();
         $this->repoBranchCommandOption     = $repoBranchCommandOption     ?? new RepoBranchCommandOption();
+        $this->repoNameCommandOption       = $repoNameCommandOption       ?? new RepoNameCommandOption();
         $this->repoReader                  = $repoReader                  ?? new RepoReader();
         $this->workflowsReader             = $workflowsReader             ?? new WorkflowsReader();
         $this->comparator                  = $comparator                  ?? new Comparator($this->config);
@@ -81,6 +85,7 @@ abstract class AbstractCommand extends Command
         $this->addOption(GitHubUsernameCommandOption::NAME, GitHubUsernameCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub username.');
         $this->addOption(GitHubTokenCommandOption::NAME, GitHubTokenCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub access token.');
         $this->addOption(RepoBranchCommandOption::NAME, RepoBranchCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The branch for which the matrix has to be synchronized.');
+        $this->addOption(RepoNameCommandOption::NAME, RepoNameCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The name of the GitHub repository.');
     }
 
     protected function init(InputInterface $input, OutputInterface $output): void
@@ -94,7 +99,7 @@ abstract class AbstractCommand extends Command
         // Cannot get the username from the git config. Pass it explicitly using the option "--username"'
         $repoUsername   = $this->getRepoUsername($input, $output, $questionHelper);
         $repoToken      = $this->getRepoToken($input, $output, $questionHelper);
-        $this->repoName = $this->repoReader->getRepoName();
+        $this->repoName = $this->getRepoName($input, $output, $questionHelper);
 
         $this->localJobs = $this->workflowsReader->read();
 
@@ -202,9 +207,38 @@ abstract class AbstractCommand extends Command
         return $this->repoBranchCommandOption->getValueOrAsk($input, $output, $questionHelper, $protectedBranches);
     }
 
-    protected function getRepoName(): string
+    protected function getRepoName(?InputInterface $input = null, ?OutputInterface $output = null, ?QuestionHelper $questionHelper = null): string
     {
-        return $this->repoName;
+        if (isset($this->repoName)) {
+            return $this->repoName;
+        }
+
+        // Priority 1: CLI option (if input is provided)
+        if (null !== $input) {
+            $cliRepoName = $this->repoNameCommandOption->getValueOrNull($input);
+            if (null !== $cliRepoName) {
+                return $this->repoName = $cliRepoName;
+            }
+        }
+
+        // Priority 2: Config file
+        $configRepoName = $this->config->getRepoName();
+        if (null !== $configRepoName) {
+            return $this->repoName = $configRepoName;
+        }
+
+        // Priority 3: Git repository remote
+        try {
+            return $this->repoName = $this->repoReader->getRepoName();
+        } catch (\Throwable) {
+        }
+
+        // Priority 4: Ask the user
+        if (in_array(null, [$input, $output, $questionHelper], true)) {
+            throw new \RuntimeException('You must pass input/output/helper to resolve the repo name.');
+        }
+
+        return $this->repoName = $this->repoNameCommandOption->getValueOrAsk($input, $output, $questionHelper);
     }
 
     protected function getLocalJobs(): JobsCollection
