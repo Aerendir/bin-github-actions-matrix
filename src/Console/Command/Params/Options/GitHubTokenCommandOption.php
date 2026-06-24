@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options;
 
+use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -60,8 +61,8 @@ class GitHubTokenCommandOption
 
         try {
             $token = $questionHelper->ask($input, $output, $question);
-        } catch (InvalidOptionException $invalidOptionException) {
-            throw new MissingInputException('You must pass a valid token of the repo.', previous: $invalidOptionException);
+        } catch (ExceptionInterface $exception) {
+            throw new MissingInputException('You must pass a valid token of the repo.', previous: $exception);
         }
 
         return $token;
