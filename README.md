@@ -154,6 +154,15 @@ The commands use the following priority order to determine values:
 4. **Auto-selection** - for branch only, if there's only one protected branch
 5. **Interactive prompt** (lowest priority) - asks for missing values
 
+#### Token File Resolution
+
+The `setTokenFile()` path is resolved against the first available base directory in this chain:
+
+1. The **git root** (`git rev-parse --show-toplevel`) — when git is available.
+2. The **current working directory** — fallback for containerised or non-git environments.
+
+> **Note:** A future release will add `setProjectDir()` as the highest-priority base, prepending it to this chain.
+
 #### Benefits
 
 - **No repeated prompts**: Once configured, commands won't ask for user/branch

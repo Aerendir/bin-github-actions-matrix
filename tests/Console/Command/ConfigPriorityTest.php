@@ -23,13 +23,29 @@ use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
+use function Safe\chdir;
 use function Safe\file_put_contents;
+use function Safe\getcwd;
 use function Safe\mkdir;
 use function Safe\rmdir;
 use function Safe\unlink;
 
 class ConfigPriorityTest extends CommandTestCase
 {
+    /** @var string|null Original CWD saved before tests that call chdir() */
+    private ?string $originalCwd = null;
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        // Restore CWD if it was changed by a test
+        if (null !== $this->originalCwd) {
+            chdir($this->originalCwd);
+            $this->originalCwd = null;
+        }
+    }
+
     public function testCliOptionOverridesConfigForUsername(): void
     {
         $cliUsername     = 'cli-user';
@@ -784,5 +800,115 @@ class ConfigPriorityTest extends CommandTestCase
         $this->expectExceptionMessage('You must pass input/output/helper to resolve the repo name.');
 
         $method->invoke($command);
+    }
+
+    public function testTokenFileReadWithoutGit(): void
+    {
+        $testUsername   = 'test-user';
+        $testRepo       = 'test-repo';
+        $tokenFileToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        // Create a temporary directory and place the token file in it
+        $tempDir   = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
+        mkdir($tempDir, 0777, true);
+        $tokenFile = $tempDir . '/gh_token';
+        file_put_contents($tokenFile, $tokenFileToken);
+
+        try {
+            $config = new GHMatrixConfig();
+            $config->setUser($testUsername);
+            $config->setBranch('main');
+            $config->setTokenFile('gh_token');
+
+            // Simulate an environment without git: getRepoRoot() throws.
+            // Use createMock() directly so phpstan recognises the full MockObject interface.
+            $mockRepoReader = $this->createMock(RepoReader::class);
+            $mockRepoReader->method('getRepoName')->willReturn($testRepo);
+            $mockRepoReader->method('filterProtectedBranches')->willReturn(['master']);
+            $mockRepoReader->method('getRepoRoot')->willThrowException(new \RuntimeException('No git repository'));
+
+            $mockWorkflowsReader = $this->createMockWorkflowsReader();
+            $mockGitHubClient    = $this->createMockGitHubClient();
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $mockRepoReader,
+                workflowsReader: $mockWorkflowsReader,
+                githubClient: $mockGitHubClient
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            // Change to the temp dir so the CWD fallback finds the token file
+            $this->originalCwd = getcwd();
+            chdir($tempDir);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->execute([]);
+
+            // Command should succeed: token was read via the CWD fallback (no git available)
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            if (file_exists($tokenFile)) {
+                unlink($tokenFile);
+            }
+            if (is_dir($tempDir)) {
+                rmdir($tempDir);
+            }
+        }
+    }
+
+    public function testTraversalRejectedWithCwdBase(): void
+    {
+        $testUsername    = 'test-user';
+        $testRepo        = 'test-repo';
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $tempDir = sys_get_temp_dir() . '/gh-matrix-test-' . uniqid();
+        mkdir($tempDir, 0777, true);
+
+        try {
+            // Attempt to traverse outside the CWD base using a path traversal attack
+            $config = new GHMatrixConfig();
+            $config->setUser($testUsername);
+            $config->setBranch('main');
+            $config->setTokenFile('../../../etc/passwd');
+
+            // Simulate an environment without git: getRepoRoot() throws.
+            // Use createMock() directly so phpstan recognises the full MockObject interface.
+            $mockRepoReader = $this->createMock(RepoReader::class);
+            $mockRepoReader->method('getRepoName')->willReturn($testRepo);
+            $mockRepoReader->method('filterProtectedBranches')->willReturn(['master']);
+            $mockRepoReader->method('getRepoRoot')->willThrowException(new \RuntimeException('No git repository'));
+
+            $mockWorkflowsReader = $this->createMockWorkflowsReader();
+            $mockGitHubClient    = $this->createMockGitHubClient();
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $mockRepoReader,
+                workflowsReader: $mockWorkflowsReader,
+                githubClient: $mockGitHubClient
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            // Change to the temp dir so the CWD is the base
+            $this->originalCwd = getcwd();
+            chdir($tempDir);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->setInputs([$testGitHubToken]);
+            $commandTester->execute([]);
+
+            // Path traversal must be rejected; command succeeds by falling back to the interactive prompt
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            if (is_dir($tempDir)) {
+                rmdir($tempDir);
+            }
+        }
     }
 }

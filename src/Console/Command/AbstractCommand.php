@@ -34,6 +34,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpClient\HttplugClient;
 
 use function Safe\file_get_contents;
+use function Safe\getcwd;
 use function Safe\preg_match;
 use function Safe\realpath;
 
@@ -269,17 +270,16 @@ abstract class AbstractCommand extends Command
     private function readTokenFromFile(string $tokenFilePath): ?string
     {
         try {
-            // Get the repository root
-            $repoRoot = $this->repoReader->getRepoRoot();
+            $baseDir = $this->resolveTokenBaseDir();
 
-            // Resolve the repository root to its real path
-            $realRepoRoot = realpath($repoRoot);
+            // Resolve the base directory to its real path
+            $realBaseDir = realpath($baseDir);
 
             // Normalize to use forward slashes and ensure trailing separator
-            $realRepoRoot = rtrim(str_replace('\\', '/', $realRepoRoot), '/') . '/';
+            $realBaseDir = rtrim(str_replace('\\', '/', $realBaseDir), '/') . '/';
 
-            // Build the full path (tokenFilePath is relative to repo root)
-            $fullPath = $repoRoot . DIRECTORY_SEPARATOR . $tokenFilePath;
+            // Build the full path (tokenFilePath is relative to the base directory)
+            $fullPath = $baseDir . DIRECTORY_SEPARATOR . $tokenFilePath;
 
             // Resolve the real path to prevent directory traversal attacks
             $realPath = realpath($fullPath);
@@ -287,9 +287,9 @@ abstract class AbstractCommand extends Command
             // Normalize to use forward slashes
             $realPath = str_replace('\\', '/', $realPath);
 
-            // Verify the resolved path is within the repository root
-            // Using trailing slash ensures we don't match paths that start with repo path as prefix
-            if ( ! str_starts_with($realPath . '/', $realRepoRoot)) {
+            // Verify the resolved path is within the base directory.
+            // Using trailing slash ensures we don't match paths that start with the base path as a prefix.
+            if ( ! str_starts_with($realPath . '/', $realBaseDir)) {
                 return null;
             }
 
@@ -314,5 +314,28 @@ abstract class AbstractCommand extends Command
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    /**
+     * Returns the base directory used to resolve the token file path.
+     *
+     * Resolution chain:
+     *   1. Git root (`RepoReader::getRepoRoot()`) — existing behaviour when git is available.
+     *   2. Current working directory (`getcwd()`) — fallback for environments without git.
+     *
+     * TODO: INSERTION POINT for issue #38 — when GHMatrixConfig::setProjectDir() is added,
+     *       prepend projectDir as the first candidate: projectDir → git root → cwd.
+     */
+    private function resolveTokenBaseDir(): string
+    {
+        // Priority 1: git root (existing behaviour, when available)
+        try {
+            return $this->repoReader->getRepoRoot();
+        } catch (\Throwable) {
+            // git not available or not in a git repository — fall through
+        }
+
+        // Priority 2: current working directory (where the config file is already loaded from)
+        return getcwd();
     }
 }
