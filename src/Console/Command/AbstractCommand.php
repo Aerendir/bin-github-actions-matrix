@@ -270,11 +270,6 @@ abstract class AbstractCommand extends Command
         return $this->localJobs;
     }
 
-    protected function getRemoteJobsIds(): array
-    {
-        return $this->remoteJobsIds;
-    }
-
     protected function getProtection(): Protection
     {
         return $this->protection;

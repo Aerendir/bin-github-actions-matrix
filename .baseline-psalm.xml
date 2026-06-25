@@ -39,14 +39,6 @@
       <code><![CDATA[isset($this->repoUsername)]]></code>
     </RedundantPropertyInitializationCheck>
   </file>
-  <file src="src/Console/Command/CompareCommand.php">
-    <MissingOverrideAttribute>
-      <code><![CDATA[public function execute(InputInterface $input, OutputInterface $output): int]]></code>
-    </MissingOverrideAttribute>
-    <PropertyNotSetInConstructor>
-      <code><![CDATA[CompareCommand]]></code>
-    </PropertyNotSetInConstructor>
-  </file>
   <file src="src/Console/Command/Params/Options/GitHubTokenCommandOption.php">
     <ClassMustBeFinal>
       <code><![CDATA[GitHubTokenCommandOption]]></code>
@@ -141,11 +133,6 @@
   <file src="tests/Console/ApplicationConfigTest.php">
     <ClassMustBeFinal>
       <code><![CDATA[ApplicationConfigTest]]></code>
-    </ClassMustBeFinal>
-  </file>
-  <file src="tests/Console/Command/CompareCommandTest.php">
-    <ClassMustBeFinal>
-      <code><![CDATA[CompareCommandTest]]></code>
     </ClassMustBeFinal>
   </file>
   <file src="tests/Console/Command/ConfigPriorityTest.php">
