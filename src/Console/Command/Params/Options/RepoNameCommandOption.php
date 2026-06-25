@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options;
 
+use Symfony\Component\Console\Exception\ExceptionInterface;
+use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -27,30 +29,52 @@ class RepoNameCommandOption
 
     public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
-        $repoName = $this->getValueOrNull($input);
+        $validationCallback = $this->getValidationCallback();
+        $repoName           = $this->getValueOrNull($input);
 
         return null === $repoName
             ? $this->askForValue($input, $output, $questionHelper, $maxAttempts)
-            : $repoName;
+            : $validationCallback($repoName);
     }
 
     public function getValueOrNull(InputInterface $input): ?string
     {
-        return $input->getOption(self::NAME);
+        $value = $input->getOption(self::NAME);
+
+        if (null === $value) {
+            return null;
+        }
+
+        $validationCallback = $this->getValidationCallback();
+
+        return $validationCallback($value);
     }
 
     private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
-        $question = new Question('Please, provide the name of the repo: ');
+        $validationCallback = $this->getValidationCallback();
+        $question           = new Question('Please, provide the name of the repo: ');
         $question->setHidden(false);
         $question->setMaxAttempts($maxAttempts ?? self::MAX_ATTEMPTS);
+        $question->setValidator($validationCallback);
 
         try {
             $repoName = $questionHelper->ask($input, $output, $question);
-        } catch (MissingInputException $missingInputException) {
-            throw new MissingInputException('You must pass a valid name of the repo.', previous: $missingInputException);
+        } catch (ExceptionInterface $exception) {
+            throw new MissingInputException('You must pass a valid name of the repo.', previous: $exception);
         }
 
         return $repoName;
+    }
+
+    private function getValidationCallback(): callable
+    {
+        return static function (mixed $repoName): string {
+            if (false === is_string($repoName) || '' === trim($repoName)) {
+                throw new InvalidOptionException('The repo name cannot be empty.');
+            }
+
+            return trim($repoName);
+        };
     }
 }

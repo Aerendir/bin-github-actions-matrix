@@ -17,6 +17,7 @@ use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoNameComm
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -86,6 +87,39 @@ class RepoNameCommandOptionTest extends TestCase
         $commandTester->execute([
             '--' . $this->repoNameCommandOption::NAME => $testRepoName,
         ]);
+
+        $output = $commandTester->getDisplay();
+
+        $this->assertStringContainsString($expectedOutput, $output);
+    }
+
+    public function testGetValueOrNullWithEmptyRepoNameThrows(): void
+    {
+        $command       = $this->createCommandForGetValueOrNull();
+        $commandTester = new CommandTester($command);
+
+        $this->expectException(InvalidOptionException::class);
+        $this->expectExceptionMessage('The repo name cannot be empty.');
+
+        $commandTester->execute([
+            '--' . $this->repoNameCommandOption::NAME => '   ',
+        ]);
+    }
+
+    public function testGetValueOrAskRePromptsWhenEmptyValueIsProvided(): void
+    {
+        $testRepoName   = 'my-repo';
+        $expectedOutput = sprintf('%s%s%s', self::REPO_NAME_START, $testRepoName, self::REPO_NAME_END);
+
+        $command     = $this->createCommandForGetValueOrAsk();
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        // First answer is empty (rejected by the validator), the second is valid.
+        $commandTester->setInputs(['', $testRepoName]);
+
+        $commandTester->execute([]);
 
         $output = $commandTester->getDisplay();
 
