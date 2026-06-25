@@ -65,35 +65,9 @@ This library follows the http://semver.org/ versioning conventions.
 
 ## Usage
 
-This tool provides two commands to manage GitHub branch protection rules for your repository's workflows.
+This tool provides the `sync` command to manage GitHub branch protection rules for your repository's workflows.
 
 ### Available Commands
-
-#### `compare` - Compare workflows with protection rules
-
-Compare the workflows configured in your repository with the current matrix of protection rules on GitHub.
-
-```bash
-vendor/bin/github-actions-matrix compare [options]
-```
-
-**Options:**
-- `-u, --username=USERNAME` - Your GitHub username
-- `-r, --repo=REPO` - The name of the GitHub repository
-- `-b, --branch=BRANCH` - The branch to compare
-- `-t, --token=TOKEN` - Your GitHub access token
-- `-p, --project-dir=PROJECT-DIR` - The project root that contains the `.github/workflows` folder
-- `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml`/`*.yaml` files (non-standard layouts)
-
-**Example:**
-```bash
-vendor/bin/github-actions-matrix compare --username=myuser --branch=main
-```
-
-This command will display a comparison table showing:
-- Local workflows and their job matrices
-- Current protection rules on GitHub
-- Actions needed (sync, remove, or nothing)
 
 #### `sync` - Sync workflows with protection rules
 
@@ -111,6 +85,7 @@ vendor/bin/github-actions-matrix sync [options]
 - `-p, --project-dir=PROJECT-DIR` - The project root that contains the `.github/workflows` folder
 - `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml`/`*.yaml` files (non-standard layouts)
 - `-f, --force` - Apply the changes without asking for confirmation (e.g. in CI)
+- `--dry-run` - Show what would change without touching the branch protection (read-only preview)
 
 **Example:**
 ```bash
