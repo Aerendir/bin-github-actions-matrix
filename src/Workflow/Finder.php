@@ -64,6 +64,6 @@ class Finder
             throw new \RuntimeException('Impossible to locate the GitHub workflows folder');
         }
 
-        return (new SymfonyFinder())->files()->name('*.yml')->in($foundFolder)->getIterator();
+        return (new SymfonyFinder())->files()->name(['*.yml', '*.yaml'])->in($foundFolder)->getIterator();
     }
 }

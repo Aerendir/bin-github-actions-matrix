@@ -86,7 +86,7 @@ final class GHMatrixConfig
     }
 
     /**
-     * The folder that directly contains the workflow `*.yml` files.
+     * The folder that directly contains the workflow `*.yml`/`*.yaml` files.
      *
      * Escape hatch for non-standard layouts where the workflows do not live under `<projectDir>/.github/workflows`.
      */
