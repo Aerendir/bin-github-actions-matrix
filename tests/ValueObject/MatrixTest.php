@@ -159,6 +159,162 @@ class MatrixTest extends TestCase
         Matrix::createFromArray($invalidMatrixInput, 'rector.yml', 'Test Rector Workflow', 'rector');
     }
 
+    /**
+     * Golden fixture: GitHub's own documented "include" example
+     * (https://docs.github.com/actions/using-jobs/using-a-matrix-for-your-jobs#example-adding-configurations)
+     * with its published resolved output. This is the anchor for the include algorithm.
+     */
+    public function testCreateFromArrayResolvesGitHubDocumentedIncludeExample(): void
+    {
+        $matrixInput = [
+            'fruit'   => ['apple', 'pear'],
+            'animal'  => ['cat', 'dog'],
+            'include' => [
+                ['color' => 'green'],
+                ['color' => 'pink', 'animal' => 'cat'],
+                ['fruit' => 'apple', 'shape' => 'circle'],
+                ['fruit' => 'banana'],
+                ['fruit' => 'banana', 'animal' => 'cat'],
+            ],
+        ];
+
+        $matrix       = Matrix::createFromArray($matrixInput, 'build.yml', 'Build', 'build');
+        $combinations = $matrix->getCombinations();
+
+        $expected = [
+            'build (apple, cat, pink, circle)',
+            'build (apple, dog, green, circle)',
+            'build (pear, cat, pink)',
+            'build (pear, dog, green)',
+            'build (banana)',
+            'build (banana, cat)',
+        ];
+
+        $this->assertSame($expected, array_keys($combinations));
+    }
+
+    public function testIncludeAddsAKeyToEveryCombinationWhenItDoesNotOverwriteOriginalValues(): void
+    {
+        $matrixInput = [
+            'php'     => ['8.3', '8.4'],
+            'include' => [
+                ['coverage' => 'xdebug'],
+            ],
+        ];
+
+        $matrix       = Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPUnit', 'phpunit');
+        $combinations = $matrix->getCombinations();
+
+        $this->assertCount(2, $combinations);
+        $this->assertArrayHasKey('phpunit (8.3, xdebug)', $combinations);
+        $this->assertArrayHasKey('phpunit (8.4, xdebug)', $combinations);
+    }
+
+    public function testIncludeEntryThatFitsNoCombinationBecomesANewCombination(): void
+    {
+        $matrixInput = [
+            'php'     => ['8.3', '8.4'],
+            'include' => [
+                ['php' => '8.2'],
+            ],
+        ];
+
+        $matrix       = Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPUnit', 'phpunit');
+        $combinations = $matrix->getCombinations();
+
+        $this->assertCount(3, $combinations);
+        $this->assertArrayHasKey('phpunit (8.3)', $combinations);
+        $this->assertArrayHasKey('phpunit (8.4)', $combinations);
+        $this->assertArrayHasKey('phpunit (8.2)', $combinations);
+    }
+
+    public function testIncludeOnlyMatrixYieldsOneCombinationPerEntry(): void
+    {
+        $matrixInput = [
+            'include' => [
+                ['php' => '8.3', 'os' => 'ubuntu-latest'],
+                ['php' => '8.4', 'os' => 'windows-latest'],
+            ],
+        ];
+
+        $matrix       = Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPUnit', 'phpunit');
+        $combinations = $matrix->getCombinations();
+
+        $this->assertCount(2, $combinations);
+        $this->assertArrayHasKey('phpunit (8.3, ubuntu-latest)', $combinations);
+        $this->assertArrayHasKey('phpunit (8.4, windows-latest)', $combinations);
+    }
+
+    public function testIncludeIsAppliedAfterExclude(): void
+    {
+        $matrixInput = [
+            'php'     => ['8.3', '8.4'],
+            'symfony' => ['~6.4', '~7.4'],
+            'exclude' => [
+                ['php' => '8.3', 'symfony' => '~7.4'],
+            ],
+            'include' => [
+                ['php' => '8.3', 'symfony' => '~6.4', 'coverage' => 'xdebug'],
+            ],
+        ];
+
+        $matrix       = Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPUnit', 'phpunit');
+        $combinations = $matrix->getCombinations();
+
+        // 4 base - 1 excluded = 3, and the include merges into the surviving (8.3, ~6.4) combination.
+        $this->assertCount(3, $combinations);
+        $this->assertArrayHasKey('phpunit (8.3, ~6.4, xdebug)', $combinations);
+        $this->assertArrayHasKey('phpunit (8.4, ~6.4)', $combinations);
+        $this->assertArrayHasKey('phpunit (8.4, ~7.4)', $combinations);
+        $this->assertArrayNotHasKey('phpunit (8.3, ~7.4)', $combinations);
+    }
+
+    public function testIncludeAddedKeyCanBeOverwrittenByALaterEntry(): void
+    {
+        $matrixInput = [
+            'php'     => ['8.3'],
+            'include' => [
+                ['coverage' => 'none'],
+                ['php' => '8.3', 'coverage' => 'xdebug'],
+            ],
+        ];
+
+        $matrix       = Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPUnit', 'phpunit');
+        $combinations = $matrix->getCombinations();
+
+        // The second entry overwrites the "coverage" added by the first (added keys may be overwritten).
+        $this->assertCount(1, $combinations);
+        $this->assertArrayHasKey('phpunit (8.3, xdebug)', $combinations);
+    }
+
+    public function testIncludeWithNonArrayEntryThrowsException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $matrixInput = [
+            'php'     => ['8.3'],
+            'include' => ['not-an-array'],
+        ];
+
+        Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPUnit', 'phpunit');
+    }
+
+    public function testIncludeWithNonScalarValueThrowsException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "include" values must be scalar.');
+
+        $matrixInput = [
+            'php'     => ['8.3'],
+            'include' => [
+                // A nested array is not a valid include value: it cannot become part of a context string.
+                ['php' => ['8.3', '8.4']],
+            ],
+        ];
+
+        Matrix::createFromArray($matrixInput, 'phpunit.yml', 'PHPUnit', 'phpunit');
+    }
+
     public function testMergeWithNonOverlappingCombinations(): void
     {
         $matrix1Combinations = [
