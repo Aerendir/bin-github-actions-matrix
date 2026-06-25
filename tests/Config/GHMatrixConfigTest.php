@@ -68,6 +68,31 @@ class GHMatrixConfigTest extends TestCase
         $this->assertNull($config->getBranch());
     }
 
+    public function testGetRepoNameReturnsNullInitially(): void
+    {
+        $config = new GHMatrixConfig();
+        $this->assertNull($config->getRepoName());
+    }
+
+    public function testSetRepoNameAndGetRepoName(): void
+    {
+        $config   = new GHMatrixConfig();
+        $repoName = 'my-repo';
+
+        $config->setRepoName($repoName);
+
+        $this->assertSame($repoName, $config->getRepoName());
+    }
+
+    public function testSetRepoNameWithNull(): void
+    {
+        $config = new GHMatrixConfig();
+        $config->setRepoName('my-repo');
+        $config->setRepoName(null);
+
+        $this->assertNull($config->getRepoName());
+    }
+
     public function testGetTokenFileReturnsNullInitially(): void
     {
         $config = new GHMatrixConfig();

@@ -79,6 +79,7 @@ vendor/bin/github-actions-matrix compare [options]
 
 **Options:**
 - `-u, --username=USERNAME` - Your GitHub username
+- `-r, --repo=REPO` - The name of the GitHub repository
 - `-b, --branch=BRANCH` - The branch to compare
 - `-t, --token=TOKEN` - Your GitHub access token
 
@@ -102,6 +103,7 @@ vendor/bin/github-actions-matrix sync [options]
 
 **Options:**
 - `-u, --username=USERNAME` - Your GitHub username
+- `-r, --repo=REPO` - The name of the GitHub repository
 - `-b, --branch=BRANCH` - The branch to sync
 - `-t, --token=TOKEN` - Your GitHub access token
 
@@ -146,9 +148,9 @@ To avoid repeatedly providing the same options, you can create a configuration f
 
 The commands use the following priority order to determine values:
 
-1. **CLI options** (highest priority) - `--username`, `--branch`
+1. **CLI options** (highest priority) - `--username`, `--repo`, `--branch`
 2. **Configuration file** - values from `gh-actions-matrix.php`
-3. **Git configuration** - for username only, read from git config
+3. **Git configuration** - for username and repo-name, read from git config/remote
 4. **Auto-selection** - for branch only, if there's only one protected branch
 5. **Interactive prompt** (lowest priority) - asks for missing values
 
