@@ -82,6 +82,8 @@ vendor/bin/github-actions-matrix compare [options]
 - `-r, --repo=REPO` - The name of the GitHub repository
 - `-b, --branch=BRANCH` - The branch to compare
 - `-t, --token=TOKEN` - Your GitHub access token
+- `-p, --project-dir=PROJECT-DIR` - The project root that contains the `.github/workflows` folder
+- `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml` files (non-standard layouts)
 
 **Example:**
 ```bash
@@ -106,6 +108,8 @@ vendor/bin/github-actions-matrix sync [options]
 - `-r, --repo=REPO` - The name of the GitHub repository
 - `-b, --branch=BRANCH` - The branch to sync
 - `-t, --token=TOKEN` - Your GitHub access token
+- `-p, --project-dir=PROJECT-DIR` - The project root that contains the `.github/workflows` folder
+- `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml` files (non-standard layouts)
 
 **Example:**
 ```bash
@@ -148,20 +152,32 @@ To avoid repeatedly providing the same options, you can create a configuration f
 
 The commands use the following priority order to determine values:
 
-1. **CLI options** (highest priority) - `--username`, `--repo`, `--branch`
+1. **CLI options** (highest priority) - `--username`, `--repo`, `--branch`, `--project-dir`, `--workflows-dir`
 2. **Configuration file** - values from `gh-actions-matrix.php`
-3. **Git configuration** - for username and repo-name, read from git config/remote
-4. **Auto-selection** - for branch only, if there's only one protected branch
+3. **Git configuration** - for username and repo-name, read from git config/remote; for the workflows location, the git root
+4. **Inference / auto-selection** - for branch, if there's only one protected branch; for the workflows location, the tool's own `__DIR__` fallbacks
 5. **Interactive prompt** (lowest priority) - asks for missing values
+
+#### Workflows Location Resolution
+
+By default the tool discovers the `.github/workflows` folder by inference (git root, then its own `__DIR__`). In a monorepo, or a `type: path` install where the tool runs from a sub-project (e.g. `backend/`) and cannot infer the location, declare it explicitly. The first **existing** folder in this chain wins:
+
+1. `--workflows-dir` (CLI)
+2. `setWorkflowsDir()` (config)
+3. `--project-dir` (CLI) → `<project-dir>/.github/workflows`
+4. `setProjectDir()` (config) → `<projectDir>/.github/workflows`
+5. The **git root** (`git rev-parse --show-toplevel`) → `<root>/.github/workflows`
+6. The tool's own `__DIR__` fallbacks (the historical behaviour)
+
+`setProjectDir()` is the primary, intuitive concept (the project root that contains `.github/workflows`); `setWorkflowsDir()` is the escape hatch for a non-standard layout. With nothing declared, behaviour is identical to before.
 
 #### Token File Resolution
 
 The `setTokenFile()` path is resolved against the first available base directory in this chain:
 
-1. The **git root** (`git rev-parse --show-toplevel`) — when git is available.
-2. The **current working directory** — fallback for containerised or non-git environments.
-
-> **Note:** A future release will add `setProjectDir()` as the highest-priority base, prepending it to this chain.
+1. The **configured project dir** (`setProjectDir()`) — when set.
+2. The **git root** (`git rev-parse --show-toplevel`) — when git is available.
+3. The **current working directory** — fallback for containerised or non-git environments.
 
 #### Benefits
 
