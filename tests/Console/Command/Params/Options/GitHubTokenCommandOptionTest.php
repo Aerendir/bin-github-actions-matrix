@@ -37,6 +37,39 @@ class GitHubTokenCommandOptionTest extends TestCase
         $this->gitHubTokenCommandOption = new GitHubTokenCommandOption();
     }
 
+    public function testIsValidFormatAcceptsAllSupportedTokenShapes(): void
+    {
+        // Classic personal access token: ghp_ + 36 alphanumerics.
+        $this->assertTrue($this->gitHubTokenCommandOption->isValidFormat('ghp_' . str_repeat('a', 36)));
+        // Fine-grained personal access token: github_pat_ + 82 chars (alphanumerics and underscores).
+        $this->assertTrue($this->gitHubTokenCommandOption->isValidFormat('github_pat_' . str_repeat('A', 82)));
+        // App / installation access token: ghs_ + 36 alphanumerics.
+        $this->assertTrue($this->gitHubTokenCommandOption->isValidFormat('ghs_' . str_repeat('0', 36)));
+    }
+
+    public function testIsValidFormatRejectsUnknownOrMalformedShapes(): void
+    {
+        $this->assertFalse($this->gitHubTokenCommandOption->isValidFormat('invalid-git-hub-token'));
+        $this->assertFalse($this->gitHubTokenCommandOption->isValidFormat('ghp_tooShort'));
+        $this->assertFalse($this->gitHubTokenCommandOption->isValidFormat('github_pat_' . str_repeat('a', 10)));
+        $this->assertFalse($this->gitHubTokenCommandOption->isValidFormat(''));
+    }
+
+    public function testGetValueOrNullAcceptsAFineGrainedPat(): void
+    {
+        $fineGrainedToken = 'github_pat_' . str_repeat('A', 82);
+        $expectedOutput   = sprintf('%s%s%s', GitHubTokenCommandOptionTest::GITHUB_TOKEN_START, $fineGrainedToken, GitHubTokenCommandOptionTest::GITHUB_TOKEN_END);
+
+        $command       = $this->createCommandForGetValueOrNull();
+        $commandTester = new CommandTester($command);
+
+        $commandTester->execute([
+            '--' . $this->gitHubTokenCommandOption::NAME => $fineGrainedToken,
+        ]);
+
+        $this->assertStringContainsString($expectedOutput, $commandTester->getDisplay());
+    }
+
     public function testGetValueOrAskWithValidGitHubTokenProvidedReturnsTheProvidedGitHubToken(): void
     {
         $testGitHubToken  = 'ghp_1234567890abcdef1234567890abcdef1234';
