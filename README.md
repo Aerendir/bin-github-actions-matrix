@@ -86,6 +86,7 @@ vendor/bin/github-actions-matrix sync [options]
 - `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml`/`*.yaml` files (non-standard layouts)
 - `-f, --force` - Apply the changes without asking for confirmation (e.g. in CI)
 - `--dry-run` - Show what would change without touching the branch protection (read-only preview)
+- `--check` - CI gate: read-only, exit `0` if aligned, `1` if drift, `2` on error (implies `--dry-run`)
 
 **Example:**
 ```bash
@@ -97,6 +98,8 @@ This command will:
 2. Add new protection rules based on your workflow matrices
 
 Before applying any change, `sync` shows the plan and asks for confirmation. Pass `-f, --force` to skip the prompt (for example in CI).
+
+To **verify** alignment in CI without changing anything, use `sync --check`: it is read-only and encodes the result in the exit code — `0` if the branch protection matches the workflows, `1` if it drifts, `2` on error (bad token, network, parse). It needs a token with read access to the branch protection.
 
 ### Configuration File
 

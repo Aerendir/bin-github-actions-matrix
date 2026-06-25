@@ -16,6 +16,8 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Console\Command;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
+use Github\Api\Repo;
+use Github\Api\Repository\Protection;
 use Github\Client;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Console\Application;
@@ -106,6 +108,64 @@ class SyncCommandTest extends CommandTestCase
         $this->assertStringNotContainsString('Sync completed', $output);
     }
 
+    public function testCheckReturnsZeroWhenInSync(): void
+    {
+        // The remote contexts exactly match the local required checks: no drift.
+        $commandTester = $this->createCheckCommandTester([
+            'phpcs (8.3)',
+            'phpcs (8.4)',
+            'rector (8.3)',
+            'rector (8.4)',
+        ]);
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--check'                                => true,
+        ]);
+
+        $this->assertSame(0, $commandTester->getStatusCode());
+        $this->assertStringContainsString('In sync', $commandTester->getDisplay());
+    }
+
+    public function testCheckReturnsOneWhenDriftIsDetected(): void
+    {
+        $commandTester = $this->createSyncCommandTester();
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--check'                                => true,
+        ]);
+
+        $this->assertSame(1, $commandTester->getStatusCode());
+        $this->assertStringContainsString('Drift detected', $commandTester->getDisplay());
+    }
+
+    public function testCheckReturnsTwoOnError(): void
+    {
+        $commandTester = $this->createFailingCommandTester();
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--check'                                => true,
+        ]);
+
+        $this->assertSame(2, $commandTester->getStatusCode());
+    }
+
+    public function testErrorPropagatesWhenNotInCheckMode(): void
+    {
+        $commandTester = $this->createFailingCommandTester();
+
+        $this->expectException(\RuntimeException::class);
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+        ]);
+    }
+
     private function createSyncCommandTester(): CommandTester
     {
         $mockRepoReader      = $this->createMockReader(self::TEST_REPO);
@@ -114,6 +174,59 @@ class SyncCommandTest extends CommandTestCase
         $this->updateMockGitHubClient($mockGitHubClient, self::TEST_USERNAME, self::TEST_REPO);
 
         $command = new SyncCommand(repoReader: $mockRepoReader, workflowsReader: $mockWorkflowsReader, githubClient: $mockGitHubClient);
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        return new CommandTester($command);
+    }
+
+    /**
+     * Builds a tester whose remote branch protection exposes exactly the given required-check contexts,
+     * so the test controls whether the local workflows are in sync or drifting.
+     *
+     * @param array<string> $remoteContexts
+     */
+    private function createCheckCommandTester(array $remoteContexts): CommandTester
+    {
+        $mockProtection = $this->createMock(Protection::class);
+        $mockProtection->method('show')->willReturn([
+            'required_status_checks' => ['contexts' => $remoteContexts],
+        ]);
+
+        $mockRepo = $this->createMock(Repo::class);
+        $mockRepo->method('protection')->willReturn($mockProtection);
+        $mockRepo->method('branches')->willReturn([]);
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->willReturn($mockRepo);
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        return new CommandTester($command);
+    }
+
+    /**
+     * Builds a tester whose GitHub client fails during authentication, to exercise the error paths.
+     */
+    private function createFailingCommandTester(): CommandTester
+    {
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate')->willThrowException(new \RuntimeException('Authentication failed'));
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient
+        );
 
         $application = new Application();
         $application->addCommand($command);
