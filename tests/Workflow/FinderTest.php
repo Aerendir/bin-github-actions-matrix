@@ -23,12 +23,13 @@ use function Safe\unlink;
 
 class FinderTest extends TestCase
 {
-    public function testConstructorThrowsExceptionWhenNoFolderExists(): void
+    public function testGetWorkflowsThrowsExceptionWhenNoFolderExists(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Impossible to locate the GitHub workflows folder');
 
-        new Finder([__DIR__ . '/non-existing-folder']);
+        // No fallbacks injected, so the only candidate is the (missing) explicit folder.
+        (new Finder(fallbackFolders: []))->getWorkflows([__DIR__ . '/non-existing-folder']);
     }
 
     public function testGetWorkflowsReturnsEmptyIteratorIfNoWorkflowsExist(): void
@@ -37,12 +38,56 @@ class FinderTest extends TestCase
         mkdir($tempDir);
 
         try {
-            $finder    = new Finder([$tempDir]);
-            $workflows = $finder->getWorkflows();
+            $workflows = (new Finder(fallbackFolders: []))->getWorkflows([$tempDir]);
 
             $this->assertCount(0, iterator_to_array($workflows));
         } finally {
             rmdir($tempDir);
+        }
+    }
+
+    public function testGetWorkflowsPicksTheFirstExistingFolderFromTheCandidates(): void
+    {
+        $missingDir  = sys_get_temp_dir() . '/finder-missing-' . uniqid();
+        $existingDir = sys_get_temp_dir() . '/finder-existing-' . uniqid();
+        $laterDir    = sys_get_temp_dir() . '/finder-later-' . uniqid();
+        mkdir($existingDir);
+        mkdir($laterDir);
+
+        // The workflow lives in the FIRST existing folder; the one in $laterDir must be ignored.
+        file_put_contents($existingDir . '/winner.yml', 'name: Winner');
+        file_put_contents($laterDir . '/loser.yml', 'name: Loser');
+
+        try {
+            // Order: missing (skipped) -> existing (picked) -> later (never reached).
+            $workflows = iterator_to_array((new Finder(fallbackFolders: []))->getWorkflows([$missingDir, $existingDir, $laterDir]));
+
+            $this->assertCount(1, $workflows);
+            $this->assertEquals('winner.yml', $workflows[$existingDir . '/winner.yml']->getFilename());
+        } finally {
+            unlink($existingDir . '/winner.yml');
+            unlink($laterDir . '/loser.yml');
+            rmdir($existingDir);
+            rmdir($laterDir);
+        }
+    }
+
+    public function testGetWorkflowsFallsBackToFallbackFoldersWhenNoExplicitFolderMatches(): void
+    {
+        $missingDir  = sys_get_temp_dir() . '/finder-missing-' . uniqid();
+        $fallbackDir = sys_get_temp_dir() . '/finder-fallback-' . uniqid();
+        mkdir($fallbackDir);
+        file_put_contents($fallbackDir . '/from-fallback.yml', 'name: Fallback');
+
+        try {
+            // The explicit folder does not exist, so the injected fallback (tried last) must win.
+            $workflows = iterator_to_array((new Finder(fallbackFolders: [$fallbackDir]))->getWorkflows([$missingDir]));
+
+            $this->assertCount(1, $workflows);
+            $this->assertEquals('from-fallback.yml', $workflows[$fallbackDir . '/from-fallback.yml']->getFilename());
+        } finally {
+            unlink($fallbackDir . '/from-fallback.yml');
+            rmdir($fallbackDir);
         }
     }
 
@@ -55,8 +100,7 @@ class FinderTest extends TestCase
         file_put_contents($workflowFile, 'name: Test Workflow');
 
         try {
-            $finder    = new Finder([$tempDir]);
-            $workflows = iterator_to_array($finder->getWorkflows());
+            $workflows = iterator_to_array((new Finder(fallbackFolders: []))->getWorkflows([$tempDir]));
 
             $this->assertCount(1, $workflows);
             $this->assertEquals('test-workflow.yml', $workflows[$workflowFile]->getFilename());
