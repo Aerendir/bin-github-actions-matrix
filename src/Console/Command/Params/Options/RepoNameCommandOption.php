@@ -29,12 +29,11 @@ class RepoNameCommandOption
 
     public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
-        $validationCallback = $this->getValidationCallback();
-        $repoName           = $this->getValueOrNull($input);
+        $repoName = $this->getValueOrNull($input);
 
         return null === $repoName
             ? $this->askForValue($input, $output, $questionHelper, $maxAttempts)
-            : $validationCallback($repoName);
+            : $repoName;
     }
 
     public function getValueOrNull(InputInterface $input): ?string
@@ -45,18 +44,15 @@ class RepoNameCommandOption
             return null;
         }
 
-        $validationCallback = $this->getValidationCallback();
-
-        return $validationCallback($value);
+        return $this->validate($value);
     }
 
     private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
-        $validationCallback = $this->getValidationCallback();
-        $question           = new Question('Please, provide the name of the repo: ');
+        $question = new Question('Please, provide the name of the repo: ');
         $question->setHidden(false);
         $question->setMaxAttempts($maxAttempts ?? self::MAX_ATTEMPTS);
-        $question->setValidator($validationCallback);
+        $question->setValidator($this->validate(...));
 
         try {
             $repoName = $questionHelper->ask($input, $output, $question);
@@ -64,17 +60,19 @@ class RepoNameCommandOption
             throw new MissingInputException('You must pass a valid name of the repo.', previous: $exception);
         }
 
+        if (false === is_string($repoName)) {
+            throw new MissingInputException('You must pass a valid name of the repo.');
+        }
+
         return $repoName;
     }
 
-    private function getValidationCallback(): callable
+    private function validate(mixed $repoName): string
     {
-        return static function (mixed $repoName): string {
-            if (false === is_string($repoName) || '' === trim($repoName)) {
-                throw new InvalidOptionException('The repo name cannot be empty.');
-            }
+        if (false === is_string($repoName) || '' === trim($repoName)) {
+            throw new InvalidOptionException('The repo name cannot be empty.');
+        }
 
-            return trim($repoName);
-        };
+        return trim($repoName);
     }
 }

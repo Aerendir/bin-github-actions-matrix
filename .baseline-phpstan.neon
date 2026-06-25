@@ -157,24 +157,6 @@ parameters:
 			path: src/Console/Command/Params/Options/RepoBranchCommandOption.php
 
 		-
-			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\RepoNameCommandOption\:\:askForValue\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Console/Command/Params/Options/RepoNameCommandOption.php
-
-		-
-			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\RepoNameCommandOption\:\:getValueOrAsk\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Console/Command/Params/Options/RepoNameCommandOption.php
-
-		-
-			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\RepoNameCommandOption\:\:getValueOrNull\(\) should return string\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Console/Command/Params/Options/RepoNameCommandOption.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between null and null will always evaluate to true\.$#'
 			identifier: identical.alwaysTrue
 			count: 1
