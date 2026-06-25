@@ -110,6 +110,7 @@ vendor/bin/github-actions-matrix sync [options]
 - `-t, --token=TOKEN` - Your GitHub access token
 - `-p, --project-dir=PROJECT-DIR` - The project root that contains the `.github/workflows` folder
 - `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml`/`*.yaml` files (non-standard layouts)
+- `-f, --force` - Apply the changes without asking for confirmation (e.g. in CI)
 
 **Example:**
 ```bash
@@ -119,6 +120,8 @@ vendor/bin/github-actions-matrix sync --username=myuser --branch=main
 This command will:
 1. Remove obsolete protection rules
 2. Add new protection rules based on your workflow matrices
+
+Before applying any change, `sync` shows the plan and asks for confirmation. Pass `-f, --force` to skip the prompt (for example in CI).
 
 ### Configuration File
 
