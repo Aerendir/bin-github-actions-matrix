@@ -275,3 +275,21 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: tests/ValueObject/MatrixTest.php
+
+		-
+			message: '#^Parameter \#1 \$excludedCombinations of static method Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Matrix\:\:prepareExcludedCombinations\(\) expects array\<array\<string, string\>\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ValueObject/Matrix.php
+
+		-
+			message: '#^Parameter \#1 \$matrix of static method Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Matrix\:\:generateCombinations\(\) expects array\<string, array\<string\>\>, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ValueObject/Matrix.php
+
+		-
+			message: '#^Parameter \#2 \$includeEntries of static method Aerendir\\Bin\\GitHubActionsMatrix\\ValueObject\\Matrix\:\:applyIncludes\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ValueObject/Matrix.php
