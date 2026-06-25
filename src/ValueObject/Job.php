@@ -60,6 +60,15 @@ final class Job
         return $this->matrix;
     }
 
+    /**
+     * Builds a "bare-name" job for an external / non-workflow required check (e.g. codecov): a single
+     * required context equal to the given check name. Reuses the non-matrix job representation.
+     */
+    public static function fromContextName(string $contextName): self
+    {
+        return self::createNonMatrixJob($contextName, 'config', 'config', $contextName);
+    }
+
     private static function createNonMatrixJob(string $name, string $workflowFilename, string $workflowName, string $job): self
     {
         $combination = new Combination([], $workflowFilename, $workflowName, $job);

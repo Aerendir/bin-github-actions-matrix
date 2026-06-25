@@ -319,6 +319,16 @@ $config->ignoreJob('deploy');
 
 An ignored job is **never added** to the branch protection and, if it is currently required, it is **removed** by `sync`.
 
+### External / non-workflow required checks
+
+Some required checks (codecov, kodiak, GitGuardian, …) come from external apps and live in **no** workflow file, so the tool cannot derive them. Declare them with `addRequiredCheck()` so `sync` treats them as part of the desired set:
+
+```php
+$config->addRequiredCheck('codecov');
+```
+
+A declared check is **never removed** by `sync` (and is added if it is not yet required). This is what lets `sync` remove a stale matrix context for real, without ever deleting a check it simply cannot read from the workflows.
+
 <hr />
 <h3 align="center">
     <b>Do you like this library?</b><br />

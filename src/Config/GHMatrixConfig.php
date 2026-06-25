@@ -28,6 +28,9 @@ final class GHMatrixConfig
     /** @var array<string> */
     private array $ignoredJobs = [];
 
+    /** @var array<string> */
+    private array $requiredChecks = [];
+
     public function getUser(): ?string
     {
         return $this->user;
@@ -165,5 +168,29 @@ final class GHMatrixConfig
     public function getIgnoredJobs(): array
     {
         return $this->ignoredJobs;
+    }
+
+    /**
+     * Declare an external / non-workflow required check (e.g. `codecov`) that lives in no workflow file.
+     *
+     * Declared checks become part of the desired set as bare-name contexts: they are never removed by
+     * `sync` and, if not yet required, they are added — so `sync` can remove a stale matrix context for
+     * real without ever deleting a check it simply cannot read from the workflows.
+     */
+    public function addRequiredCheck(string $checkName): void
+    {
+        if ('' === $checkName) {
+            throw new \InvalidArgumentException('The required check name cannot be empty.');
+        }
+
+        $this->requiredChecks[] = $checkName;
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getRequiredChecks(): array
+    {
+        return $this->requiredChecks;
     }
 }

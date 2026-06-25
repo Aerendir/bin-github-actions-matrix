@@ -118,7 +118,8 @@ abstract class AbstractCommand extends Command
         // git root) and passed to read(): the reader itself is a plain injected collaborator.
         $workflowCandidates = $this->resolveWorkflowCandidates($input);
         $ignoredJobs        = $this->config->getIgnoredJobs();
-        $this->localJobs    = $this->workflowsReader->read($workflowCandidates, $ignoredJobs);
+        $requiredChecks     = $this->config->getRequiredChecks();
+        $this->localJobs    = $this->workflowsReader->read($workflowCandidates, $ignoredJobs, $requiredChecks);
 
         $this->githubClient->authenticate(tokenOrLogin: $repoToken, authMethod: AuthMethod::ACCESS_TOKEN);
         $repo = $this->githubClient->api('repo');

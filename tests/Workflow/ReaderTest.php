@@ -211,4 +211,34 @@ class ReaderTest extends TestCase
         unlink($phpCsFileInfo->getPathname());
         unlink($rectorFileInfo->getPathname());
     }
+
+    public function testReadInjectsExternalRequiredChecksAsBareNameJobs(): void
+    {
+        $workflowContent = <<<YAML
+            name: CI
+            on: [push]
+            jobs:
+              phpcs:
+                strategy:
+                  matrix:
+                    php: [ '8.3', '8.4' ]
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($workflowContent, 'phpcs');
+
+        $finder = $this->createMock(Finder::class);
+        $finder->method('getWorkflows')->willReturn(new \ArrayIterator([$fileInfo]));
+
+        $reader         = new Reader($finder);
+        $jobsCollection = $reader->read([], [], ['codecov']);
+
+        $this->assertTrue($jobsCollection->hasJob('phpcs'));
+        // The external check is present as a bare-name job whose single context equals the check name.
+        $this->assertTrue($jobsCollection->hasJob('codecov'));
+        $this->assertArrayHasKey('codecov', $jobsCollection->getJob('codecov')->getMatrix()->getCombinations());
+
+        unlink($fileInfo->getPathname());
+    }
 }
