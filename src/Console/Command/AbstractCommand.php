@@ -41,6 +41,9 @@ use function Safe\realpath;
 
 abstract class AbstractCommand extends Command
 {
+    /** Environment variable read as a CI-friendly token source (priority 2, after the CLI option). */
+    private const string TOKEN_ENV_VAR = 'GH_MATRIX_TOKEN';
+
     protected readonly string $branchName;
     private readonly GHMatrixConfig $config;
     private readonly GitHubUsernameCommandOption $gitHubUsernameCommandOption;
@@ -177,7 +180,13 @@ abstract class AbstractCommand extends Command
             return $cliToken;
         }
 
-        // Priority 2: Token file from config
+        // Priority 2: environment variable (CI-friendly: keeps the secret off disk and out of argv)
+        $envToken = $this->readTokenFromEnv();
+        if (null !== $envToken) {
+            return $envToken;
+        }
+
+        // Priority 3: Token file from config
         $tokenFilePath = $this->config->getTokenFile();
         if (null !== $tokenFilePath) {
             $token = $this->readTokenFromFile($tokenFilePath);
@@ -186,7 +195,7 @@ abstract class AbstractCommand extends Command
             }
         }
 
-        // Priority 3: Ask the user
+        // Priority 4: Ask the user
         return $this->gitHubTokenCommandOption->getValueOrAsk($input, $output, $questionHelper);
     }
 
@@ -277,6 +286,30 @@ abstract class AbstractCommand extends Command
     protected function getCombinationsToRemove(): array
     {
         return $this->combinationsToRemove;
+    }
+
+    /**
+     * Reads the token from the {@see self::TOKEN_ENV_VAR} environment variable: the preferred source in
+     * CI, since it keeps the secret off disk (unlike the token file) and out of the process arguments
+     * (unlike `--token`). An unset, empty or malformed value falls back to the next source.
+     */
+    private function readTokenFromEnv(): ?string
+    {
+        $token = getenv(self::TOKEN_ENV_VAR);
+        if (false === $token) {
+            return null;
+        }
+
+        $token = trim($token);
+
+        // Validate using the same single source of truth as the option and the token file
+        // (`isValidFormat`), so the env var accepts every supported token format (classic,
+        // fine-grained, app) and an empty or malformed value falls back to the next source.
+        if (false === $this->gitHubTokenCommandOption->isValidFormat($token)) {
+            return null;
+        }
+
+        return $token;
     }
 
     private function readTokenFromFile(string $tokenFilePath): ?string
