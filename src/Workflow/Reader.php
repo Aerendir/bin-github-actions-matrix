@@ -29,19 +29,23 @@ class Reader
     /**
      * @param array<array-key, string> $possibleFolders explicit folders to look into, in priority order;
      *                                                  the Finder appends the package fallbacks after them
+     * @param array<array-key, string> $ignoredJobs     job ids to exclude from the computed set entirely
      */
-    public function read(array $possibleFolders = []): JobsCollection
+    public function read(array $possibleFolders = [], array $ignoredJobs = []): JobsCollection
     {
         $localJobs = new JobsCollection();
         foreach ($this->finder->getWorkflows($possibleFolders) as $workflowFile) {
-            $readCollection = $this->createFromYaml($workflowFile);
+            $readCollection = $this->createFromYaml($workflowFile, $ignoredJobs);
             $localJobs->mergeCollection($readCollection);
         }
 
         return $localJobs;
     }
 
-    public function createFromYaml(SplFileInfo $fileInfo): JobsCollection
+    /**
+     * @param array<array-key, string> $ignoredJobs job ids to skip while reading the workflow
+     */
+    public function createFromYaml(SplFileInfo $fileInfo, array $ignoredJobs = []): JobsCollection
     {
         $parsed = Yaml::parse(file_get_contents($fileInfo->getPathname()));
 
@@ -60,10 +64,15 @@ class Reader
         $workflowName = $parsed['name'];
         $jobs         = $parsed['jobs'];
 
+        $localJobs = new JobsCollection();
         foreach ($jobs as $jobName => $jobContent) {
-            $jobs[$jobName] = Job::createFromArray($jobName, $jobContent, $fileInfo->getFilename(), $workflowName, $jobName);
+            if (in_array($jobName, $ignoredJobs, true)) {
+                continue;
+            }
+
+            $localJobs->addJob(Job::createFromArray($jobName, $jobContent, $fileInfo->getFilename(), $workflowName, $jobName));
         }
 
-        return new JobsCollection($jobs);
+        return $localJobs;
     }
 }

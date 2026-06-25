@@ -57,15 +57,21 @@ final class JobTest extends TestCase
         $this->assertEquals($expectedCombinations, $actualCombinations);
     }
 
-    public function testCreateFromArrayThrowsErrorIfStrategyKeyIsMissing(): void
+    public function testCreateFromArrayCreatesNonMatrixJobWhenStrategyIsMissing(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $workflowFilename = 'workflow.yml';
+        $workflowName     = 'Example Workflow';
+        $jobName          = 'build';
 
-        $invalidContent = [
-            // 'strategy' key is missing.
+        // No "strategy" key: a non-matrix job whose single required-check context is the bare job name.
+        $job = Job::createFromArray($jobName, [], $workflowFilename, $workflowName, $jobName);
+
+        $expectedCombinations = [
+            'build' => new Combination([], $workflowFilename, $workflowName, $jobName),
         ];
 
-        Job::createFromArray('test-job', $invalidContent, 'workflow.yml', 'Example Workflow', 'test-job');
+        $this->assertSame($jobName, $job->getName());
+        $this->assertEquals($expectedCombinations, $job->getMatrix()->getCombinations());
     }
 
     public function testCreateFromArrayThrowsErrorIfStrategyKeyIsNotArray(): void
@@ -79,17 +85,26 @@ final class JobTest extends TestCase
         Job::createFromArray('test-job', $invalidContent, 'workflow.yml', 'Example Workflow', 'test-job');
     }
 
-    public function testCreateFromArrayThrowsErrorIfMatrixKeyIsMissing(): void
+    public function testCreateFromArrayCreatesNonMatrixJobWhenMatrixIsMissing(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $workflowFilename = 'workflow.yml';
+        $workflowName     = 'Example Workflow';
+        $jobName          = 'build';
 
-        $invalidContent = [
+        // A "strategy" without "matrix" (e.g. only fail-fast) is still a non-matrix job.
+        $content = [
             'strategy' => [
-                // 'matrix' key is missing.
+                'fail-fast' => false,
             ],
         ];
 
-        Job::createFromArray('test-job', $invalidContent, 'workflow.yml', 'Example Workflow', 'test-job');
+        $job = Job::createFromArray($jobName, $content, $workflowFilename, $workflowName, $jobName);
+
+        $expectedCombinations = [
+            'build' => new Combination([], $workflowFilename, $workflowName, $jobName),
+        ];
+
+        $this->assertEquals($expectedCombinations, $job->getMatrix()->getCombinations());
     }
 
     public function testCreateFromArrayThrowsErrorIfMatrixKeyIsNotArray(): void

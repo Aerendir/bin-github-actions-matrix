@@ -25,6 +25,9 @@ final class GHMatrixConfig
     /** @var array<string, array<array<string, string>>> */
     private array $optionalCombinations = [];
 
+    /** @var array<string> */
+    private array $ignoredJobs = [];
+
     public function getUser(): ?string
     {
         return $this->user;
@@ -138,5 +141,29 @@ final class GHMatrixConfig
     public function getAllOptionalCombinations(): array
     {
         return $this->optionalCombinations;
+    }
+
+    /**
+     * Mark a job (by its job id, as written in the workflow file) as one that must NOT gate pull requests.
+     *
+     * Ignored jobs are excluded from the computed set entirely: they are never added to the branch
+     * protection and, if currently present, they are removed by `sync`. Useful for jobs that should run
+     * but never block merging (e.g. a deploy job).
+     */
+    public function ignoreJob(string $jobName): void
+    {
+        if ('' === $jobName) {
+            throw new \InvalidArgumentException('The job name cannot be empty.');
+        }
+
+        $this->ignoredJobs[] = $jobName;
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getIgnoredJobs(): array
+    {
+        return $this->ignoredJobs;
     }
 }
