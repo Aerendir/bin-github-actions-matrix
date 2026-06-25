@@ -37,7 +37,6 @@ use Symfony\Component\HttpClient\HttplugClient;
 
 use function Safe\file_get_contents;
 use function Safe\getcwd;
-use function Safe\preg_match;
 use function Safe\realpath;
 
 abstract class AbstractCommand extends Command
@@ -318,9 +317,10 @@ abstract class AbstractCommand extends Command
             // Trim whitespace and newlines
             $token = trim($content);
 
-            // Validate the token format using the same validation as the option.
-            // An invalid token read from the file falls back to prompting, consistent with GitHubTokenCommandOption.
-            if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $token)) {
+            // Validate the token format using the very same definition as the option (single source of
+            // truth). An invalid token read from the file falls back to prompting, consistent with
+            // GitHubTokenCommandOption.
+            if (false === $this->gitHubTokenCommandOption->isValidFormat($token)) {
                 return null;
             }
 

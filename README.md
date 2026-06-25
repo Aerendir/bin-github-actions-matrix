@@ -161,7 +161,7 @@ Every value can be provided on the command line or declared in the configuration
 | `setProjectDir(string)` | `-p, --project-dir` | Project root that contains `.github/workflows`; also the preferred base directory for the token file. |
 | `setWorkflowsDir(string)` | `-w, --workflows-dir` | Folder that directly contains the workflow `*.yml` files. Escape hatch for non-standard layouts. |
 
-> The GitHub token must have **repo-admin** scope. Provide it via `setTokenFile()` (pointing at a gitignored file) or `-t, --token` — never commit it.
+> The GitHub token must have **repo-admin** scope. Classic (`ghp_…`), fine-grained (`github_pat_…`) and app/installation (`ghs_…`) tokens are accepted. Provide it via `setTokenFile()` (pointing at a gitignored file) or `-t, --token` — never commit it.
 
 #### Priority Order
 

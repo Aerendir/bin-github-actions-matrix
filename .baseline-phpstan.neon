@@ -103,36 +103,6 @@ parameters:
 			path: src/Console/Command/CompareCommand.php
 
 		-
-			message: '#^Anonymous function should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
-
-		-
-			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubTokenCommandOption\:\:askForValue\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
-
-		-
-			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubTokenCommandOption\:\:getValueOrAsk\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
-
-		-
-			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubTokenCommandOption\:\:getValueOrNull\(\) should return string\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
-
-		-
-			message: '#^Parameter \#2 \$subject of function Safe\\preg_match expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Console/Command/Params/Options/GitHubTokenCommandOption.php
-
-		-
 			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubUsernameCommandOption\:\:askForValue\(\) should return string but returns mixed\.$#'
 			identifier: return.type
 			count: 1
