@@ -148,6 +148,21 @@ To avoid repeatedly providing the same options, you can create a configuration f
 
 3. Add `gh-actions-matrix.php` to your `.gitignore` file to keep local configurations private.
 
+#### Configuration Options Reference
+
+Every value can be provided on the command line or declared in the configuration file. The configuration methods and their CLI equivalents:
+
+| Config method | CLI option | Description |
+|---|---|---|
+| `setUser(string)` | `-u, --username` | GitHub username / repository owner. |
+| `setRepoName(string)` | `-r, --repo` | Repository name. Needed when git is not available to infer it (e.g. inside a container). |
+| `setBranch(string)` | `-b, --branch` | The protected branch to compare/sync. |
+| `setTokenFile(string)` | _(see `-t, --token`)_ | Name/path of a file containing the GitHub token, resolved against `projectDir → git root → cwd`. The CLI `-t, --token` instead passes the token value directly. |
+| `setProjectDir(string)` | `-p, --project-dir` | Project root that contains `.github/workflows`; also the preferred base directory for the token file. |
+| `setWorkflowsDir(string)` | `-w, --workflows-dir` | Folder that directly contains the workflow `*.yml` files. Escape hatch for non-standard layouts. |
+
+> The GitHub token must have **repo-admin** scope. Provide it via `setTokenFile()` (pointing at a gitignored file) or `-t, --token` — never commit it.
+
 #### Priority Order
 
 The commands use the following priority order to determine values:
@@ -178,6 +193,34 @@ The `setTokenFile()` path is resolved against the first available base directory
 1. The **configured project dir** (`setProjectDir()`) — when set.
 2. The **git root** (`git rev-parse --show-toplevel`) — when git is available.
 3. The **current working directory** — fallback for containerised or non-git environments.
+
+#### Monorepo / Containerized Setup
+
+In a monorepo the workflows usually live at the **repository root** (`/.github/workflows`), while the tool is installed and run from a **sub-project** (e.g. `backend/`) — often inside a container that mounts only that sub-project and has neither the repository's `.git` nor the root `.github` reachable by inference. Declare the location explicitly instead.
+
+Because `gh-actions-matrix.php` is **committed to the repository**, it must be **host-agnostic**: never hardcode machine-specific absolute paths. Use `setProjectDir('.')` so everything resolves relative to the directory the tool runs from (its current working directory), and mount the root `.github` under that directory in your container (read-only is enough).
+
+```php
+<?php
+
+// Committed config — keep it HOST-AGNOSTIC (no machine-specific absolute paths).
+$config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
+
+$config->setUser('your-org');
+$config->setRepoName('your-repo');   // git remote isn't available inside the container
+$config->setBranch('master');
+
+// The project root is the current working directory (where the tool runs, e.g. backend/).
+// From it the tool derives "./.github/workflows" (workflows location) and the token-file base — no host paths.
+$config->setProjectDir('.');
+
+// Token read from "<cwd>/gh_token" (git root isn't available in the container).
+$config->setTokenFile('gh_token');
+
+return $config;
+```
+
+With this config, run from the sub-project, the tool finds `./.github/workflows` and reads the token from `./gh_token`, regardless of the host machine.
 
 #### Benefits
 
