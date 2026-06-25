@@ -53,9 +53,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[RepoBranchCommandOption]]></code>
     </ClassMustBeFinal>
-    <TypeDoesNotContainType>
-      <code><![CDATA[$branch]]></code>
-    </TypeDoesNotContainType>
   </file>
   <file src="src/Console/Command/Params/Options/RepoNameCommandOption.php">
     <ClassMustBeFinal>

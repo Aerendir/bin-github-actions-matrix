@@ -17,6 +17,8 @@ use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoBranchCo
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\InvalidOptionException;
+use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -33,6 +35,33 @@ class RepoBranchCommandOptionTest extends TestCase
     protected function setUp(): void
     {
         $this->repoBranchCommandOption = new RepoBranchCommandOption();
+    }
+
+    public function testGetValueOrNullWithAnEmptyBranchThrowsAnException(): void
+    {
+        $command       = $this->createCommandForGetValueOrNull();
+        $commandTester = new CommandTester($command);
+
+        $this->expectException(InvalidOptionException::class);
+        $this->expectExceptionMessage('The branch cannot be empty.');
+        $commandTester->execute([
+            '--' . $this->repoBranchCommandOption::NAME => '',
+        ]);
+    }
+
+    public function testGetValueOrAskThrowsWhenAllAttemptsAreExhausted(): void
+    {
+        $command     = $this->createCommandForGetValueOrAsk();
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        // An answer outside the offered choices is rejected; with the input exhausted the helper gives up.
+        $commandTester->setInputs(['not-a-known-branch']);
+
+        $this->expectException(MissingInputException::class);
+        $this->expectExceptionMessage('You must pass a valid branch of the repo.');
+        $commandTester->execute([]);
     }
 
     public function testGetValueOrAskWithValidRepoBranchProvidedReturnsTheProvidedRepoBranch(): void
