@@ -1091,4 +1091,149 @@ class ConfigPriorityTest extends CommandTestCase
             }
         }
     }
+
+    public function testWorkflowsDirFromCliDrivesWorkflowDiscovery(): void
+    {
+        [$projectDir, $workflowsDir] = $this->createTempProjectWithWorkflow();
+
+        try {
+            $config = new GHMatrixConfig();
+            $config->setUser('test-user');
+            $config->setBranch('master');
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $this->createGitlessRepoReader('test-repo'),
+                githubClient: $this->createMockGitHubClient()
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->execute([
+                '--' . GitHubTokenCommandOption::NAME => 'ghp_1234567890abcdef1234567890abcdef1234',
+                '--workflows-dir'                     => $workflowsDir,
+            ]);
+
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            $this->removeTempProject($projectDir);
+        }
+    }
+
+    public function testWorkflowsDirFromConfigDrivesWorkflowDiscovery(): void
+    {
+        [$projectDir, $workflowsDir] = $this->createTempProjectWithWorkflow();
+
+        try {
+            $config = new GHMatrixConfig();
+            $config->setUser('test-user');
+            $config->setBranch('master');
+            $config->setWorkflowsDir($workflowsDir);
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $this->createGitlessRepoReader('test-repo'),
+                githubClient: $this->createMockGitHubClient()
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->execute([
+                '--' . GitHubTokenCommandOption::NAME => 'ghp_1234567890abcdef1234567890abcdef1234',
+            ]);
+
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            $this->removeTempProject($projectDir);
+        }
+    }
+
+    public function testProjectDirFromCliDrivesWorkflowDiscovery(): void
+    {
+        [$projectDir] = $this->createTempProjectWithWorkflow();
+
+        try {
+            $config = new GHMatrixConfig();
+            $config->setUser('test-user');
+            $config->setBranch('master');
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $this->createGitlessRepoReader('test-repo'),
+                githubClient: $this->createMockGitHubClient()
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->execute([
+                '--' . GitHubTokenCommandOption::NAME => 'ghp_1234567890abcdef1234567890abcdef1234',
+                '--project-dir'                       => $projectDir,
+            ]);
+
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            $this->removeTempProject($projectDir);
+        }
+    }
+
+    /**
+     * Creates a temp project containing `.github/workflows/ci.yml`.
+     *
+     * @return array{0: string, 1: string} [projectDir, workflowsDir]
+     */
+    private function createTempProjectWithWorkflow(): array
+    {
+        $projectDir   = sys_get_temp_dir() . '/gh-matrix-wf-' . uniqid();
+        $workflowsDir = $projectDir . '/.github/workflows';
+        mkdir($workflowsDir, 0777, true);
+        file_put_contents($workflowsDir . '/ci.yml', <<<YAML
+            name: PHP CS
+            on: [push]
+            jobs:
+              phpcs:
+                strategy:
+                  fail-fast: false
+                  matrix:
+                    php: [ '8.3', '8.4' ]
+                steps:
+                  - name: Checkout
+                    uses: actions/checkout@v3
+            YAML);
+
+        return [$projectDir, $workflowsDir];
+    }
+
+    private function removeTempProject(string $projectDir): void
+    {
+        $workflowFile = $projectDir . '/.github/workflows/ci.yml';
+        if (file_exists($workflowFile)) {
+            unlink($workflowFile);
+        }
+
+        foreach ([$projectDir . '/.github/workflows', $projectDir . '/.github', $projectDir] as $dir) {
+            if (is_dir($dir)) {
+                rmdir($dir);
+            }
+        }
+    }
+
+    /**
+     * A RepoReader mock that resolves the repo name and protected branches but reports "no git"
+     * (so the workflows location must be resolved declaratively, not from the git root).
+     */
+    private function createGitlessRepoReader(string $repoName): RepoReader
+    {
+        $mockRepoReader = $this->createMock(RepoReader::class);
+        $mockRepoReader->method('getRepoName')->willReturn($repoName);
+        $mockRepoReader->method('filterProtectedBranches')->willReturn(['master']);
+        $mockRepoReader->method('getRepoRoot')->willThrowException(new \RuntimeException('not a git repository'));
+
+        return $mockRepoReader;
+    }
 }
