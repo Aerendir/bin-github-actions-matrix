@@ -17,6 +17,7 @@ final class GHMatrixConfig
 {
     private ?string $user      = null;
     private ?string $branch    = null;
+    private ?string $repoName  = null;
     private ?string $tokenFile = null;
 
     /** @var array<string, array<array<string, string>>> */
@@ -40,6 +41,16 @@ final class GHMatrixConfig
     public function setBranch(?string $branch): void
     {
         $this->branch = $branch;
+    }
+
+    public function getRepoName(): ?string
+    {
+        return $this->repoName;
+    }
+
+    public function setRepoName(?string $repoName): void
+    {
+        $this->repoName = $repoName;
     }
 
     public function getTokenFile(): ?string

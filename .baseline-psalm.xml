@@ -19,7 +19,10 @@
     </InaccessibleProperty>
     <PossiblyNullArgument>
       <code><![CDATA[$input]]></code>
+      <code><![CDATA[$input]]></code>
       <code><![CDATA[$output]]></code>
+      <code><![CDATA[$output]]></code>
+      <code><![CDATA[$questionHelper]]></code>
       <code><![CDATA[$questionHelper]]></code>
     </PossiblyNullArgument>
     <PropertyNotSetInConstructor>
@@ -32,6 +35,7 @@
       <code><![CDATA[$repoUsername]]></code>
     </PropertyNotSetInConstructor>
     <RedundantPropertyInitializationCheck>
+      <code><![CDATA[isset($this->repoName)]]></code>
       <code><![CDATA[isset($this->repoUsername)]]></code>
     </RedundantPropertyInitializationCheck>
     <TypeDoesNotContainType>
@@ -63,6 +67,11 @@
     <TypeDoesNotContainType>
       <code><![CDATA[$branch]]></code>
     </TypeDoesNotContainType>
+  </file>
+  <file src="src/Console/Command/Params/Options/RepoNameCommandOption.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[RepoNameCommandOption]]></code>
+    </ClassMustBeFinal>
   </file>
   <file src="src/Console/Command/SyncCommand.php">
     <MissingOverrideAttribute>
@@ -187,6 +196,18 @@
   <file src="tests/Console/Command/Params/Options/RepoBranchCommandOptionTest.php">
     <ClassMustBeFinal>
       <code><![CDATA[RepoBranchCommandOptionTest]]></code>
+    </ClassMustBeFinal>
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function configure(): void]]></code>
+      <code><![CDATA[protected function configure(): void]]></code>
+      <code><![CDATA[protected function execute(InputInterface $input, OutputInterface $output): int]]></code>
+      <code><![CDATA[protected function execute(InputInterface $input, OutputInterface $output): int]]></code>
+      <code><![CDATA[protected function setUp(): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="tests/Console/Command/Params/Options/RepoNameCommandOptionTest.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[RepoNameCommandOptionTest]]></code>
     </ClassMustBeFinal>
     <MissingOverrideAttribute>
       <code><![CDATA[protected function configure(): void]]></code>
