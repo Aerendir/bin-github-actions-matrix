@@ -16,6 +16,8 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Console\Command;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
+use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
+use Aerendir\Bin\GitHubActionsMatrix\Workflow\Reader as WorkflowsReader;
 use Github\Api\Repo;
 use Github\Api\Repository\Protection;
 use Github\Client;
@@ -155,6 +157,23 @@ class SyncCommandTest extends CommandTestCase
         $this->assertSame(2, $commandTester->getStatusCode());
     }
 
+    public function testExecuteSurfacesNonDerivableContextWarnings(): void
+    {
+        $commandTester = $this->createSyncCommandTesterWithNonDerivableJob();
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--dry-run'                              => true,
+        ]);
+
+        $output = $commandTester->getDisplay();
+
+        $this->assertStringContainsString('cannot be derived', $output);
+        $this->assertStringContainsString('dynamic', $output);
+        $this->assertStringContainsString('addRequiredCheck()', $output);
+    }
+
     public function testErrorPropagatesWhenNotInCheckMode(): void
     {
         $commandTester = $this->createFailingCommandTester();
@@ -164,6 +183,41 @@ class SyncCommandTest extends CommandTestCase
             '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
             '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
         ]);
+    }
+
+    /**
+     * Builds a tester whose workflows include a job with a dynamic (`fromJson`) matrix, so the read step
+     * records a non-derivable-context warning that the command must surface to the user.
+     */
+    private function createSyncCommandTesterWithNonDerivableJob(): CommandTester
+    {
+        $workflowContent = <<<YAML
+            name: CI
+            on: [push]
+            jobs:
+              dynamic:
+                strategy:
+                  matrix:
+                    os: \${{ fromJson(needs.setup.outputs.os) }}
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($workflowContent, 'ci');
+
+        $finder = $this->createMock(Finder::class);
+        $finder->method('getWorkflows')->willReturn(new \ArrayIterator([$fileInfo]));
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: new WorkflowsReader($finder),
+            githubClient: $this->createMockGitHubClient(),
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        return new CommandTester($command);
     }
 
     private function createSyncCommandTester(): CommandTester

@@ -124,6 +124,22 @@ strategy:
 
 resolves to the contexts `job (apple, cat, pink, circle)`, `job (apple, dog, green, circle)`, `job (pear, cat, pink)`, `job (pear, dog, green)` and `job (banana)` — matching GitHub exactly.
 
+#### Non-derivable contexts (interpolated names / dynamic matrices)
+
+Some required-check context names **cannot be derived statically** from the YAML, so the tool must not guess them:
+
+- an interpolated job **name**, e.g. `name: build ${{ matrix.os }}` — GitHub shows the resolved value, not `job (values)`;
+- a **dynamic matrix**, e.g. `matrix: ${{ fromJson(needs.setup.outputs.matrix) }}` or matrix keys/values built from expressions — the values do not exist as literal arrays in the file (and may even be branch-dependent).
+
+When such a job is detected, the tool **does not compute a (wrong) context** for it and prints a clear **warning** before any change. Because it cannot know the real context name, `sync` would otherwise risk removing it, so you have two clean options:
+
+1. **Declare the real context name** so `sync` preserves it (it is treated like an external required check and never removed):
+   ```php
+   $config->addRequiredCheck('build ubuntu-latest');
+   $config->addRequiredCheck('build windows-latest');
+   ```
+2. **Use a static "gate" job** (recommended for dynamic matrices): a single job with a static name that `needs:` the dynamic matrix job, and make *that* gate job the required check. The tool derives the gate job's context normally, and it stays green only when the whole matrix passes.
+
 ### Configuration File
 
 To avoid repeatedly providing the same options, you can create a configuration file `gh-actions-matrix.php` in your project root.
