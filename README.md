@@ -302,6 +302,20 @@ $ vendor/bin/github-actions-matrix sync --username different-user --branch dev
 # Uses 'different-user' and 'dev' instead of config values
 ```
 
+### Non-matrix jobs
+
+A job **without** a `strategy.matrix` (for example a single `build` or `deploy` job) maps to **one** required status check whose context is the **bare job name** (e.g. `build`), matching how GitHub names it. Such jobs no longer cause an error.
+
+### Ignoring jobs
+
+Some jobs run in CI but should never gate pull requests (a deploy job, a nightly task, …). Exclude them from the computed set with `ignoreJob()` in `gh-actions-matrix.php`:
+
+```php
+$config->ignoreJob('deploy');
+```
+
+An ignored job is **never added** to the branch protection and, if it is currently required, it is **removed** by `sync`.
+
 <hr />
 <h3 align="center">
     <b>Do you like this library?</b><br />

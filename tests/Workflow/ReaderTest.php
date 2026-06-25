@@ -103,6 +103,63 @@ class ReaderTest extends TestCase
         unlink($fileInfo->getPathname());
     }
 
+    public function testCreateFromYamlCreatesBareNameContextForNonMatrixJob(): void
+    {
+        // A realistic non-matrix workflow (like the monorepo's copilot-setup-steps / next-build): no
+        // strategy, so its single required-check context is the bare job name.
+        $yamlContent = <<<YAML
+            name: Build
+            on: [push]
+            jobs:
+              build:
+                runs-on: ubuntu-latest
+                steps:
+                  - name: Checkout
+                    uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+        $combinations   = $jobsCollection->getJob('build')->getMatrix()->getCombinations();
+
+        $this->assertCount(1, $combinations);
+        // The combination is keyed by its context string: bare "build", no "(...)" suffix.
+        $this->assertArrayHasKey('build', $combinations);
+
+        unlink($fileInfo->getPathname());
+    }
+
+    public function testCreateFromYamlSkipsIgnoredJobs(): void
+    {
+        $yamlContent = <<<YAML
+            name: CI
+            on: [push]
+            jobs:
+              phpunit:
+                strategy:
+                  matrix:
+                    php: [ '8.3', '8.4' ]
+                steps:
+                  - uses: actions/checkout@v3
+              deploy:
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo, ['deploy']);
+
+        $this->assertTrue($jobsCollection->hasJob('phpunit'));
+        $this->assertFalse($jobsCollection->hasJob('deploy'));
+
+        unlink($fileInfo->getPathname());
+    }
+
     public function testReadProcessesValidWorkflowsSuccessfully(): void
     {
         $phpCsWorkflowContent = <<<YAML

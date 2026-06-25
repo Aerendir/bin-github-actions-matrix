@@ -117,7 +117,8 @@ abstract class AbstractCommand extends Command
         // The candidate folders are resolved at run time (CLI options --project-dir/--workflows-dir, config,
         // git root) and passed to read(): the reader itself is a plain injected collaborator.
         $workflowCandidates = $this->resolveWorkflowCandidates($input);
-        $this->localJobs    = $this->workflowsReader->read($workflowCandidates);
+        $ignoredJobs        = $this->config->getIgnoredJobs();
+        $this->localJobs    = $this->workflowsReader->read($workflowCandidates, $ignoredJobs);
 
         $this->githubClient->authenticate(tokenOrLogin: $repoToken, authMethod: AuthMethod::ACCESS_TOKEN);
         $repo = $this->githubClient->api('repo');

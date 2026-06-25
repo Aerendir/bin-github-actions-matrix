@@ -57,7 +57,8 @@ class MatrixTest extends TestCase
 
     public function testCreateFromArrayWithEmptyMatrixCreatesAtLeastOneEmptyCombination(): void
     {
-        $expectedCombinationKey = 'rector ()';
+        // An empty matrix yields a single empty combination, rendered as the bare job name.
+        $expectedCombinationKey = 'rector';
         $expectedCombination    = new Combination([], 'rector.yml', 'Test Rector Workflow', 'rector');
 
         $matrix = Matrix::createFromArray([], 'rector.yml', 'Test Rector Workflow', 'rector');

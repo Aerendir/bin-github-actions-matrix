@@ -54,7 +54,8 @@ class CombinationTest extends TestCase
 
         $instance = new Combination($combination, $workflowFilename, $workflowName, $job);
 
-        $this->assertSame('artifact-build ()', (string) $instance);
+        // A non-matrix job (empty combination) renders as the bare job name, matching GitHub's context.
+        $this->assertSame('artifact-build', (string) $instance);
     }
 
     public function testGetCombinationReturnsCorrectValues(): void
