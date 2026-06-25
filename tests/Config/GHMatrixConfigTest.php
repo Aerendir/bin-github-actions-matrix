@@ -262,4 +262,29 @@ class GHMatrixConfigTest extends TestCase
 
         $this->assertSame([], $config->getAllOptionalCombinations());
     }
+
+    public function testGetIgnoredJobsReturnsEmptyArrayInitially(): void
+    {
+        $config = new GHMatrixConfig();
+
+        $this->assertSame([], $config->getIgnoredJobs());
+    }
+
+    public function testIgnoreJobAddsTheJobToTheIgnoredList(): void
+    {
+        $config = new GHMatrixConfig();
+        $config->ignoreJob('deploy');
+        $config->ignoreJob('release');
+
+        $this->assertSame(['deploy', 'release'], $config->getIgnoredJobs());
+    }
+
+    public function testIgnoreJobThrowsOnEmptyJobName(): void
+    {
+        $config = new GHMatrixConfig();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The job name cannot be empty.');
+        $config->ignoreJob('');
+    }
 }

@@ -32,6 +32,12 @@ class Combination implements \Stringable
 
     public function __toString(): string
     {
+        // A non-matrix job has no combination values: its required-check context on GitHub is the bare
+        // job name (e.g. "build"), without the "(...)" suffix used for matrix combinations.
+        if ([] === $this->combination) {
+            return $this->getJob();
+        }
+
         return sprintf('%s (%s)', $this->getJob(), implode(', ', $this->getCombination()));
     }
 

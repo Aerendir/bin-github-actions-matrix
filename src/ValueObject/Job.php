@@ -26,8 +26,10 @@ final class Job
      */
     public static function createFromArray(string $name, array $content, string $workflowFilename, string $workflowName, string $job): self
     {
+        // A job without "strategy", or with a "strategy" that has no "matrix", is not a matrix job: it
+        // maps to a single required check whose context is the bare job name (e.g. "build").
         if (false === array_key_exists('strategy', $content)) {
-            throw new \InvalidArgumentException('The "strategy" key is missing in the provided content.');
+            return self::createNonMatrixJob($name, $workflowFilename, $workflowName, $job);
         }
 
         if (false === is_array($content['strategy'])) {
@@ -35,7 +37,7 @@ final class Job
         }
 
         if (false === array_key_exists('matrix', $content['strategy'])) {
-            throw new \InvalidArgumentException('The "matrix" key is missing in the provided content.');
+            return self::createNonMatrixJob($name, $workflowFilename, $workflowName, $job);
         }
 
         if (false === is_array($content['strategy']['matrix'])) {
@@ -56,5 +58,12 @@ final class Job
     public function getMatrix(): Matrix
     {
         return $this->matrix;
+    }
+
+    private static function createNonMatrixJob(string $name, string $workflowFilename, string $workflowName, string $job): self
+    {
+        $combination = new Combination([], $workflowFilename, $workflowName, $job);
+
+        return new Job($name, new Matrix([(string) $combination => $combination]));
     }
 }
