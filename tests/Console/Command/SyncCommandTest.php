@@ -23,27 +23,19 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 class SyncCommandTest extends CommandTestCase
 {
+    private const string TEST_USERNAME = 'Aerendir';
+    private const string TEST_REPO     = 'test-repo';
+    private const string TEST_TOKEN    = 'ghp_1234567890abcdef1234567890abcdef1234';
+
     public function testExecute(): void
     {
-        $testUsername    = 'Aerendir';
-        $testRepo        = 'test-repo';
-        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
-
-        $mockRepoReader      = $this->createMockReader($testRepo);
-        $mockWorkflowsReader = $this->createMockWorkflowsReader();
-        $mockGitHubClient    = $this->createMockGitHubClient();
-        $this->updateMockGitHubClient($mockGitHubClient, $testUsername, $testRepo);
-
-        $command = new SyncCommand(repoReader: $mockRepoReader, workflowsReader: $mockWorkflowsReader, githubClient: $mockGitHubClient);
-
-        $application = new Application();
-        $application->addCommand($command);
-
-        $commandTester = new CommandTester($command);
+        $commandTester = $this->createSyncCommandTester();
 
         $commandTester->execute([
-            '--' . GitHubUsernameCommandOption::NAME => $testUsername,
-            '--' . GitHubTokenCommandOption::NAME    => $testGitHubToken,
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            // --force skips the confirmation, so the output is the plain plan + result.
+            '--force'                                => true,
         ]);
 
         $expectedOutput = <<<'OUTPUT'
@@ -63,6 +55,50 @@ class SyncCommandTest extends CommandTestCase
         $output = $commandTester->getDisplay();
 
         $this->assertEquals($expectedOutput, trim($output));
+    }
+
+    public function testExecuteAppliesWhenConfirmationIsAccepted(): void
+    {
+        $commandTester = $this->createSyncCommandTester();
+        $commandTester->setInputs(['yes']);
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+        ]);
+
+        $this->assertStringContainsString('Sync completed', $commandTester->getDisplay());
+    }
+
+    public function testExecuteAbortsWhenConfirmationIsDeclined(): void
+    {
+        $commandTester = $this->createSyncCommandTester();
+        $commandTester->setInputs(['no']);
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+        ]);
+
+        $output = $commandTester->getDisplay();
+
+        $this->assertStringContainsString('Aborted', $output);
+        $this->assertStringNotContainsString('Sync completed', $output);
+    }
+
+    private function createSyncCommandTester(): CommandTester
+    {
+        $mockRepoReader      = $this->createMockReader(self::TEST_REPO);
+        $mockWorkflowsReader = $this->createMockWorkflowsReader();
+        $mockGitHubClient    = $this->createMockGitHubClient();
+        $this->updateMockGitHubClient($mockGitHubClient, self::TEST_USERNAME, self::TEST_REPO);
+
+        $command = new SyncCommand(repoReader: $mockRepoReader, workflowsReader: $mockWorkflowsReader, githubClient: $mockGitHubClient);
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        return new CommandTester($command);
     }
 
     private function updateMockGitHubClient(Client&MockObject $client, string $repoUsername, string $repoName): void
