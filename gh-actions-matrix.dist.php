@@ -22,7 +22,9 @@ $config = new Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig();
 // Set the name of the repository
 // $config->setRepoName('your-repo-name');
 
-// Set the name of the file that contains the GitHub token
+// Set the name of the file that contains the GitHub token.
+// The file is resolved relative to: the git root (when available), or the current working directory.
+// When issue #38 adds setProjectDir(), the project dir will be tried first.
 // $config->setTokenFile('gh_token');
 
 return $config;
