@@ -23,7 +23,6 @@ use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\WorkflowsDir
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\JobsCollection;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Comparator;
-use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Reader as WorkflowsReader;
 use Github\Api\Repo;
 use Github\Api\Repository\Protection;
@@ -53,6 +52,7 @@ abstract class AbstractCommand extends Command
     private readonly WorkflowsDirCommandOption $workflowsDirCommandOption;
     private readonly Client $githubClient;
     private readonly RepoReader $repoReader;
+    private readonly WorkflowsReader $workflowsReader;
     private readonly Comparator $comparator;
     private string $repoUsername;
     private string $repoName;
@@ -68,8 +68,7 @@ abstract class AbstractCommand extends Command
         ?RepoBranchCommandOption $repoBranchCommandOption = null,
         ?RepoNameCommandOption $repoNameCommandOption = null,
         ?RepoReader $repoReader = null,
-        // Built lazily in init() (so CLI options apply) when not explicitly injected (tests inject a mock).
-        private ?WorkflowsReader $workflowsReader = null,
+        ?WorkflowsReader $workflowsReader = null,
         ?Comparator $comparator = null,
         ?Client $githubClient = null,
         ?ProjectDirCommandOption $projectDirCommandOption = null,
@@ -84,6 +83,7 @@ abstract class AbstractCommand extends Command
         $this->projectDirCommandOption     = $projectDirCommandOption     ?? new ProjectDirCommandOption();
         $this->workflowsDirCommandOption   = $workflowsDirCommandOption   ?? new WorkflowsDirCommandOption();
         $this->repoReader                  = $repoReader                  ?? new RepoReader();
+        $this->workflowsReader             = $workflowsReader             ?? new WorkflowsReader();
         $this->comparator                  = $comparator                  ?? new Comparator($this->config);
         $this->githubClient                = $githubClient                ?? Client::createWithHttpClient(new HttplugClient());
     }
@@ -112,10 +112,9 @@ abstract class AbstractCommand extends Command
         $repoToken      = $this->getRepoToken($input, $output, $questionHelper);
         $this->repoName = $this->getRepoName($input, $output, $questionHelper);
 
-        // Build the workflows reader lazily so CLI options (--project-dir/--workflows-dir) are honoured.
-        // When a reader was injected (e.g. a mock in tests), it is kept as-is.
-        $this->workflowsReader ??= new WorkflowsReader(new Finder($this->resolveWorkflowCandidates($input)));
-        $this->localJobs = $this->workflowsReader->read();
+        // The candidate folders are resolved at run time (CLI options --project-dir/--workflows-dir, config,
+        // git root) and passed to read(): the reader itself is a plain injected collaborator.
+        $this->localJobs = $this->workflowsReader->read($this->resolveWorkflowCandidates($input));
 
         $this->githubClient->authenticate(tokenOrLogin: $repoToken, authMethod: AuthMethod::ACCESS_TOKEN);
         $repo = $this->githubClient->api('repo');
@@ -333,15 +332,16 @@ abstract class AbstractCommand extends Command
     /**
      * Builds the ordered list of candidate folders where the workflows may live.
      *
-     * Resolution order (first existing folder wins, handled by {@see Finder}):
+     * Resolution order (first existing folder wins, handled by the Reader/Finder):
      *   1. `--workflows-dir` (CLI)
      *   2. `GHMatrixConfig::getWorkflowsDir()` (config)
      *   3. `--project-dir` (CLI)                → `<project-dir>/.github/workflows`
      *   4. `GHMatrixConfig::getProjectDir()`    → `<projectDir>/.github/workflows`
      *   5. git root (`RepoReader::getRepoRoot()`, wrapped) → `<root>/.github/workflows`
-     *   6. the existing `__DIR__` fallbacks (`Finder::FROM_VENDOR`, `Finder::FROM_VENDOR_BIN_VENDOR`)
      *
-     * With nothing declared, the list is just the two `__DIR__` fallbacks: behaviour is identical to before.
+     * The package's own `__DIR__` fallbacks are appended LAST by the Finder itself, so callers never
+     * need to know about them. With nothing declared, this returns an empty list and the Finder falls
+     * back to those package locations: behaviour is identical to before.
      *
      * @return array<int, string>
      */
@@ -377,12 +377,8 @@ abstract class AbstractCommand extends Command
         try {
             $candidates[] = $this->workflowsDirFromProjectDir($this->repoReader->getRepoRoot());
         } catch (\Throwable) {
-            // git not available or not in a git repository — fall through to the __DIR__ fallbacks
+            // git not available or not in a git repository — the Finder falls back to the package locations.
         }
-
-        // Priority 6: the existing __DIR__ fallbacks (backward compatible)
-        $candidates[] = Finder::FROM_VENDOR;
-        $candidates[] = Finder::FROM_VENDOR_BIN_VENDOR;
 
         return $candidates;
     }

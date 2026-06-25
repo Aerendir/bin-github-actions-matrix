@@ -26,10 +26,14 @@ class Reader
     {
     }
 
-    public function read(): JobsCollection
+    /**
+     * @param array<array-key, string> $possibleFolders explicit folders to look into, in priority order;
+     *                                                  the Finder appends the package fallbacks after them
+     */
+    public function read(array $possibleFolders = []): JobsCollection
     {
         $localJobs = new JobsCollection();
-        foreach ($this->finder->getWorkflows() as $workflowFile) {
+        foreach ($this->finder->getWorkflows($possibleFolders) as $workflowFile) {
             $readCollection = $this->createFromYaml($workflowFile);
             $localJobs->mergeCollection($readCollection);
         }

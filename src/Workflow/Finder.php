@@ -18,23 +18,39 @@ use Symfony\Component\Finder\SplFileInfo;
 
 class Finder
 {
+    // These are the package's own workflow locations, used as the LAST-resort fallbacks when no
+    // explicit folder is given (or none of the explicit ones exist). They are an internal detail of
+    // how the package is laid out on disk, so they are private: the CLI layer passes its candidate
+    // folders to getWorkflows() and never needs to reference these directly.
+
     /** @var string When installed in the main `composer.json` */
-    public const string FROM_VENDOR = __DIR__ . '/../../.github/workflows';
+    private const string FROM_VENDOR = __DIR__ . '/../../.github/workflows';
 
     /** @var string When installed in `vendor-bin/[namespace]/vendor` by `bamarni/bin-composer-plugin´ */
-    public const string FROM_VENDOR_BIN_VENDOR = __DIR__ . '/../../../../../../../.github/workflows';
-
-    private readonly SymfonyFinder $finder;
+    private const string FROM_VENDOR_BIN_VENDOR = __DIR__ . '/../../../../../../../.github/workflows';
 
     /**
-     * @param array<array-key, string> $possibleFolders
+     * @param array<array-key, string> $fallbackFolders The package-relative fallbacks, always tried
+     *                                                  LAST. Injectable so tests can exercise the
+     *                                                  "no folder found" path deterministically.
      */
-    public function __construct(array $possibleFolders = [self::FROM_VENDOR, self::FROM_VENDOR_BIN_VENDOR])
+    public function __construct(
+        private readonly array $fallbackFolders = [self::FROM_VENDOR, self::FROM_VENDOR_BIN_VENDOR],
+    ) {
+    }
+
+    /**
+     * @param array<array-key, string> $possibleFolders explicit candidate folders, tried first and in
+     *                                                  order; the package fallbacks are appended after
+     *
+     * @return \Iterator<string, SplFileInfo>
+     */
+    public function getWorkflows(array $possibleFolders = []): \Iterator
     {
-        $finder = new SymfonyFinder();
+        $candidates = [...array_values($possibleFolders), ...array_values($this->fallbackFolders)];
 
         $foundFolder = null;
-        foreach ($possibleFolders as $folder) {
+        foreach ($candidates as $folder) {
             if (false === file_exists($folder)) {
                 continue;
             }
@@ -48,14 +64,6 @@ class Finder
             throw new \RuntimeException('Impossible to locate the GitHub workflows folder');
         }
 
-        $this->finder = $finder->files()->name('*.yml')->in($foundFolder);
-    }
-
-    /**
-     * @return \Iterator<string, SplFileInfo>
-     */
-    public function getWorkflows(): \Iterator
-    {
-        return $this->finder->getIterator();
+        return (new SymfonyFinder())->files()->name('*.yml')->in($foundFolder)->getIterator();
     }
 }
