@@ -29,35 +29,52 @@ class GitHubTokenCommandOption
     final public const string SHORTCUT = 't';
     private const int MAX_ATTEMPTS     = 2;
 
+    /**
+     * The accepted GitHub token formats, as the single source of truth shared by every token source
+     * (CLI option, token file, environment variable), so the pattern is never duplicated:
+     *  - classic personal access token:      `ghp_` + 36 alphanumerics
+     *  - fine-grained personal access token: `github_pat_` + 82 chars (alphanumerics and underscores)
+     *  - app / installation access token:    `ghs_` + 36 alphanumerics.
+     */
+    private const string FORMAT_PATTERN = '/^(?:ghp_[A-Za-z0-9]{36}|github_pat_\w{82}|ghs_[A-Za-z0-9]{36})$/';
+
     public function getValueOrAsk(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
-        $validationCallback = $this->getValidationCallback();
-        $token              = $this->getValueOrNull($input);
+        $token = $this->getValueOrNull($input);
 
         return null === $token
             ? $this->askForValue($input, $output, $questionHelper, $maxAttempts)
-            : $validationCallback($token);
+            : $token;
     }
 
     public function getValueOrNull(InputInterface $input): ?string
     {
-        $validationCallback = $this->getValidationCallback();
-        $value              = $input->getOption(self::NAME);
+        $value = $input->getOption(self::NAME);
 
         if (null === $value) {
             return null;
         }
 
-        return $validationCallback($value);
+        return $this->validate($value);
+    }
+
+    /**
+     * Tells whether the given token matches one of the accepted GitHub token formats.
+     *
+     * Exposed so other token sources (e.g. a token read from a file or an environment variable) can
+     * validate against the very same definition without duplicating the pattern.
+     */
+    public function isValidFormat(string $token): bool
+    {
+        return 1 === preg_match(self::FORMAT_PATTERN, $token);
     }
 
     private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
     {
-        $validationCallback = $this->getValidationCallback();
-        $question           = new Question('Please, provide your GitHub token: ');
+        $question = new Question('Please, provide your GitHub token: ');
         $question->setHidden(false);
         $question->setMaxAttempts($maxAttempts ?? self::MAX_ATTEMPTS);
-        $question->setValidator($validationCallback);
+        $question->setValidator($this->validate(...));
 
         try {
             $token = $questionHelper->ask($input, $output, $question);
@@ -65,17 +82,17 @@ class GitHubTokenCommandOption
             throw new MissingInputException('You must pass a valid token of the repo.', previous: $exception);
         }
 
-        return $token;
+        // Re-validate the answer: besides being defensive, it narrows the QuestionHelper's `mixed`
+        // return type down to `string` for the static analysers.
+        return $this->validate($token);
     }
 
-    private function getValidationCallback(): callable
+    private function validate(mixed $gitHubToken): string
     {
-        return static function (mixed $gitHubToken): string {
-            if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $gitHubToken)) {
-                throw new InvalidOptionException('The GitHub Token format is invalid.');
-            }
+        if (false === is_string($gitHubToken) || false === $this->isValidFormat($gitHubToken)) {
+            throw new InvalidOptionException('The GitHub Token format is invalid.');
+        }
 
-            return $gitHubToken;
-        };
+        return $gitHubToken;
     }
 }
