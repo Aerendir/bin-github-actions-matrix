@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command;
 
 use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
+use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\CheckCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\DryRunCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\ForceCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
@@ -41,6 +42,12 @@ final class SyncCommand extends AbstractCommand
 {
     public const string COMMAND_NAME = 'sync';
 
+    /** Exit code returned by --check when the branch protection drifts from the workflows. */
+    private const int EXIT_DRIFT = 1;
+
+    /** Exit code returned by --check when the check itself fails (bad token, network, parse error). */
+    private const int EXIT_ERROR = 2;
+
     public function __construct(
         ?GHMatrixConfig $config = null,
         ?GitHubUsernameCommandOption $gitHubUsernameCommandOption = null,
@@ -55,6 +62,7 @@ final class SyncCommand extends AbstractCommand
         ?WorkflowsDirCommandOption $workflowsDirCommandOption = null,
         private readonly ForceCommandOption $forceCommandOption = new ForceCommandOption(),
         private readonly DryRunCommandOption $dryRunCommandOption = new DryRunCommandOption(),
+        private readonly CheckCommandOption $checkCommandOption = new CheckCommandOption(),
     ) {
         parent::__construct(
             $config,
@@ -77,7 +85,20 @@ final class SyncCommand extends AbstractCommand
 
         $io->title('Protection rules sync');
 
-        $this->init($input, $output);
+        $isCheck = $this->isCheck($input);
+
+        try {
+            $this->init($input, $output);
+        } catch (\Throwable $throwable) {
+            // In --check mode (CI gate) report the failure as a distinct exit code instead of bubbling up.
+            if ($isCheck) {
+                $io->error($throwable->getMessage());
+
+                return self::EXIT_ERROR;
+            }
+
+            throw $throwable;
+        }
 
         $repoUsername               = $this->getRepoUsername();
         $repoName                   = $this->getRepoName();
@@ -98,6 +119,19 @@ final class SyncCommand extends AbstractCommand
             foreach ($remoteCombinationsToCreate as $combination) {
                 $io->writeln(' - ' . $combination);
             }
+        }
+
+        // --check is a CI gate: read-only, no prompt, with the drift encoded in the exit code.
+        if ($isCheck) {
+            if ([] === $remoteCombinationsToRemove && [] === $remoteCombinationsToCreate) {
+                $io->success('In sync: the branch protection matches the workflows.');
+
+                return self::SUCCESS;
+            }
+
+            $io->warning('Drift detected: the branch protection is not aligned with the workflows.');
+
+            return self::EXIT_DRIFT;
         }
 
         // --dry-run is a read-only preview: the plan was printed above, stop before any change.
@@ -135,6 +169,7 @@ final class SyncCommand extends AbstractCommand
 
         $this->addOption(ForceCommandOption::NAME, ForceCommandOption::SHORTCUT, InputOption::VALUE_NONE, 'Apply the changes without asking for confirmation.');
         $this->addOption(DryRunCommandOption::NAME, null, InputOption::VALUE_NONE, 'Show what would change without touching the branch protection (read-only preview).');
+        $this->addOption(CheckCommandOption::NAME, null, InputOption::VALUE_NONE, 'CI gate: read-only, exit 0 if aligned, 1 if drift, 2 on error. Implies --dry-run.');
     }
 
     /**
@@ -171,5 +206,10 @@ final class SyncCommand extends AbstractCommand
     private function isDryRun(InputInterface $input): bool
     {
         return $this->dryRunCommandOption->isEnabled($input);
+    }
+
+    private function isCheck(InputInterface $input): bool
+    {
+        return $this->checkCommandOption->isEnabled($input);
     }
 }
