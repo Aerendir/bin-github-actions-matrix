@@ -83,7 +83,7 @@ vendor/bin/github-actions-matrix compare [options]
 - `-b, --branch=BRANCH` - The branch to compare
 - `-t, --token=TOKEN` - Your GitHub access token
 - `-p, --project-dir=PROJECT-DIR` - The project root that contains the `.github/workflows` folder
-- `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml` files (non-standard layouts)
+- `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml`/`*.yaml` files (non-standard layouts)
 
 **Example:**
 ```bash
@@ -109,7 +109,7 @@ vendor/bin/github-actions-matrix sync [options]
 - `-b, --branch=BRANCH` - The branch to sync
 - `-t, --token=TOKEN` - Your GitHub access token
 - `-p, --project-dir=PROJECT-DIR` - The project root that contains the `.github/workflows` folder
-- `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml` files (non-standard layouts)
+- `-w, --workflows-dir=WORKFLOWS-DIR` - The folder that directly contains the workflow `*.yml`/`*.yaml` files (non-standard layouts)
 
 **Example:**
 ```bash
@@ -159,7 +159,7 @@ Every value can be provided on the command line or declared in the configuration
 | `setBranch(string)` | `-b, --branch` | The protected branch to compare/sync. |
 | `setTokenFile(string)` | _(see `-t, --token`)_ | Name/path of a file containing the GitHub token, resolved against `projectDir → git root → cwd`. The CLI `-t, --token` instead passes the token value directly. |
 | `setProjectDir(string)` | `-p, --project-dir` | Project root that contains `.github/workflows`; also the preferred base directory for the token file. |
-| `setWorkflowsDir(string)` | `-w, --workflows-dir` | Folder that directly contains the workflow `*.yml` files. Escape hatch for non-standard layouts. |
+| `setWorkflowsDir(string)` | `-w, --workflows-dir` | Folder that directly contains the workflow `*.yml`/`*.yaml` files. Escape hatch for non-standard layouts. |
 
 > The GitHub token must have **repo-admin** scope. Provide it via `setTokenFile()` (pointing at a gitignored file) or `-t, --token` — never commit it.
 

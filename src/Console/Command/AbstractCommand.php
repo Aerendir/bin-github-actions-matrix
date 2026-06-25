@@ -96,7 +96,7 @@ abstract class AbstractCommand extends Command
         $this->addOption(RepoBranchCommandOption::NAME, RepoBranchCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The branch for which the matrix has to be synchronized.');
         $this->addOption(RepoNameCommandOption::NAME, RepoNameCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The name of the GitHub repository.');
         $this->addOption(ProjectDirCommandOption::NAME, ProjectDirCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The project root that contains the ".github/workflows" folder.');
-        $this->addOption(WorkflowsDirCommandOption::NAME, WorkflowsDirCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The folder that directly contains the workflow "*.yml" files (non-standard layouts).');
+        $this->addOption(WorkflowsDirCommandOption::NAME, WorkflowsDirCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The folder that directly contains the workflow "*.yml"/"*.yaml" files (non-standard layouts).');
     }
 
     protected function init(InputInterface $input, OutputInterface $output): void
