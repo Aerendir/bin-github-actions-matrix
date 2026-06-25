@@ -20,6 +20,30 @@ use PHPUnit\Framework\TestCase;
 
 class JobsCollectionTest extends TestCase
 {
+    public function testWarningsAreStoredAndExposed(): void
+    {
+        $collection = new JobsCollection();
+        $this->assertSame([], $collection->getWarnings());
+
+        $collection->addWarning('first warning');
+        $collection->addWarning('second warning');
+
+        $this->assertSame(['first warning', 'second warning'], $collection->getWarnings());
+    }
+
+    public function testMergeCollectionAlsoMergesWarnings(): void
+    {
+        $first = new JobsCollection();
+        $first->addWarning('from first');
+
+        $second = new JobsCollection();
+        $second->addWarning('from second');
+
+        $first->mergeCollection($second);
+
+        $this->assertSame(['from first', 'from second'], $first->getWarnings());
+    }
+
     public function testAddOrMergeJobAddsNewJob(): void
     {
         $matrix     = new Matrix([]);
