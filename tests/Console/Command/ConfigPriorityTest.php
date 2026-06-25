@@ -912,4 +912,51 @@ class ConfigPriorityTest extends CommandTestCase
             }
         }
     }
+
+    public function testTokenFilePointingToDirectoryFallsBackToAsking(): void
+    {
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $baseDir = sys_get_temp_dir() . '/gh-matrix-tokendir-' . uniqid();
+        mkdir($baseDir, 0777, true);
+        // A DIRECTORY named like the token file: the path resolves but is not a file.
+        $tokenDir = $baseDir . '/gh_token';
+        mkdir($tokenDir, 0777, true);
+
+        try {
+            $config = new GHMatrixConfig();
+            $config->setUser('test-user');
+            $config->setBranch('master');
+            $config->setTokenFile('gh_token');
+
+            $mockRepoReader = $this->createMock(RepoReader::class);
+            $mockRepoReader->method('getRepoName')->willReturn('test-repo');
+            $mockRepoReader->method('filterProtectedBranches')->willReturn(['master']);
+            $mockRepoReader->method('getRepoRoot')->willReturn($baseDir);
+
+            $command = new SyncCommand(
+                config: $config,
+                repoReader: $mockRepoReader,
+                workflowsReader: $this->createMockWorkflowsReader(),
+                githubClient: $this->createMockGitHubClient()
+            );
+
+            $application = new Application();
+            $application->addCommand($command);
+
+            $commandTester = new CommandTester($command);
+            $commandTester->setInputs([$testGitHubToken]);
+            $commandTester->execute([]);
+
+            // Succeeds by falling back to asking, because the token "file" is a directory.
+            $this->assertEquals(0, $commandTester->getStatusCode());
+        } finally {
+            if (is_dir($tokenDir)) {
+                rmdir($tokenDir);
+            }
+            if (is_dir($baseDir)) {
+                rmdir($baseDir);
+            }
+        }
+    }
 }
