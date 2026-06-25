@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidOptionException;
+use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -91,6 +92,22 @@ class RepoNameCommandOptionTest extends TestCase
         $output = $commandTester->getDisplay();
 
         $this->assertStringContainsString($expectedOutput, $output);
+    }
+
+    public function testGetValueOrAskThrowsWhenAllAttemptsAreExhausted(): void
+    {
+        $command     = $this->createCommandForGetValueOrAsk();
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        // Both answers are empty: rejected by the validator, so the prompt exhausts its attempts and throws.
+        $commandTester->setInputs(['', '']);
+
+        $this->expectException(MissingInputException::class);
+        $this->expectExceptionMessage('You must pass a valid name of the repo.');
+
+        $commandTester->execute([]);
     }
 
     public function testGetValueOrNullWithEmptyRepoNameThrows(): void

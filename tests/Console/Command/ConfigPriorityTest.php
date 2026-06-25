@@ -767,4 +767,22 @@ class ConfigPriorityTest extends CommandTestCase
         // Command should succeed: repo name was obtained via interactive prompt
         $this->assertEquals(0, $commandTester->getStatusCode());
     }
+
+    public function testGetRepoNameThrowsWhenInputMissingAndGitUnavailable(): void
+    {
+        $config = new GHMatrixConfig(); // no repo name configured
+
+        $mockRepoReader = $this->createMock(RepoReader::class);
+        $mockRepoReader->method('getRepoName')->willThrowException(new \RuntimeException('not a git repository'));
+
+        $command = new SyncCommand(config: $config, repoReader: $mockRepoReader);
+
+        // getRepoName() is also used as a parameterless getter; with no CLI/config/git and no I/O it must fail loudly.
+        $method = new \ReflectionMethod($command, 'getRepoName');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('You must pass input/output/helper to resolve the repo name.');
+
+        $method->invoke($command);
+    }
 }
