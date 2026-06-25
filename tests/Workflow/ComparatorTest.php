@@ -195,4 +195,26 @@ class ComparatorTest extends TestCase
         $this->assertContains('phpunit (8.3)', $jobIds);
         $this->assertNotContains('phpunit (8.4)', $jobIds);
     }
+
+    public function testCompareDoesNotRemoveDeclaredExternalChecks(): void
+    {
+        // "codecov" is a declared external check, injected as a bare-name job (as the Reader does).
+        $phpCsMatrix = Matrix::createFromArray(['php' => ['8.3']], 'phpcs.yml', 'PHP CS', 'phpcs');
+
+        $localJobsCollection = new JobsCollection();
+        $localJobsCollection->addJob(new Job('phpcs', $phpCsMatrix));
+        $localJobsCollection->addJob(Job::fromContextName('codecov'));
+
+        $remoteJobIds = [
+            'phpcs (8.3)',
+            'codecov',      // external check currently required -> must be preserved
+            'rector (8.2)', // stale matrix context -> must be removed
+        ];
+
+        $comparator   = new Comparator();
+        $jobsToRemove = $comparator->compare($localJobsCollection, $remoteJobIds);
+
+        $this->assertNotContains('codecov', $jobsToRemove);
+        $this->assertSame(['rector (8.2)'], $jobsToRemove);
+    }
 }

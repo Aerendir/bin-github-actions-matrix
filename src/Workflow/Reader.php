@@ -30,13 +30,21 @@ class Reader
      * @param array<array-key, string> $possibleFolders explicit folders to look into, in priority order;
      *                                                  the Finder appends the package fallbacks after them
      * @param array<array-key, string> $ignoredJobs     job ids to exclude from the computed set entirely
+     * @param array<array-key, string> $requiredChecks  external / non-workflow checks to preserve as
+     *                                                  bare-name required contexts (e.g. codecov)
      */
-    public function read(array $possibleFolders = [], array $ignoredJobs = []): JobsCollection
+    public function read(array $possibleFolders = [], array $ignoredJobs = [], array $requiredChecks = []): JobsCollection
     {
         $localJobs = new JobsCollection();
         foreach ($this->finder->getWorkflows($possibleFolders) as $workflowFile) {
             $readCollection = $this->createFromYaml($workflowFile, $ignoredJobs);
             $localJobs->mergeCollection($readCollection);
+        }
+
+        // External / non-workflow required checks (e.g. codecov) enter the desired set as bare-name jobs,
+        // so sync preserves them like any other required context instead of removing what it cannot read.
+        foreach ($requiredChecks as $checkName) {
+            $localJobs->addOrMergeJob(Job::fromContextName($checkName));
         }
 
         return $localJobs;

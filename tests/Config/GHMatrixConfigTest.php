@@ -287,4 +287,29 @@ class GHMatrixConfigTest extends TestCase
         $this->expectExceptionMessage('The job name cannot be empty.');
         $config->ignoreJob('');
     }
+
+    public function testGetRequiredChecksReturnsEmptyArrayInitially(): void
+    {
+        $config = new GHMatrixConfig();
+
+        $this->assertSame([], $config->getRequiredChecks());
+    }
+
+    public function testAddRequiredCheckAddsTheCheck(): void
+    {
+        $config = new GHMatrixConfig();
+        $config->addRequiredCheck('codecov');
+        $config->addRequiredCheck('kodiak');
+
+        $this->assertSame(['codecov', 'kodiak'], $config->getRequiredChecks());
+    }
+
+    public function testAddRequiredCheckThrowsOnEmptyName(): void
+    {
+        $config = new GHMatrixConfig();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The required check name cannot be empty.');
+        $config->addRequiredCheck('');
+    }
 }
