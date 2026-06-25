@@ -101,6 +101,29 @@ Before applying any change, `sync` shows the plan and asks for confirmation. Pas
 
 To **verify** alignment in CI without changing anything, use `sync --check`: it is read-only and encodes the result in the exit code — `0` if the branch protection matches the workflows, `1` if it drifts, `2` on error (bad token, network, parse). It needs a token with read access to the branch protection.
 
+#### Matrix expansion (`include` / `exclude`)
+
+The tool expands `strategy.matrix` into the same required-check contexts GitHub generates, honouring both `exclude` and `include` with GitHub's documented semantics (see GitHub's docs: [Using a matrix for your jobs](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs), in particular [Excluding matrix configurations](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#excluding-matrix-configurations) and [Expanding or adding matrix configurations](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#expanding-or-adding-matrix-configurations)):
+
+- **`exclude`** removes the matching combinations from the cartesian product.
+- **`include`** is applied **after** `exclude`, processing its entries **in order**. An entry is merged into every base combination it does not conflict with — it may not overwrite an **original** matrix value, but it may add new keys or overwrite values added by an earlier `include` entry, and a single entry can extend many combinations. An entry that fits no base combination becomes a **new** combination. An `include`-only matrix (no other keys) produces exactly one combination per entry.
+
+```yaml
+strategy:
+  matrix:
+    fruit: [apple, pear]
+    animal: [cat, dog]
+    include:
+      - color: green
+      - color: pink
+        animal: cat
+      - fruit: apple
+        shape: circle
+      - fruit: banana
+```
+
+resolves to the contexts `job (apple, cat, pink, circle)`, `job (apple, dog, green, circle)`, `job (pear, cat, pink)`, `job (pear, dog, green)` and `job (banana)` — matching GitHub exactly.
+
 ### Configuration File
 
 To avoid repeatedly providing the same options, you can create a configuration file `gh-actions-matrix.php` in your project root.
