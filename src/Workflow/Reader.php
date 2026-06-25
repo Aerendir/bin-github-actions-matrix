@@ -22,7 +22,7 @@ use function Safe\file_get_contents;
 
 class Reader
 {
-    public function __construct(private readonly Finder $finder = new Finder())
+    public function __construct(private readonly Finder $finder = new Finder(), private readonly NonDerivableContextDetector $nonDerivableContextDetector = new NonDerivableContextDetector())
     {
     }
 
@@ -76,6 +76,23 @@ class Reader
         foreach ($jobs as $jobName => $jobContent) {
             if (in_array($jobName, $ignoredJobs, true)) {
                 continue;
+            }
+
+            // Some contexts cannot be derived statically (interpolated job name, dynamic/fromJson matrix):
+            // computing one would produce a wrong context that sync might wrongly remove/recreate. Warn and
+            // skip, leaving the real context to be preserved via a declared required check or a gate job.
+            if (is_array($jobContent)) {
+                $nonDerivableReason = $this->nonDerivableContextDetector->detect($jobContent);
+                if (null !== $nonDerivableReason) {
+                    $localJobs->addWarning(sprintf(
+                        'Job "%s" (workflow "%s"): %s. Its real check context cannot be computed; declare it with addRequiredCheck() (or use a static "gate" job) so sync preserves it instead of removing it.',
+                        is_scalar($jobName) ? (string) $jobName : '',
+                        is_scalar($workflowName) ? (string) $workflowName : '',
+                        $nonDerivableReason,
+                    ));
+
+                    continue;
+                }
             }
 
             $job = Job::createFromArray($jobName, $jobContent, $fileInfo->getFilename(), $workflowName, $jobName);

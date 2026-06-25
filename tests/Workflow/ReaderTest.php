@@ -212,6 +212,92 @@ class ReaderTest extends TestCase
         unlink($rectorFileInfo->getPathname());
     }
 
+    public function testCreateFromYamlWarnsAndSkipsAJobWithAnInterpolatedName(): void
+    {
+        $yamlContent = <<<YAML
+            name: CI
+            on: [push]
+            jobs:
+              build:
+                name: build \${{ matrix.os }}
+                strategy:
+                  matrix:
+                    os: [ ubuntu-latest, windows-latest ]
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+
+        // The non-derivable job is not added (no miscomputed context) and a clear warning is recorded.
+        $this->assertFalse($jobsCollection->hasJob('build'));
+        $this->assertCount(1, $jobsCollection->getWarnings());
+        $this->assertStringContainsString('build', $jobsCollection->getWarnings()[0]);
+        $this->assertStringContainsString('addRequiredCheck()', $jobsCollection->getWarnings()[0]);
+
+        unlink($fileInfo->getPathname());
+    }
+
+    public function testCreateFromYamlWarnsAndSkipsAJobWithADynamicMatrix(): void
+    {
+        $yamlContent = <<<YAML
+            name: CI
+            on: [push]
+            jobs:
+              test:
+                strategy:
+                  matrix:
+                    os: \${{ fromJson(needs.setup.outputs.os) }}
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+
+        $this->assertFalse($jobsCollection->hasJob('test'));
+        $this->assertCount(1, $jobsCollection->getWarnings());
+
+        unlink($fileInfo->getPathname());
+    }
+
+    public function testCreateFromYamlKeepsDerivableJobsWhileSkippingNonDerivableOnes(): void
+    {
+        $yamlContent = <<<YAML
+            name: CI
+            on: [push]
+            jobs:
+              phpunit:
+                strategy:
+                  matrix:
+                    php: [ '8.3', '8.4' ]
+                steps:
+                  - uses: actions/checkout@v3
+              dynamic:
+                strategy:
+                  matrix:
+                    os: \${{ fromJson(needs.setup.outputs.os) }}
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+
+        $this->assertTrue($jobsCollection->hasJob('phpunit'));
+        $this->assertFalse($jobsCollection->hasJob('dynamic'));
+        $this->assertCount(1, $jobsCollection->getWarnings());
+
+        unlink($fileInfo->getPathname());
+    }
+
     public function testReadInjectsExternalRequiredChecksAsBareNameJobs(): void
     {
         $workflowContent = <<<YAML
