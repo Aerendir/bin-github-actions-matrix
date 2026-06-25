@@ -19,10 +19,10 @@ use Symfony\Component\Finder\SplFileInfo;
 class Finder
 {
     /** @var string When installed in the main `composer.json` */
-    private const string FROM_VENDOR = __DIR__ . '/../../.github/workflows';
+    public const string FROM_VENDOR = __DIR__ . '/../../.github/workflows';
 
     /** @var string When installed in `vendor-bin/[namespace]/vendor` by `bamarni/bin-composer-plugin´ */
-    private const string FROM_VENDOR_BIN_VENDOR = __DIR__ . '/../../../../../../../.github/workflows';
+    public const string FROM_VENDOR_BIN_VENDOR = __DIR__ . '/../../../../../../../.github/workflows';
 
     private readonly SymfonyFinder $finder;
 

@@ -118,6 +118,56 @@ class GHMatrixConfigTest extends TestCase
         $this->assertNull($config->getTokenFile());
     }
 
+    public function testGetProjectDirReturnsNullInitially(): void
+    {
+        $config = new GHMatrixConfig();
+        $this->assertNull($config->getProjectDir());
+    }
+
+    public function testSetProjectDirAndGetProjectDir(): void
+    {
+        $config     = new GHMatrixConfig();
+        $projectDir = '/srv/app';
+
+        $config->setProjectDir($projectDir);
+
+        $this->assertSame($projectDir, $config->getProjectDir());
+    }
+
+    public function testSetProjectDirWithNull(): void
+    {
+        $config = new GHMatrixConfig();
+        $config->setProjectDir('/srv/app');
+        $config->setProjectDir(null);
+
+        $this->assertNull($config->getProjectDir());
+    }
+
+    public function testGetWorkflowsDirReturnsNullInitially(): void
+    {
+        $config = new GHMatrixConfig();
+        $this->assertNull($config->getWorkflowsDir());
+    }
+
+    public function testSetWorkflowsDirAndGetWorkflowsDir(): void
+    {
+        $config       = new GHMatrixConfig();
+        $workflowsDir = '/srv/app/.github/workflows';
+
+        $config->setWorkflowsDir($workflowsDir);
+
+        $this->assertSame($workflowsDir, $config->getWorkflowsDir());
+    }
+
+    public function testSetWorkflowsDirWithNull(): void
+    {
+        $config = new GHMatrixConfig();
+        $config->setWorkflowsDir('/srv/app/.github/workflows');
+        $config->setWorkflowsDir(null);
+
+        $this->assertNull($config->getWorkflowsDir());
+    }
+
     public function testMarkOptionalCombinationAddsValidCombination(): void
     {
         $config       = new GHMatrixConfig();

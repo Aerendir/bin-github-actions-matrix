@@ -15,10 +15,12 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Config;
 
 final class GHMatrixConfig
 {
-    private ?string $user      = null;
-    private ?string $branch    = null;
-    private ?string $repoName  = null;
-    private ?string $tokenFile = null;
+    private ?string $user         = null;
+    private ?string $branch       = null;
+    private ?string $repoName     = null;
+    private ?string $tokenFile    = null;
+    private ?string $projectDir   = null;
+    private ?string $workflowsDir = null;
 
     /** @var array<string, array<array<string, string>>> */
     private array $optionalCombinations = [];
@@ -61,6 +63,36 @@ final class GHMatrixConfig
     public function setTokenFile(?string $tokenFile): void
     {
         $this->tokenFile = $tokenFile;
+    }
+
+    public function getProjectDir(): ?string
+    {
+        return $this->projectDir;
+    }
+
+    /**
+     * The project root that contains the `.github/workflows` folder.
+     *
+     * Used both to locate the workflows and as the preferred base directory to resolve the token file.
+     */
+    public function setProjectDir(?string $projectDir): void
+    {
+        $this->projectDir = $projectDir;
+    }
+
+    public function getWorkflowsDir(): ?string
+    {
+        return $this->workflowsDir;
+    }
+
+    /**
+     * The folder that directly contains the workflow `*.yml` files.
+     *
+     * Escape hatch for non-standard layouts where the workflows do not live under `<projectDir>/.github/workflows`.
+     */
+    public function setWorkflowsDir(?string $workflowsDir): void
+    {
+        $this->workflowsDir = $workflowsDir;
     }
 
     /**

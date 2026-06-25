@@ -46,6 +46,40 @@ class FinderTest extends TestCase
         }
     }
 
+    public function testConstructorPicksTheFirstExistingFolderFromTheCandidates(): void
+    {
+        $missingDir  = sys_get_temp_dir() . '/finder-missing-' . uniqid();
+        $existingDir = sys_get_temp_dir() . '/finder-existing-' . uniqid();
+        $laterDir    = sys_get_temp_dir() . '/finder-later-' . uniqid();
+        mkdir($existingDir);
+        mkdir($laterDir);
+
+        // The workflow lives in the FIRST existing folder; the one in $laterDir must be ignored.
+        file_put_contents($existingDir . '/winner.yml', 'name: Winner');
+        file_put_contents($laterDir . '/loser.yml', 'name: Loser');
+
+        try {
+            // Order: missing (skipped) -> existing (picked) -> later (never reached).
+            $finder    = new Finder([$missingDir, $existingDir, $laterDir]);
+            $workflows = iterator_to_array($finder->getWorkflows());
+
+            $this->assertCount(1, $workflows);
+            $this->assertEquals('winner.yml', $workflows[$existingDir . '/winner.yml']->getFilename());
+        } finally {
+            unlink($existingDir . '/winner.yml');
+            unlink($laterDir . '/loser.yml');
+            rmdir($existingDir);
+            rmdir($laterDir);
+        }
+    }
+
+    public function testPublicDirConstantsAreExposedForComposition(): void
+    {
+        // The CLI layer composes these as the tail of the candidate list, so they must stay public.
+        $this->assertStringEndsWith('.github/workflows', Finder::FROM_VENDOR);
+        $this->assertStringEndsWith('.github/workflows', Finder::FROM_VENDOR_BIN_VENDOR);
+    }
+
     public function testGetWorkflowsReturnsIteratorWithWorkflowFiles(): void
     {
         $tempDir = sys_get_temp_dir() . '/workflow-test-folder';

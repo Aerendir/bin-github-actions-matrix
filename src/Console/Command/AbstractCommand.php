@@ -16,11 +16,14 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command;
 use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
+use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\ProjectDirCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoBranchCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoNameCommandOption;
+use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\WorkflowsDirCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\JobsCollection;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Comparator;
+use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Reader as WorkflowsReader;
 use Github\Api\Repo;
 use Github\Api\Repository\Protection;
@@ -46,9 +49,10 @@ abstract class AbstractCommand extends Command
     private readonly GitHubTokenCommandOption $gitHubTokenCommandOption;
     private readonly RepoBranchCommandOption $repoBranchCommandOption;
     private readonly RepoNameCommandOption $repoNameCommandOption;
+    private readonly ProjectDirCommandOption $projectDirCommandOption;
+    private readonly WorkflowsDirCommandOption $workflowsDirCommandOption;
     private readonly Client $githubClient;
     private readonly RepoReader $repoReader;
-    private readonly WorkflowsReader $workflowsReader;
     private readonly Comparator $comparator;
     private string $repoUsername;
     private string $repoName;
@@ -64,9 +68,12 @@ abstract class AbstractCommand extends Command
         ?RepoBranchCommandOption $repoBranchCommandOption = null,
         ?RepoNameCommandOption $repoNameCommandOption = null,
         ?RepoReader $repoReader = null,
-        ?WorkflowsReader $workflowsReader = null,
+        // Built lazily in init() (so CLI options apply) when not explicitly injected (tests inject a mock).
+        private ?WorkflowsReader $workflowsReader = null,
         ?Comparator $comparator = null,
         ?Client $githubClient = null,
+        ?ProjectDirCommandOption $projectDirCommandOption = null,
+        ?WorkflowsDirCommandOption $workflowsDirCommandOption = null,
     ) {
         parent::__construct();
         $this->config                      = $config                      ?? new GHMatrixConfig();
@@ -74,8 +81,9 @@ abstract class AbstractCommand extends Command
         $this->gitHubTokenCommandOption    = $gitHubTokenCommandOption    ?? new GitHubTokenCommandOption();
         $this->repoBranchCommandOption     = $repoBranchCommandOption     ?? new RepoBranchCommandOption();
         $this->repoNameCommandOption       = $repoNameCommandOption       ?? new RepoNameCommandOption();
+        $this->projectDirCommandOption     = $projectDirCommandOption     ?? new ProjectDirCommandOption();
+        $this->workflowsDirCommandOption   = $workflowsDirCommandOption   ?? new WorkflowsDirCommandOption();
         $this->repoReader                  = $repoReader                  ?? new RepoReader();
-        $this->workflowsReader             = $workflowsReader             ?? new WorkflowsReader();
         $this->comparator                  = $comparator                  ?? new Comparator($this->config);
         $this->githubClient                = $githubClient                ?? Client::createWithHttpClient(new HttplugClient());
     }
@@ -87,6 +95,8 @@ abstract class AbstractCommand extends Command
         $this->addOption(GitHubTokenCommandOption::NAME, GitHubTokenCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'Your GitHub access token.');
         $this->addOption(RepoBranchCommandOption::NAME, RepoBranchCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The branch for which the matrix has to be synchronized.');
         $this->addOption(RepoNameCommandOption::NAME, RepoNameCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The name of the GitHub repository.');
+        $this->addOption(ProjectDirCommandOption::NAME, ProjectDirCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The project root that contains the ".github/workflows" folder.');
+        $this->addOption(WorkflowsDirCommandOption::NAME, WorkflowsDirCommandOption::SHORTCUT, InputOption::VALUE_REQUIRED, 'The folder that directly contains the workflow "*.yml" files (non-standard layouts).');
     }
 
     protected function init(InputInterface $input, OutputInterface $output): void
@@ -102,6 +112,9 @@ abstract class AbstractCommand extends Command
         $repoToken      = $this->getRepoToken($input, $output, $questionHelper);
         $this->repoName = $this->getRepoName($input, $output, $questionHelper);
 
+        // Build the workflows reader lazily so CLI options (--project-dir/--workflows-dir) are honoured.
+        // When a reader was injected (e.g. a mock in tests), it is kept as-is.
+        $this->workflowsReader ??= new WorkflowsReader(new Finder($this->resolveWorkflowCandidates($input)));
         $this->localJobs = $this->workflowsReader->read();
 
         $this->githubClient->authenticate(tokenOrLogin: $repoToken, authMethod: AuthMethod::ACCESS_TOKEN);
@@ -318,25 +331,91 @@ abstract class AbstractCommand extends Command
     }
 
     /**
+     * Builds the ordered list of candidate folders where the workflows may live.
+     *
+     * Resolution order (first existing folder wins, handled by {@see Finder}):
+     *   1. `--workflows-dir` (CLI)
+     *   2. `GHMatrixConfig::getWorkflowsDir()` (config)
+     *   3. `--project-dir` (CLI)                → `<project-dir>/.github/workflows`
+     *   4. `GHMatrixConfig::getProjectDir()`    → `<projectDir>/.github/workflows`
+     *   5. git root (`RepoReader::getRepoRoot()`, wrapped) → `<root>/.github/workflows`
+     *   6. the existing `__DIR__` fallbacks (`Finder::FROM_VENDOR`, `Finder::FROM_VENDOR_BIN_VENDOR`)
+     *
+     * With nothing declared, the list is just the two `__DIR__` fallbacks: behaviour is identical to before.
+     *
+     * @return array<int, string>
+     */
+    private function resolveWorkflowCandidates(?InputInterface $input): array
+    {
+        $candidates = [];
+
+        // Priority 1: --workflows-dir (CLI)
+        $cliWorkflowsDir = null !== $input ? $this->workflowsDirCommandOption->getValueOrNull($input) : null;
+        if (null !== $cliWorkflowsDir) {
+            $candidates[] = $cliWorkflowsDir;
+        }
+
+        // Priority 2: GHMatrixConfig::getWorkflowsDir() (config)
+        $configWorkflowsDir = $this->config->getWorkflowsDir();
+        if (null !== $configWorkflowsDir) {
+            $candidates[] = $configWorkflowsDir;
+        }
+
+        // Priority 3: --project-dir (CLI) → <project-dir>/.github/workflows
+        $cliProjectDir = null !== $input ? $this->projectDirCommandOption->getValueOrNull($input) : null;
+        if (null !== $cliProjectDir) {
+            $candidates[] = $this->workflowsDirFromProjectDir($cliProjectDir);
+        }
+
+        // Priority 4: GHMatrixConfig::getProjectDir() (config) → <projectDir>/.github/workflows
+        $configProjectDir = $this->config->getProjectDir();
+        if (null !== $configProjectDir) {
+            $candidates[] = $this->workflowsDirFromProjectDir($configProjectDir);
+        }
+
+        // Priority 5: git root → <root>/.github/workflows
+        try {
+            $candidates[] = $this->workflowsDirFromProjectDir($this->repoReader->getRepoRoot());
+        } catch (\Throwable) {
+            // git not available or not in a git repository — fall through to the __DIR__ fallbacks
+        }
+
+        // Priority 6: the existing __DIR__ fallbacks (backward compatible)
+        $candidates[] = Finder::FROM_VENDOR;
+        $candidates[] = Finder::FROM_VENDOR_BIN_VENDOR;
+
+        return $candidates;
+    }
+
+    private function workflowsDirFromProjectDir(string $projectDir): string
+    {
+        return rtrim($projectDir, '/\\') . DIRECTORY_SEPARATOR . '.github' . DIRECTORY_SEPARATOR . 'workflows';
+    }
+
+    /**
      * Returns the base directory used to resolve the token file path.
      *
      * Resolution chain:
-     *   1. Git root (`RepoReader::getRepoRoot()`) — existing behaviour when git is available.
-     *   2. Current working directory (`getcwd()`) — fallback for environments without git.
-     *
-     * TODO: INSERTION POINT for issue #38 — when GHMatrixConfig::setProjectDir() is added,
-     *       prepend projectDir as the first candidate: projectDir → git root → cwd.
+     *   1. `GHMatrixConfig::getProjectDir()` — the configured project root (when set).
+     *   2. Git root (`RepoReader::getRepoRoot()`) — existing behaviour when git is available.
+     *   3. Current working directory (`getcwd()`) — fallback for environments without git.
      */
     private function resolveTokenBaseDir(): string
     {
-        // Priority 1: git root (existing behaviour, when available)
+        // Priority 1: configured project dir (preferred base, when set)
+        $projectDir = $this->config->getProjectDir();
+        if (null !== $projectDir) {
+            return $projectDir;
+        }
+
+        // Priority 2: git root (existing behaviour, when available)
         try {
             return $this->repoReader->getRepoRoot();
         } catch (\Throwable) {
             // git not available or not in a git repository — fall through
         }
 
-        // Priority 2: current working directory (where the config file is already loaded from)
+        // Priority 3: current working directory (where the config file is already loaded from)
         return getcwd();
     }
 }
