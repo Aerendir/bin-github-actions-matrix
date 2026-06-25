@@ -91,6 +91,28 @@ class FinderTest extends TestCase
         }
     }
 
+    public function testGetWorkflowsDiscoversBothYmlAndYamlExtensions(): void
+    {
+        $tempDir = sys_get_temp_dir() . '/finder-mixed-ext-' . uniqid();
+        mkdir($tempDir);
+
+        // GitHub Actions recognises both extensions: the Finder must discover them both.
+        file_put_contents($tempDir . '/with-yml.yml', 'name: With yml');
+        file_put_contents($tempDir . '/with-yaml.yaml', 'name: With yaml');
+
+        try {
+            $workflows = iterator_to_array((new Finder(fallbackFolders: []))->getWorkflows([$tempDir]));
+
+            $this->assertCount(2, $workflows);
+            $this->assertArrayHasKey($tempDir . '/with-yml.yml', $workflows);
+            $this->assertArrayHasKey($tempDir . '/with-yaml.yaml', $workflows);
+        } finally {
+            unlink($tempDir . '/with-yml.yml');
+            unlink($tempDir . '/with-yaml.yaml');
+            rmdir($tempDir);
+        }
+    }
+
     public function testGetWorkflowsReturnsIteratorWithWorkflowFiles(): void
     {
         $tempDir = sys_get_temp_dir() . '/workflow-test-folder';
