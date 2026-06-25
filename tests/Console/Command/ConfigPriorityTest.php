@@ -27,13 +27,25 @@ use function Safe\chdir;
 use function Safe\file_put_contents;
 use function Safe\getcwd;
 use function Safe\mkdir;
+use function Safe\putenv;
 use function Safe\rmdir;
 use function Safe\unlink;
 
 class ConfigPriorityTest extends CommandTestCase
 {
+    private const string TOKEN_ENV_VAR = 'GH_MATRIX_TOKEN';
+
     /** @var string|null Original CWD saved before tests that call chdir() */
     private ?string $originalCwd = null;
+
+    #[\Override]
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Guarantee isolation: the token env var must never leak in from the host or a previous test.
+        putenv(self::TOKEN_ENV_VAR);
+    }
 
     #[\Override]
     protected function tearDown(): void
@@ -45,6 +57,121 @@ class ConfigPriorityTest extends CommandTestCase
             chdir($this->originalCwd);
             $this->originalCwd = null;
         }
+
+        // Never let the token env var leak into the next test.
+        putenv(self::TOKEN_ENV_VAR);
+    }
+
+    public function testEnvTokenUsedWhenCliNotProvided(): void
+    {
+        $envToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $config = new GHMatrixConfig();
+        $config->setUser('test-user');
+        $config->setBranch('main');
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $this->createMockReader('test-repo'),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $this->createMockGitHubClient()
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        putenv(self::TOKEN_ENV_VAR . '=' . $envToken);
+
+        $commandTester = new CommandTester($command);
+        // No --token and no interactive input: the token must be taken from the environment variable.
+        $commandTester->execute([]);
+
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testCliTokenTakesPrecedenceOverEnvToken(): void
+    {
+        $cliToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $config = new GHMatrixConfig();
+        $config->setUser('test-user');
+        $config->setBranch('main');
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $this->createMockReader('test-repo'),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $this->createMockGitHubClient()
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        // The env token is invalid; the command only succeeds if the CLI option is read first (priority 1).
+        putenv(self::TOKEN_ENV_VAR . '=invalid-env-token');
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--' . GitHubTokenCommandOption::NAME => $cliToken,
+        ]);
+
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testInvalidEnvTokenFallsBackToAsking(): void
+    {
+        $promptToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $config = new GHMatrixConfig();
+        $config->setUser('test-user');
+        $config->setBranch('main');
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $this->createMockReader('test-repo'),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $this->createMockGitHubClient()
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        // A malformed env token must be ignored, falling back to the interactive prompt.
+        putenv(self::TOKEN_ENV_VAR . '=not-a-valid-token');
+
+        $commandTester = new CommandTester($command);
+        $commandTester->setInputs([$promptToken]);
+        $commandTester->execute([]);
+
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testEmptyEnvTokenFallsBackToAsking(): void
+    {
+        $promptToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $config = new GHMatrixConfig();
+        $config->setUser('test-user');
+        $config->setBranch('main');
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $this->createMockReader('test-repo'),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $this->createMockGitHubClient()
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        // An empty env token must be ignored, falling back to the interactive prompt.
+        putenv(self::TOKEN_ENV_VAR . '=');
+
+        $commandTester = new CommandTester($command);
+        $commandTester->setInputs([$promptToken]);
+        $commandTester->execute([]);
+
+        $this->assertEquals(0, $commandTester->getStatusCode());
     }
 
     public function testCliOptionOverridesConfigForUsername(): void
