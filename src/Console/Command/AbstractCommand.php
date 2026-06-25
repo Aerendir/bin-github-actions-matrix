@@ -298,17 +298,18 @@ abstract class AbstractCommand extends Command
                 return null;
             }
 
-            // Read the file content
+            // Read the file content.
+            // Safe\file_get_contents() throws on failure (it never returns false), so no false check is needed.
             $content = file_get_contents($realPath);
-            if (false === $content) {
-                return null;
-            }
 
             // Trim whitespace and newlines
             $token = trim($content);
 
-            // Validate the token format using the same validation as the option
-            preg_match('/^ghp_[A-Za-z0-9]{36}$/', $token);
+            // Validate the token format using the same validation as the option.
+            // An invalid token read from the file falls back to prompting, consistent with GitHubTokenCommandOption.
+            if (0 === preg_match('/^ghp_[A-Za-z0-9]{36}$/', $token)) {
+                return null;
+            }
 
             return $token;
         } catch (\Throwable) {

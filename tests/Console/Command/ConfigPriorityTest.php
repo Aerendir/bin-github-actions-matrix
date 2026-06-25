@@ -35,6 +35,7 @@ class ConfigPriorityTest extends CommandTestCase
     /** @var string|null Original CWD saved before tests that call chdir() */
     private ?string $originalCwd = null;
 
+    #[\Override]
     protected function tearDown(): void
     {
         parent::tearDown();

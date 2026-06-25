@@ -38,9 +38,6 @@
       <code><![CDATA[isset($this->repoName)]]></code>
       <code><![CDATA[isset($this->repoUsername)]]></code>
     </RedundantPropertyInitializationCheck>
-    <TypeDoesNotContainType>
-      <code><![CDATA[false === $content]]></code>
-    </TypeDoesNotContainType>
   </file>
   <file src="src/Console/Command/CompareCommand.php">
     <MissingOverrideAttribute>
