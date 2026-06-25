@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options;
 
+use Symfony\Component\Console\Exception\ExceptionInterface;
+use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,17 +38,21 @@ class RepoBranchCommandOption
         }
 
         if (1 === count($protectedBranches)) {
-            return $protectedBranches[0];
+            return array_values($protectedBranches)[0];
         }
 
-        return null === $branch
-            ? $this->askForValue($input, $output, $questionHelper, $protectedBranches, $maxAttempts)
-            : $branch;
+        return $this->askForValue($input, $output, $questionHelper, $protectedBranches, $maxAttempts);
     }
 
     public function getValueOrNull(InputInterface $input): ?string
     {
-        return $input->getOption(self::NAME);
+        $value = $input->getOption(self::NAME);
+
+        if (null === $value) {
+            return null;
+        }
+
+        return $this->validate($value);
     }
 
     /**
@@ -59,10 +65,21 @@ class RepoBranchCommandOption
 
         try {
             $branch = $questionHelper->ask($input, $output, $question);
-        } catch (MissingInputException $missingInputException) {
-            throw new MissingInputException('You must pass a valid branch of the repo.', previous: $missingInputException);
+        } catch (ExceptionInterface $exception) {
+            throw new MissingInputException('You must pass a valid branch of the repo.', previous: $exception);
         }
 
-        return $branch;
+        // Re-validate the answer: besides being defensive, it narrows the QuestionHelper's `mixed`
+        // return type down to `string` for the static analysers.
+        return $this->validate($branch);
+    }
+
+    private function validate(mixed $branch): string
+    {
+        if (false === is_string($branch) || '' === trim($branch)) {
+            throw new InvalidOptionException('The branch cannot be empty.');
+        }
+
+        return trim($branch);
     }
 }

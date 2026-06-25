@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options;
 
+use Symfony\Component\Console\Exception\ExceptionInterface;
+use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Exception\MissingInputException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,7 +38,13 @@ class GitHubUsernameCommandOption
 
     public function getValueOrNull(InputInterface $input): ?string
     {
-        return $input->getOption(self::NAME);
+        $value = $input->getOption(self::NAME);
+
+        if (null === $value) {
+            return null;
+        }
+
+        return $this->validate($value);
     }
 
     private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string
@@ -44,13 +52,25 @@ class GitHubUsernameCommandOption
         $question = new Question('Please, provide your GitHub username: ');
         $question->setHidden(false);
         $question->setMaxAttempts($maxAttempts ?? self::MAX_ATTEMPTS);
+        $question->setValidator($this->validate(...));
 
         try {
             $username = $questionHelper->ask($input, $output, $question);
-        } catch (MissingInputException $missingInputException) {
-            throw new MissingInputException('You must pass a valid username of the repo.', previous: $missingInputException);
+        } catch (ExceptionInterface $exception) {
+            throw new MissingInputException('You must pass a valid username of the repo.', previous: $exception);
         }
 
-        return $username;
+        // Re-validate the answer: besides being defensive, it narrows the QuestionHelper's `mixed`
+        // return type down to `string` for the static analysers.
+        return $this->validate($username);
+    }
+
+    private function validate(mixed $username): string
+    {
+        if (false === is_string($username) || '' === trim($username)) {
+            throw new InvalidOptionException('The username cannot be empty.');
+        }
+
+        return trim($username);
     }
 }
