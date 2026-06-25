@@ -94,9 +94,6 @@
       "Composer\\Config::disableProcessTimeout",
       "vendor/bin/rector process"
     ],
-    "matrix:compare": [
-      "@php src/Composer/Bin/github-actions-matrix compare -u Aerendir -b master"
-    ],
     "matrix:sync": [
       "@php src/Composer/Bin/github-actions-matrix sync -u Aerendir -b master"
     ],

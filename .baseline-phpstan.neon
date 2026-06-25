@@ -97,12 +97,6 @@ parameters:
 			path: src/Console/Command/AbstractCommand.php
 
 		-
-			message: '#^Parameter \#3 \$remoteJobsIds of method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\CompareCommand\:\:printResult\(\) expects array\<string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Console/Command/CompareCommand.php
-
-		-
 			message: '#^Method Aerendir\\Bin\\GitHubActionsMatrix\\Console\\Command\\Params\\Options\\GitHubUsernameCommandOption\:\:askForValue\(\) should return string but returns mixed\.$#'
 			identifier: return.type
 			count: 1

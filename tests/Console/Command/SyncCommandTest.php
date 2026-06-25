@@ -57,6 +57,26 @@ class SyncCommandTest extends CommandTestCase
         $this->assertEquals($expectedOutput, trim($output));
     }
 
+    public function testExecuteDryRunShowsThePlanWithoutApplying(): void
+    {
+        $commandTester = $this->createSyncCommandTester();
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--dry-run'                              => true,
+        ]);
+
+        $output = $commandTester->getDisplay();
+
+        // The plan is shown...
+        $this->assertStringContainsString('phpcs (8.4)', $output);
+        $this->assertStringContainsString('Dry run', $output);
+        // ...but nothing is applied and no confirmation is asked.
+        $this->assertStringNotContainsString('Sync completed', $output);
+        $this->assertStringNotContainsString('Apply these changes', $output);
+    }
+
     public function testExecuteAppliesWhenConfirmationIsAccepted(): void
     {
         $commandTester = $this->createSyncCommandTester();

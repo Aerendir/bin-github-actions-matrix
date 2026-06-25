@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Aerendir\Bin\GitHubActionsMatrix\Console\Command;
 
 use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
+use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\DryRunCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\ForceCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
@@ -53,6 +54,7 @@ final class SyncCommand extends AbstractCommand
         ?ProjectDirCommandOption $projectDirCommandOption = null,
         ?WorkflowsDirCommandOption $workflowsDirCommandOption = null,
         private readonly ForceCommandOption $forceCommandOption = new ForceCommandOption(),
+        private readonly DryRunCommandOption $dryRunCommandOption = new DryRunCommandOption(),
     ) {
         parent::__construct(
             $config,
@@ -98,6 +100,13 @@ final class SyncCommand extends AbstractCommand
             }
         }
 
+        // --dry-run is a read-only preview: the plan was printed above, stop before any change.
+        if ($this->isDryRun($input)) {
+            $io->note('Dry run: no changes were applied.');
+
+            return self::SUCCESS;
+        }
+
         // Ask for confirmation before touching the branch protection: removals in particular are
         // destructive. The confirmation can be skipped with --force (e.g. in CI).
         if (false === $this->shouldApply($input, $io)) {
@@ -125,6 +134,7 @@ final class SyncCommand extends AbstractCommand
         parent::configure();
 
         $this->addOption(ForceCommandOption::NAME, ForceCommandOption::SHORTCUT, InputOption::VALUE_NONE, 'Apply the changes without asking for confirmation.');
+        $this->addOption(DryRunCommandOption::NAME, null, InputOption::VALUE_NONE, 'Show what would change without touching the branch protection (read-only preview).');
     }
 
     /**
@@ -156,5 +166,10 @@ final class SyncCommand extends AbstractCommand
     private function isForce(InputInterface $input): bool
     {
         return $this->forceCommandOption->isEnabled($input);
+    }
+
+    private function isDryRun(InputInterface $input): bool
+    {
+        return $this->dryRunCommandOption->isEnabled($input);
     }
 }
