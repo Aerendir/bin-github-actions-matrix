@@ -99,7 +99,7 @@ This command will:
 
 Before applying any change, `sync` shows the plan and asks for confirmation. Pass `-f, --force` to skip the prompt (for example in CI).
 
-To **verify** alignment in CI without changing anything, use `sync --check`: it is read-only and encodes the result in the exit code — `0` if the branch protection matches the workflows, `1` if it drifts, `2` on error (bad token, network, parse). It needs a token with read access to the branch protection.
+To **verify** alignment in CI without changing anything, use `sync --check`: it is read-only and encodes the result in the exit code — `0` if the branch protection matches the workflows, `1` if it drifts, `2` on error (bad token, network, parse). See [Token permissions](#token-permissions) below.
 
 #### Matrix expansion (`include` / `exclude`)
 
@@ -181,7 +181,20 @@ Every value can be provided on the command line or declared in the configuration
 | `setProjectDir(string)` | `-p, --project-dir` | Project root that contains `.github/workflows`; also the preferred base directory for the token file. |
 | `setWorkflowsDir(string)` | `-w, --workflows-dir` | Folder that directly contains the workflow `*.yml`/`*.yaml` files. Escape hatch for non-standard layouts. |
 
-> The GitHub token must have **repo-admin** scope. Classic (`ghp_…`), fine-grained (`github_pat_…`) and app/installation (`ghs_…`) tokens are accepted. Provide it via `-t, --token`, the `GH_MATRIX_TOKEN` environment variable (recommended in CI — it keeps the secret off disk and out of the process arguments), or `setTokenFile()` (pointing at a gitignored file) — never commit it. Resolution order: `--token` → `GH_MATRIX_TOKEN` (env) → token file → interactive prompt.
+#### Token permissions
+
+The required fine-grained token permissions depend on the command:
+
+| Command | Required fine-grained permissions |
+|---|---|
+| `sync --check` (read-only) | `Administration: Read` + `Metadata: Read` (automatic) |
+| `sync` (mutating) | `Administration: Read and write` + `Metadata: Read` |
+
+> **Note:** `Contents: Read` is additionally required **only** when you let the tool pick the branch interactively (i.e. you do not pass `--branch` and do not call `setBranch()` in the config). That interactive path lists all repository branches to build the choice menu; once the branch is set explicitly the listing is skipped entirely.
+>
+> **Classic tokens:** the `repo` scope covers all of the above.
+
+Classic (`ghp_…`), fine-grained (`github_pat_…`) and app/installation (`ghs_…`) tokens are accepted. Provide it via `-t, --token`, the `GH_MATRIX_TOKEN` environment variable (recommended in CI — it keeps the secret off disk and out of the process arguments), or `setTokenFile()` (pointing at a gitignored file) — never commit it. Resolution order: `--token` → `GH_MATRIX_TOKEN` (env) → token file → interactive prompt.
 
 #### Priority Order
 

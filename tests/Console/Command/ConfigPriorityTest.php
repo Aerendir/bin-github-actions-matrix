@@ -20,6 +20,9 @@ use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoBranchCo
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoNameCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
+use Github\Api\Repo;
+use Github\Api\Repository\Protection;
+use Github\Client;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -321,29 +324,32 @@ class ConfigPriorityTest extends CommandTestCase
         $this->assertEquals(0, $commandTester->getStatusCode());
     }
 
-    public function testWarningWhenConfigBranchNotInProtectedBranches(): void
+    public function testBranchesNotCalledWhenConfigBranchIsSet(): void
     {
-        $configBranch    = 'feature-branch';
-        $testUsername    = 'test-user';
-        $testRepo        = 'test-repo';
         $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
 
         $config = new GHMatrixConfig();
-        $config->setUser($testUsername);
-        $config->setBranch($configBranch);
+        $config->setUser('test-user');
+        $config->setBranch('main');
 
-        $mockRepoReader = $this->createMockReader($testRepo);
-        // Only one protected branch, so it will auto-select after warning
-        $mockRepoReader->method('filterProtectedBranches')->willReturn(['main']);
+        $mockProtection = $this->createMock(Protection::class);
+        $mockProtection->method('show')->willReturn([
+            'required_status_checks' => ['contexts' => []],
+        ]);
 
-        $mockWorkflowsReader = $this->createMockWorkflowsReader();
-        $mockGitHubClient    = $this->createMockGitHubClient();
+        $mockRepo = $this->createMock(Repo::class);
+        $mockRepo->expects($this->never())->method('branches');
+        $mockRepo->method('protection')->willReturn($mockProtection);
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->with('repo')->willReturn($mockRepo);
 
         $command = new SyncCommand(
             config: $config,
-            repoReader: $mockRepoReader,
-            workflowsReader: $mockWorkflowsReader,
-            githubClient: $mockGitHubClient
+            repoReader: $this->createMockReader('test-repo'),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient
         );
 
         $application = new Application();
@@ -351,16 +357,98 @@ class ConfigPriorityTest extends CommandTestCase
 
         $commandTester = new CommandTester($command);
         $commandTester->execute([
-            '--' . GitHubUsernameCommandOption::NAME => $testUsername,
-            '--' . GitHubTokenCommandOption::NAME    => $testGitHubToken,
-            // Do NOT provide CLI branch - let it try to use config branch
+            '--' . GitHubTokenCommandOption::NAME => $testGitHubToken,
         ]);
 
-        // Command should succeed and output should contain warning about invalid config branch
-        $output = $commandTester->getDisplay();
-        $this->assertStringContainsString('Warning', $output);
-        $this->assertStringContainsString('feature-branch', $output);
-        $this->assertStringContainsString('not in the list of protected branches', $output);
+        // branches() was not called (asserted via expects(never) above) and command succeeds.
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testBranchesNotCalledWhenCliBranchIsSet(): void
+    {
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $config = new GHMatrixConfig();
+        $config->setUser('test-user');
+        // No branch in config — supplied via CLI below.
+
+        $mockProtection = $this->createMock(Protection::class);
+        $mockProtection->method('show')->willReturn([
+            'required_status_checks' => ['contexts' => []],
+        ]);
+
+        $mockRepo = $this->createMock(Repo::class);
+        $mockRepo->expects($this->never())->method('branches');
+        $mockRepo->method('protection')->willReturn($mockProtection);
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->with('repo')->willReturn($mockRepo);
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $this->createMockReader('test-repo'),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--' . RepoBranchCommandOption::NAME  => 'main',
+            '--' . GitHubTokenCommandOption::NAME => $testGitHubToken,
+        ]);
+
+        // branches() was not called (asserted via expects(never) above) and command succeeds.
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testBranchesCalledWhenNoBranchIsProvided(): void
+    {
+        $testGitHubToken = 'ghp_1234567890abcdef1234567890abcdef1234';
+
+        $config = new GHMatrixConfig();
+        $config->setUser('test-user');
+        // No branch set in config, none on CLI — branches() must be called.
+
+        $mockProtection = $this->createMock(Protection::class);
+        $mockProtection->method('show')->willReturn([
+            'required_status_checks' => ['contexts' => []],
+        ]);
+
+        $mockRepo = $this->createMock(Repo::class);
+        $mockRepo->expects($this->once())->method('branches')->willReturn([
+            ['name' => 'main', 'protection' => ['enabled' => true]],
+        ]);
+        $mockRepo->method('protection')->willReturn($mockProtection);
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->with('repo')->willReturn($mockRepo);
+
+        $mockRepoReader = $this->createMockReader('test-repo');
+        $mockRepoReader->method('filterProtectedBranches')->willReturn(['main']);
+
+        $command = new SyncCommand(
+            config: $config,
+            repoReader: $mockRepoReader,
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => 'test-user',
+            '--' . GitHubTokenCommandOption::NAME    => $testGitHubToken,
+        ]);
+
+        // branches() was called exactly once (asserted via expects(once) above) and command succeeds.
+        $this->assertEquals(0, $commandTester->getStatusCode());
     }
 
     public function testGitConfigUsedWhenConfigAndCliNotProvided(): void
