@@ -16,6 +16,7 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Workflow;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Reader;
 use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
+use Symfony\Component\Finder\SplFileInfo;
 
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\mkdir;
@@ -104,6 +105,19 @@ class ReaderTest extends TestCase
         $this->assertTrue($jobsCollection->hasJob('build'));
 
         unlink($fileInfo->getPathname());
+    }
+
+    public function testCreateFromYamlThrowsExceptionWhenWorkflowFileCannotBeRead(): void
+    {
+        $path     = sys_get_temp_dir() . '/missing-workflow-' . uniqid() . '.yaml';
+        $fileInfo = new SplFileInfo($path, dirname($path), basename($path));
+
+        $reader = new Reader();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage(sprintf('Unable to read the workflow file "%s".', $path));
+
+        $reader->createFromYaml($fileInfo);
     }
 
     public function testCreateFromYamlCreatesBareNameContextForNonMatrixJob(): void

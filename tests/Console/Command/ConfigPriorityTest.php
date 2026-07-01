@@ -25,7 +25,6 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\chdir;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
-use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\getcwd;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\mkdir;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\putenv;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\rmdir;
@@ -1101,7 +1100,12 @@ class ConfigPriorityTest extends CommandTestCase
             $application->addCommand($command);
 
             // Change to the temp dir so the CWD fallback finds the token file
-            $this->originalCwd = getcwd();
+            $originalCwd = \getcwd();
+            if (false === $originalCwd) {
+                throw new \RuntimeException('Unable to determine the current working directory.');
+            }
+
+            $this->originalCwd = $originalCwd;
             chdir($tempDir);
 
             $commandTester = new CommandTester($command);
@@ -1156,7 +1160,12 @@ class ConfigPriorityTest extends CommandTestCase
             $application->addCommand($command);
 
             // Change to the temp dir so the CWD is the base
-            $this->originalCwd = getcwd();
+            $originalCwd = \getcwd();
+            if (false === $originalCwd) {
+                throw new \RuntimeException('Unable to determine the current working directory.');
+            }
+
+            $this->originalCwd = $originalCwd;
             chdir($tempDir);
 
             $commandTester = new CommandTester($command);

@@ -51,13 +51,7 @@ readonly class Reader
         }
 
         // Get the URL of the repo from its URL
-        $repoName = $matches[1] ?? null;
-
-        if (null === $repoName) {
-            throw new \RuntimeException('Cannot find the name of the repo.');
-        }
-
-        return $repoName;
+        return $matches[1];
     }
 
     public function getRepoRoot(): string

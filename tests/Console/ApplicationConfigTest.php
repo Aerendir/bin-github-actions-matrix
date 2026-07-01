@@ -18,7 +18,6 @@ use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
 
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\chdir;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
-use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\getcwd;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\mkdir;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\rmdir;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\symlink;
@@ -32,7 +31,12 @@ class ApplicationConfigTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->originalDir = getcwd();
+        $originalDir = \getcwd();
+        if (false === $originalDir) {
+            throw new \RuntimeException('Unable to determine the current working directory.');
+        }
+
+        $this->originalDir = $originalDir;
     }
 
     #[\Override]

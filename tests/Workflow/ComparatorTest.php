@@ -151,6 +151,25 @@ class ComparatorTest extends TestCase
         $comparator->compare($localJobsCollection, []);
     }
 
+    public function testCompareThrowsExceptionWhenOptionalCombinationCannotBeEncoded(): void
+    {
+        $config = new GHMatrixConfig();
+        $config->markOptionalCombination('phpunit', ['php' => "\xB1\x31"]);
+
+        $phpunitMatrix = Matrix::createFromArray(['php' => ['8.3', '8.4']], 'phpunit.yml', 'PHPUnit Tests', 'phpunit');
+        $phpunitJob    = new Job('phpunit', $phpunitMatrix);
+
+        $localJobsCollection = new JobsCollection();
+        $localJobsCollection->addJob($phpunitJob);
+
+        $comparator = new Comparator($config);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unable to encode the optional combination for workflow "phpunit": Malformed UTF-8 characters, possibly incorrectly encoded');
+
+        $comparator->compare($localJobsCollection, []);
+    }
+
     public function testCompareSupportsOptionalCombinationsWithPartialMatch(): void
     {
         $config = new GHMatrixConfig();
