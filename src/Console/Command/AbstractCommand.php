@@ -123,9 +123,41 @@ abstract class AbstractCommand extends Command
             throw new \RuntimeException('The API returned an unexpected object');
         }
 
-        $allBranches       = $repo->branches($repoUsername, $this->repoName);
-        $protectedBranches = $this->repoReader->filterProtectedBranches($allBranches);
-        $this->branchName  = $this->getBranchName($input, $output, $questionHelper, $protectedBranches);
+        // Skip the GET /branches listing when the branch is already known: that endpoint
+        // requires Contents: Read, while reading branch protection only needs Administration: Read.
+        // Branch listing is only needed to populate the interactive chooser.
+        $cliBranch    = $this->repoBranchCommandOption->getValueOrNull($input);
+        $configBranch = $this->config->getBranch();
+
+        if (null !== $cliBranch) {
+            $this->branchName = $cliBranch;
+        } elseif (null !== $configBranch) {
+            $this->branchName = $configBranch;
+        } else {
+            // No branch provided: list all branches for the interactive chooser.
+            // This path requires Contents: Read on fine-grained tokens.
+            try {
+                $allBranches = $repo->branches($repoUsername, $this->repoName);
+            } catch (\RuntimeException $e) {
+                if (403 === $e->getCode()) {
+                    throw new \RuntimeException(
+                        'Could not fetch the list of branches to let you pick one — the tool needs to list' . \PHP_EOL .
+                        'the repository branches and the current token is not allowed to.' . \PHP_EOL .
+                        'Fix it by doing either of these:' . \PHP_EOL .
+                        ' - Grant the token more permissions: add Contents: Read to the token (the permission' . \PHP_EOL .
+                        '   required to list branches), then re-run.' . \PHP_EOL .
+                        ' - Set the branch explicitly so the tool does not need to list branches at all: pass' . \PHP_EOL .
+                        "   --branch <name> on the CLI, or set setBranch('<name>') in the config file.",
+                        2
+                    );
+                }
+
+                throw $e;
+            }
+
+            $protectedBranches = $this->repoReader->filterProtectedBranches($allBranches);
+            $this->branchName  = $this->getBranchName($input, $output, $questionHelper, $protectedBranches);
+        }
 
         $this->protection = $repo->protection();
         $protectionRules  = $this->protection->show($repoUsername, $this->repoName, $this->branchName);

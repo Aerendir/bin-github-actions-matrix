@@ -185,6 +185,78 @@ class SyncCommandTest extends CommandTestCase
         ]);
     }
 
+    public function testInteractiveBranch403ShowsExplanatoryMessageAndExitsTwoInCheckMode(): void
+    {
+        $mockProtection = $this->createMock(Protection::class);
+
+        $mockRepo = $this->createMock(Repo::class);
+        $mockRepo->method('branches')->willThrowException(
+            new \RuntimeException('Resource not accessible by personal access token', 403)
+        );
+        $mockRepo->method('protection')->willReturn($mockProtection);
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->willReturn($mockRepo);
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient,
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--check'                                => true,
+        ]);
+
+        $this->assertSame(2, $commandTester->getStatusCode());
+        $output = $commandTester->getDisplay();
+        $this->assertStringContainsString('Contents: Read', $output);
+        $this->assertStringContainsString('--branch', $output);
+        $this->assertStringContainsString('setBranch(', $output);
+    }
+
+    public function testInteractiveBranch403PropagatesWithCodeTwoInNormalMode(): void
+    {
+        $mockProtection = $this->createMock(Protection::class);
+
+        $mockRepo = $this->createMock(Repo::class);
+        $mockRepo->method('branches')->willThrowException(
+            new \RuntimeException('Resource not accessible by personal access token', 403)
+        );
+        $mockRepo->method('protection')->willReturn($mockProtection);
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->willReturn($mockRepo);
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient,
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(2);
+        $this->expectExceptionMessageMatches('/Contents: Read/');
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+        ]);
+    }
+
     /**
      * Builds a tester whose workflows include a job with a dynamic (`fromJson`) matrix, so the read step
      * records a non-derivable-context warning that the command must surface to the user.
