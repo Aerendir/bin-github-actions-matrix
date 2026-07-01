@@ -17,8 +17,6 @@ use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\Combination;
 use Aerendir\Bin\GitHubActionsMatrix\ValueObject\JobsCollection;
 
-use function Safe\json_encode;
-
 class Comparator
 {
     public function __construct(private readonly ?GHMatrixConfig $config = null)
@@ -87,7 +85,12 @@ class Comparator
         }
 
         if (false === $found) {
-            throw new \InvalidArgumentException(sprintf('The optional combination %s for workflow "%s" does not exist in the matrix or is explicitly excluded.', json_encode($optionalCombination), $workflowName));
+            $encodedOptionalCombination = json_encode($optionalCombination);
+            if (false === $encodedOptionalCombination) {
+                throw new \RuntimeException(sprintf('Unable to encode the optional combination for workflow "%s": %s', $workflowName, json_last_error_msg()));
+            }
+
+            throw new \InvalidArgumentException(sprintf('The optional combination %s for workflow "%s" does not exist in the matrix or is explicitly excluded.', $encodedOptionalCombination, $workflowName));
         }
     }
 

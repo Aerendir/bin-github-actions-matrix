@@ -23,13 +23,12 @@ use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
-use function Safe\chdir;
-use function Safe\file_put_contents;
-use function Safe\getcwd;
-use function Safe\mkdir;
-use function Safe\putenv;
-use function Safe\rmdir;
-use function Safe\unlink;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\chdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\mkdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\putenv;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\rmdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\unlink;
 
 class ConfigPriorityTest extends CommandTestCase
 {
@@ -1101,7 +1100,12 @@ class ConfigPriorityTest extends CommandTestCase
             $application->addCommand($command);
 
             // Change to the temp dir so the CWD fallback finds the token file
-            $this->originalCwd = getcwd();
+            $originalCwd = \getcwd();
+            if (false === $originalCwd) {
+                throw new \RuntimeException('Unable to determine the current working directory.');
+            }
+
+            $this->originalCwd = $originalCwd;
             chdir($tempDir);
 
             $commandTester = new CommandTester($command);
@@ -1156,7 +1160,12 @@ class ConfigPriorityTest extends CommandTestCase
             $application->addCommand($command);
 
             // Change to the temp dir so the CWD is the base
-            $this->originalCwd = getcwd();
+            $originalCwd = \getcwd();
+            if (false === $originalCwd) {
+                throw new \RuntimeException('Unable to determine the current working directory.');
+            }
+
+            $this->originalCwd = $originalCwd;
             chdir($tempDir);
 
             $commandTester = new CommandTester($command);

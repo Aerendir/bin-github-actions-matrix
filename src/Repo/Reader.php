@@ -14,9 +14,6 @@ declare(strict_types=1);
 namespace Aerendir\Bin\GitHubActionsMatrix\Repo;
 
 use Aerendir\Bin\GitHubActionsMatrix\Utils\Shell;
-use Safe\Exceptions\ExecException;
-
-use function Safe\preg_match;
 
 readonly class Reader
 {
@@ -28,7 +25,7 @@ readonly class Reader
     {
         try {
             $result = $this->shell->exec('git config user.name');
-        } catch (ExecException) {
+        } catch (\RuntimeException) {
             return null;
         }
 
@@ -37,27 +34,24 @@ readonly class Reader
 
     public function getRepoName(): string
     {
-        $repoUrl  = trim($this->shell->exec('git remote get-url origin'));
+        $repoUrl = trim($this->shell->exec('git remote get-url origin'));
 
         if (str_ends_with($repoUrl, '.git')) {
             $repoUrl = substr($repoUrl, 0, -4);
         }
 
-        if (
-            0       === preg_match('~[:/]([^/]+)(?:\.git)?$~', $repoUrl, $matches)
-            || null === $matches
-        ) {
+        $matches     = [];
+        $matchResult = preg_match('~[:/]([^/]+)(?:\.git)?$~', $repoUrl, $matches);
+        if (false === $matchResult) {
+            throw new \RuntimeException('Cannot parse the repository URL.');
+        }
+
+        if (0 === $matchResult) {
             throw new \RuntimeException('Cannot find the name of the repo.');
         }
 
         // Get the URL of the repo from its URL
-        $repoName = $matches[1];
-
-        if (null === $repoName) {
-            throw new \RuntimeException('Cannot find the name of the repo.');
-        }
-
-        return $repoName;
+        return $matches[1];
     }
 
     public function getRepoRoot(): string

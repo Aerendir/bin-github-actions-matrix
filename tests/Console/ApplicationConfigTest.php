@@ -16,13 +16,12 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Console;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Application;
 use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
 
-use function Safe\chdir;
-use function Safe\file_put_contents;
-use function Safe\getcwd;
-use function Safe\mkdir;
-use function Safe\rmdir;
-use function Safe\symlink;
-use function Safe\unlink;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\chdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\mkdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\rmdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\symlink;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\unlink;
 
 class ApplicationConfigTest extends TestCase
 {
@@ -32,7 +31,12 @@ class ApplicationConfigTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->originalDir = getcwd();
+        $originalDir = \getcwd();
+        if (false === $originalDir) {
+            throw new \RuntimeException('Unable to determine the current working directory.');
+        }
+
+        $this->originalDir = $originalDir;
     }
 
     #[\Override]

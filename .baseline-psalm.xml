@@ -6,9 +6,6 @@
     </ClassMustBeFinal>
   </file>
   <file src="src/Console/Application.php">
-    <TypeDoesNotContainType>
-      <code><![CDATA[false === $currentDir]]></code>
-    </TypeDoesNotContainType>
     <UnresolvableInclude>
       <code><![CDATA[require $realConfigPath]]></code>
     </UnresolvableInclude>
@@ -71,9 +68,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[Reader]]></code>
     </ClassMustBeFinal>
-    <DocblockTypeContradiction>
-      <code><![CDATA[null === $repoName]]></code>
-    </DocblockTypeContradiction>
   </file>
   <file src="src/Utils/Shell.php">
     <ClassMustBeFinal>

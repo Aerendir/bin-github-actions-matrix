@@ -17,9 +17,6 @@ use Aerendir\Bin\GitHubActionsMatrix\Config\GHMatrixConfig;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
 use Symfony\Component\Console\Application as BaseApplication;
 
-use function Safe\getcwd;
-use function Safe\realpath;
-
 final class Application extends BaseApplication
 {
     public const string NAME    = 'Github Actions Matrix';
@@ -41,6 +38,11 @@ final class Application extends BaseApplication
             return new GHMatrixConfig();
         }
 
+        $realCurrentDir = realpath($currentDir);
+        if (false === $realCurrentDir) {
+            return new GHMatrixConfig();
+        }
+
         // Try to load gh-actions-matrix.php first, then fallback to gh-actions-matrix.dist.php
         $configFiles = [
             'gh-actions-matrix.php',
@@ -53,7 +55,9 @@ final class Application extends BaseApplication
             // Security check: ensure the file exists and is within the current directory
             if (file_exists($configFile)) {
                 $realConfigPath = realpath($configFile);
-                $realCurrentDir = realpath($currentDir);
+                if (false === $realConfigPath) {
+                    continue;
+                }
 
                 // Validate config is within the current directory
                 $expectedPath = $realCurrentDir . DIRECTORY_SEPARATOR . $configFileName;

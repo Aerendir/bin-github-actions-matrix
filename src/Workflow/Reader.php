@@ -18,8 +18,6 @@ use Aerendir\Bin\GitHubActionsMatrix\ValueObject\JobsCollection;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
 
-use function Safe\file_get_contents;
-
 class Reader
 {
     public function __construct(private readonly Finder $finder = new Finder(), private readonly NonDerivableContextDetector $nonDerivableContextDetector = new NonDerivableContextDetector())
@@ -55,7 +53,12 @@ class Reader
      */
     public function createFromYaml(SplFileInfo $fileInfo, array $ignoredJobs = []): JobsCollection
     {
-        $parsed = Yaml::parse(file_get_contents($fileInfo->getPathname()));
+        $yaml = file_get_contents($fileInfo->getPathname());
+        if (false === $yaml) {
+            throw new \RuntimeException(sprintf('Unable to read the workflow file "%s".', $fileInfo->getPathname()));
+        }
+
+        $parsed = Yaml::parse($yaml);
 
         if (false === is_array($parsed)) {
             throw new \RuntimeException('The parsed YAML file is not an array.');

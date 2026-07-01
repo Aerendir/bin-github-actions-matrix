@@ -21,8 +21,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 
-use function Safe\preg_match;
-
 class GitHubTokenCommandOption
 {
     final public const string NAME     = 'token';
@@ -66,7 +64,12 @@ class GitHubTokenCommandOption
      */
     public function isValidFormat(string $token): bool
     {
-        return 1 === preg_match(self::FORMAT_PATTERN, $token);
+        $result = preg_match(self::FORMAT_PATTERN, $token);
+        if (false === $result) {
+            throw new \RuntimeException('Unable to validate the GitHub token format.');
+        }
+
+        return 1 === $result;
     }
 
     private function askForValue(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, ?int $maxAttempts = null): string

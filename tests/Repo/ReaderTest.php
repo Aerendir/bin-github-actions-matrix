@@ -16,7 +16,6 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Repo;
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader;
 use Aerendir\Bin\GitHubActionsMatrix\Utils\Shell;
 use PHPUnit\Framework\TestCase;
-use Safe\Exceptions\ExecException;
 
 class ReaderTest extends TestCase
 {
@@ -39,7 +38,7 @@ class ReaderTest extends TestCase
         $shell
             ->method('exec')
             ->with('git config user.name')
-            ->willThrowException(new ExecException());
+            ->willThrowException(new \RuntimeException('git failed'));
 
         $reader = new Reader($shell);
         $this->assertNull($reader->getUsername());
