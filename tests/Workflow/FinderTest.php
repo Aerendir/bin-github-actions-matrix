@@ -113,6 +113,34 @@ class FinderTest extends TestCase
         }
     }
 
+    public function testGetWorkflowsIgnoresNestedYamlFiles(): void
+    {
+        $tempDir   = sys_get_temp_dir() . '/finder-nested-yaml-' . uniqid();
+        $nestedDir = $tempDir . '/actions/dorny/paths-filter';
+        mkdir($nestedDir, 0777, true);
+
+        $topLevelWorkflow = $tempDir . '/ci.yml';
+        $nestedYaml       = $nestedDir . '/backend.yaml';
+
+        file_put_contents($topLevelWorkflow, 'name: CI');
+        file_put_contents($nestedYaml, 'backend: []');
+
+        try {
+            $workflows = iterator_to_array((new Finder(fallbackFolders: []))->getWorkflows([$tempDir]));
+
+            $this->assertCount(1, $workflows);
+            $this->assertArrayHasKey($topLevelWorkflow, $workflows);
+            $this->assertArrayNotHasKey($nestedYaml, $workflows);
+        } finally {
+            unlink($topLevelWorkflow);
+            unlink($nestedYaml);
+            rmdir($tempDir . '/actions/dorny/paths-filter');
+            rmdir($tempDir . '/actions/dorny');
+            rmdir($tempDir . '/actions');
+            rmdir($tempDir);
+        }
+    }
+
     public function testGetWorkflowsReturnsIteratorWithWorkflowFiles(): void
     {
         $tempDir = sys_get_temp_dir() . '/workflow-test-folder';
