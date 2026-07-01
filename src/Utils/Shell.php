@@ -24,19 +24,11 @@ class Shell
         $exitCode = 0;
         $result   = exec($command . ' 2>&1', $output, $exitCode);
         if (false === $result) {
-            throw new \RuntimeException(
-                sprintf('Unable to execute the shell command "%s".', $command)
-            );
+            throw new \RuntimeException(sprintf('Unable to execute the shell command "%s".', $command));
         }
 
         if (0 !== $exitCode) {
-            throw new \RuntimeException(sprintf(
-                'The shell command "%s" failed with exit code %d.%s%s',
-                $command,
-                $exitCode,
-                [] !== $output ? ' Output:' : '',
-                [] !== $output ? ' ' . implode(PHP_EOL, $output) : ''
-            ));
+            throw new \RuntimeException(sprintf('The shell command "%s" failed with exit code %d.%s%s', $command, $exitCode, [] !== $output ? ' Output:' : '', [] !== $output ? ' ' . implode(PHP_EOL, $output) : ''));
         }
 
         return implode(PHP_EOL, $output);
