@@ -22,14 +22,13 @@ use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-
-use function Safe\chdir;
-use function Safe\file_put_contents;
-use function Safe\getcwd;
-use function Safe\mkdir;
-use function Safe\putenv;
-use function Safe\rmdir;
-use function Safe\unlink;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\chdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\getcwd;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\mkdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\putenv;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\rmdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\unlink;
 
 class ConfigPriorityTest extends CommandTestCase
 {

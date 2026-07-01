@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Tests;
 
-use Symfony\Component\Finder\SplFileInfo;
+require_once __DIR__ . '/Functions.php';
 
-use function Safe\file_put_contents;
+use Symfony\Component\Finder\SplFileInfo;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
 
 class TestCase extends \PHPUnit\Framework\TestCase
 {

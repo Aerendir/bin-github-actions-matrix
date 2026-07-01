@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Workflow;
 
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
-use PHPUnit\Framework\TestCase;
-
-use function Safe\file_put_contents;
-use function Safe\mkdir;
-use function Safe\rmdir;
-use function Safe\unlink;
+use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\mkdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\rmdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\unlink;
 
 class FinderTest extends TestCase
 {

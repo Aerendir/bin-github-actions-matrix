@@ -35,10 +35,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpClient\HttplugClient;
 
-use function Safe\file_get_contents;
-use function Safe\getcwd;
-use function Safe\realpath;
-
 abstract class AbstractCommand extends Command
 {
     /** Environment variable read as a CI-friendly token source (priority 2, after the CLI option). */
@@ -316,6 +312,9 @@ abstract class AbstractCommand extends Command
 
             // Resolve the base directory to its real path
             $realBaseDir = realpath($baseDir);
+            if (false === $realBaseDir) {
+                return null;
+            }
 
             // Normalize to use forward slashes and ensure trailing separator
             $realBaseDir = rtrim(str_replace('\\', '/', $realBaseDir), '/') . '/';
@@ -325,6 +324,9 @@ abstract class AbstractCommand extends Command
 
             // Resolve the real path to prevent directory traversal attacks
             $realPath = realpath($fullPath);
+            if (false === $realPath) {
+                return null;
+            }
 
             // Normalize to use forward slashes
             $realPath = str_replace('\\', '/', $realPath);
@@ -340,9 +342,10 @@ abstract class AbstractCommand extends Command
                 return null;
             }
 
-            // Read the file content.
-            // Safe\file_get_contents() throws on failure (it never returns false), so no false check is needed.
             $content = file_get_contents($realPath);
+            if (false === $content) {
+                return null;
+            }
 
             // Trim whitespace and newlines
             $token = trim($content);
@@ -443,6 +446,11 @@ abstract class AbstractCommand extends Command
         }
 
         // Priority 3: current working directory (where the config file is already loaded from)
-        return getcwd();
+        $currentWorkingDirectory = getcwd();
+        if (false === $currentWorkingDirectory) {
+            throw new \RuntimeException('Cannot determine the current working directory.');
+        }
+
+        return $currentWorkingDirectory;
     }
 }
