@@ -177,6 +177,155 @@ class ReaderTest extends TestCase
         unlink($fileInfo->getPathname());
     }
 
+    public function testCreateFromYamlIncludesJobsWhenOnIsString(): void
+    {
+        $yamlContent = <<<YAML
+            name: CI
+            on: push
+            jobs:
+              phpunit:
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+
+        $this->assertTrue($jobsCollection->hasJob('phpunit'));
+        $this->assertCount(0, $jobsCollection->getWarnings());
+
+        unlink($fileInfo->getPathname());
+    }
+
+    public function testCreateFromYamlIncludesJobsWhenOnIsList(): void
+    {
+        $yamlContent = <<<YAML
+            name: CI
+            on: [workflow_dispatch, pull_request]
+            jobs:
+              phpunit:
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+
+        $this->assertTrue($jobsCollection->hasJob('phpunit'));
+        $this->assertCount(0, $jobsCollection->getWarnings());
+
+        unlink($fileInfo->getPathname());
+    }
+
+    public function testCreateFromYamlIncludesJobsWhenOnIsMap(): void
+    {
+        $yamlContent = <<<YAML
+            name: CI
+            on:
+              pull_request_target:
+                types: [opened]
+            jobs:
+              phpunit:
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+
+        $this->assertTrue($jobsCollection->hasJob('phpunit'));
+        $this->assertCount(0, $jobsCollection->getWarnings());
+
+        unlink($fileInfo->getPathname());
+    }
+
+    public function testCreateFromYamlSkipsJobsWhenWorkflowHasOnlyScheduleTrigger(): void
+    {
+        $yamlContent = <<<YAML
+            name: [Backend] Flex
+            on:
+              schedule:
+                - cron: '0 0 * * *'
+            jobs:
+              backend-recipes:
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+
+        $this->assertFalse($jobsCollection->hasJob('backend-recipes'));
+        $this->assertCount(1, $jobsCollection->getWarnings());
+        $this->assertStringContainsString('[Backend] Flex', $jobsCollection->getWarnings()[0]);
+        $this->assertStringContainsString('schedule', $jobsCollection->getWarnings()[0]);
+
+        unlink($fileInfo->getPathname());
+    }
+
+    public function testCreateFromYamlSkipsJobsWhenWorkflowHasOnlyWorkflowDispatchTrigger(): void
+    {
+        $yamlContent = <<<YAML
+            name: Dispatch only
+            on:
+              workflow_dispatch: {}
+            jobs:
+              dispatch-job:
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+
+        $this->assertFalse($jobsCollection->hasJob('dispatch-job'));
+        $this->assertCount(1, $jobsCollection->getWarnings());
+        $this->assertStringContainsString('workflow_dispatch', $jobsCollection->getWarnings()[0]);
+
+        unlink($fileInfo->getPathname());
+    }
+
+    public function testCreateFromYamlIncludesJobsWhenWorkflowHasMixedTriggersAndPushIsPresent(): void
+    {
+        $yamlContent = <<<YAML
+            name: Mixed triggers
+            on:
+              push:
+              schedule:
+                - cron: '0 0 * * *'
+            jobs:
+              phpunit:
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $fileInfo = $this->createTempFile($yamlContent);
+
+        $reader         = new Reader();
+        $jobsCollection = $reader->createFromYaml($fileInfo);
+
+        $this->assertTrue($jobsCollection->hasJob('phpunit'));
+        $this->assertCount(0, $jobsCollection->getWarnings());
+
+        unlink($fileInfo->getPathname());
+    }
+
     public function testReadProcessesValidWorkflowsSuccessfully(): void
     {
         $phpCsWorkflowContent = <<<YAML

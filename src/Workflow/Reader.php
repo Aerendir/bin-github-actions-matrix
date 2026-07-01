@@ -74,8 +74,20 @@ class Reader
 
         $workflowName = $parsed['name'];
         $jobs         = $parsed['jobs'];
+        $onTriggers   = $parsed['on'] ?? $parsed[true] ?? $parsed[1] ?? null;
+        $triggers     = self::normalizeTriggerEvents($onTriggers);
 
         $localJobs = new JobsCollection();
+        if (false === self::isPullRequestEligible($triggers)) {
+            $localJobs->addWarning(sprintf(
+                'Workflow "%s" is not triggered by push/pull_request/pull_request_target (triggers: %s); its jobs are excluded from the required-checks set because they can never report a check on a pull request.',
+                is_scalar($workflowName) ? (string) $workflowName : '',
+                [] === $triggers ? 'none' : implode(', ', $triggers),
+            ));
+
+            return $localJobs;
+        }
+
         foreach ($jobs as $jobName => $jobContent) {
             if (in_array($jobName, $ignoredJobs, true)) {
                 continue;
@@ -103,5 +115,46 @@ class Reader
         }
 
         return $localJobs;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function normalizeTriggerEvents(mixed $triggers): array
+    {
+        if (is_string($triggers)) {
+            return [trim(strtolower($triggers))];
+        }
+
+        if (false === is_array($triggers)) {
+            return [];
+        }
+
+        $events = [];
+        if (array_is_list($triggers)) {
+            foreach ($triggers as $trigger) {
+                if (is_scalar($trigger)) {
+                    $events[] = trim(strtolower((string) $trigger));
+                }
+            }
+        } else {
+            foreach (array_keys($triggers) as $trigger) {
+                if (is_scalar($trigger)) {
+                    $events[] = trim(strtolower((string) $trigger));
+                }
+            }
+        }
+
+        $events = array_values(array_unique(array_filter($events, static fn (string $event): bool => '' !== $event)));
+
+        return $events;
+    }
+
+    /**
+     * @param array<int, string> $triggers
+     */
+    private static function isPullRequestEligible(array $triggers): bool
+    {
+        return [] !== array_intersect(['push', 'pull_request', 'pull_request_target'], $triggers);
     }
 }
