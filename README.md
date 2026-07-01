@@ -358,6 +358,12 @@ $config->ignoreJob('deploy');
 
 An ignored job is **never added** to the branch protection and, if it is currently required, it is **removed** by `sync`.
 
+### Workflow trigger filtering
+
+`sync` only considers jobs from workflows that can report checks on pull requests, i.e. workflows triggered by at least one of: `push`, `pull_request`, `pull_request_target`.
+
+Jobs from workflows triggered only by non-gating events (for example `schedule`-only or `workflow_dispatch`-only workflows) are automatically excluded from the required-checks set, so you do not need to `ignoreJob()` them manually.
+
 ### External / non-workflow required checks
 
 Some required checks (codecov, kodiak, GitGuardian, …) come from external apps and live in **no** workflow file, so the tool cannot derive them. Declare them with `addRequiredCheck()` so `sync` treats them as part of the desired set:
