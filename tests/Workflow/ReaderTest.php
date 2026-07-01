@@ -17,6 +17,9 @@ use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Reader;
 use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
 
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\mkdir;
+use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\rmdir;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\unlink;
 
 class ReaderTest extends TestCase
@@ -210,6 +213,43 @@ class ReaderTest extends TestCase
 
         unlink($phpCsFileInfo->getPathname());
         unlink($rectorFileInfo->getPathname());
+    }
+
+    public function testReadIgnoresNestedNonWorkflowYamlFiles(): void
+    {
+        $tempDir   = sys_get_temp_dir() . '/reader-nested-yaml-' . uniqid();
+        $nestedDir = $tempDir . '/actions/dorny/paths-filter';
+        mkdir($nestedDir, 0777, true);
+
+        $workflowContent = <<<YAML
+            name: CI
+            on: [push]
+            jobs:
+              phpcs:
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $topLevelWorkflow = $tempDir . '/ci.yml';
+        $nestedYaml       = $nestedDir . '/backend.yaml';
+
+        file_put_contents($topLevelWorkflow, $workflowContent);
+        file_put_contents($nestedYaml, 'backend: []');
+
+        try {
+            $jobsCollection = (new Reader())->read([$tempDir]);
+
+            $this->assertCount(1, $jobsCollection->getJobs());
+            $this->assertTrue($jobsCollection->hasJob('phpcs'));
+        } finally {
+            unlink($topLevelWorkflow);
+            unlink($nestedYaml);
+            rmdir($tempDir . '/actions/dorny/paths-filter');
+            rmdir($tempDir . '/actions/dorny');
+            rmdir($tempDir . '/actions');
+            rmdir($tempDir);
+        }
     }
 
     public function testCreateFromYamlWarnsAndSkipsAJobWithAnInterpolatedName(): void
