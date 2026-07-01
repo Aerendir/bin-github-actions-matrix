@@ -34,13 +34,13 @@ readonly class Reader
 
     public function getRepoName(): string
     {
-        $repoUrl  = trim($this->shell->exec('git remote get-url origin'));
+        $repoUrl = trim($this->shell->exec('git remote get-url origin'));
 
         if (str_ends_with($repoUrl, '.git')) {
             $repoUrl = substr($repoUrl, 0, -4);
         }
 
-        $matches = [];
+        $matches     = [];
         $matchResult = preg_match('~[:/]([^/]+)(?:\.git)?$~', $repoUrl, $matches);
         if (false === $matchResult) {
             throw new \RuntimeException('Cannot parse the repository URL.');

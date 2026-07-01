@@ -24,7 +24,9 @@ class Shell
         $exitCode = 0;
         $result   = exec($command . ' 2>&1', $output, $exitCode);
         if (false === $result) {
-            throw new \RuntimeException(sprintf('Unable to execute the shell command "%s".', $command));
+            throw new \RuntimeException(
+                sprintf('Unable to execute the shell command "%s".', $command)
+            );
         }
 
         if (0 !== $exitCode) {

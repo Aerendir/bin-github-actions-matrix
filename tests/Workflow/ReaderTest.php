@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Workflow;
 
-use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Reader;
+use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
+
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\unlink;
 
 class ReaderTest extends TestCase

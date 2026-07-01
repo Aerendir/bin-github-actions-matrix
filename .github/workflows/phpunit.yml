@@ -47,16 +47,16 @@ jobs:
                     path: ${{ steps.composer-cache.outputs.dir }}
                     key: php-composer-dependencies-cache
 
+            -   name: Install Composer deps
+                uses: ramsey/composer-install@v2
+                with:
+                    composer-options: --no-scripts
+
             -   name: Fix Symfony version
                 run: |
                     composer req symfony/flex --no-update
                     composer config extra.symfony.require "${{ matrix.symfony }}"
                     composer config --no-plugins allow-plugins.symfony/flex true
-
-            -   name: Install Composer deps
-                uses: ramsey/composer-install@v2
-                with:
-                    composer-options: --no-scripts
 
             -   name: Update Composer deps (with Flex)
                 # The second update is to make Flex able to do its job

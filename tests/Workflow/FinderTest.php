@@ -15,6 +15,7 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Workflow;
 
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
 use Aerendir\Bin\GitHubActionsMatrix\Tests\TestCase;
+
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\mkdir;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\rmdir;

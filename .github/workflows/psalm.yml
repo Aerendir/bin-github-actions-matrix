@@ -29,6 +29,11 @@ jobs:
                     coverage: none # disable xdebug, pcov
                     extensions: ast
 
+            -   name: Install Composer deps
+                uses: ramsey/composer-install@v2
+                with:
+                    composer-options: --no-scripts
+
             -   name: Fix Symfony version
                 run: |
                     composer req symfony/flex --no-update
@@ -38,11 +43,6 @@ jobs:
             -   name: Remove Rector
                 run: |
                     composer rem rector/rector --dev --no-update
-
-            -   name: Install Composer deps
-                uses: ramsey/composer-install@v2
-                with:
-                    composer-options: --no-scripts
 
             -   name: Update Composer deps (with Flex)
                 # The second update is to make Flex able to do its job

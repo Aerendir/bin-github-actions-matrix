@@ -22,6 +22,7 @@ use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
 use Aerendir\Bin\GitHubActionsMatrix\Repo\Reader as RepoReader;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
+
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\chdir;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\file_put_contents;
 use function Aerendir\Bin\GitHubActionsMatrix\Tests\Functions\getcwd;
