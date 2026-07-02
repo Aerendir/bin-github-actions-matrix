@@ -297,7 +297,15 @@ abstract class AbstractCommand extends Command
             $allBranches = $repo->branches($repoUsername, $this->repoName);
         } catch (\RuntimeException $runtimeException) {
             if (403 === $runtimeException->getCode()) {
-                throw new \RuntimeException('Could not fetch the list of branches to let you pick one — the tool needs to list' . \PHP_EOL . 'the repository branches and the current token is not allowed to.' . \PHP_EOL . 'Fix it by doing either of these:' . \PHP_EOL . ' - Grant the token more permissions: add Contents: Read to the token (the permission' . \PHP_EOL . '   required to list branches), then re-run.' . \PHP_EOL . ' - Set the branch explicitly so the tool does not need to list branches at all: pass' . \PHP_EOL . "   --branch <name> on the CLI, or set setBranch('<name>') in the config file.", 2);
+                throw new \RuntimeException(<<<MESSAGE
+                    Could not fetch the list of branches to let you pick one — the tool needs to list
+                    the repository branches and the current token is not allowed to.
+                    Fix it by doing either of these:
+                     - Grant the token more permissions: add Contents: Read to the token (the permission
+                       required to list branches), then re-run.
+                     - Set the branch explicitly so the tool does not need to list branches at all: pass
+                       --branch <name> on the CLI, or set setBranch('<name>') in the config file.
+                    MESSAGE, 2);
             }
 
             throw $runtimeException;
