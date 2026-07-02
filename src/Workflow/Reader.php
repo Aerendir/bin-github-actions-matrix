@@ -20,7 +20,7 @@ use Symfony\Component\Yaml\Yaml;
 
 class Reader
 {
-    public function __construct(private readonly Finder $finder = new Finder(), private readonly NonDerivableContextDetector $nonDerivableContextDetector = new NonDerivableContextDetector())
+    public function __construct(private readonly Finder $finder = new Finder(), private readonly NonDerivableContextDetector $nonDerivableContextDetector = new NonDerivableContextDetector(), private readonly WorkflowTriggerDetector $workflowTriggerDetector = new WorkflowTriggerDetector())
     {
     }
 
@@ -74,14 +74,17 @@ class Reader
 
         $workflowName = $parsed['name'];
         $jobs         = $parsed['jobs'];
-        $onTriggers   = $parsed['on'] ?? $parsed[true] ?? $parsed[1] ?? null;
-        $triggers     = self::normalizeTriggerEvents($onTriggers);
 
         $localJobs = new JobsCollection();
-        if (false === self::isPullRequestEligible($triggers)) {
-            $localJobs->addWarning(sprintf(
-                'Workflow "%s" is not triggered by push/pull_request/pull_request_target (triggers: %s); its jobs are excluded from the required-checks set because they can never report a check on a pull request.',
-                is_scalar($workflowName) ? (string) $workflowName : '',
+
+        // A workflow that never runs on a pull request can never report a check there: keeping its jobs
+        // would leave permanently-pending "expected" checks that block PRs. Skip the whole workflow and
+        // record it as info (expected, no action needed), not as a warning.
+        $triggers = $this->workflowTriggerDetector->detectTriggers($parsed);
+        if (false === $this->workflowTriggerDetector->isPullRequestEligible($triggers)) {
+            $localJobs->addNotice(sprintf(
+                'Workflow "%s" is not triggered by push/pull_request/pull_request_target (triggers: %s); its jobs never run on pull requests, so they are excluded from the required-checks set.',
+                self::asString($workflowName),
                 [] === $triggers ? 'none' : implode(', ', $triggers),
             ));
 
@@ -101,8 +104,8 @@ class Reader
                 if (null !== $nonDerivableReason) {
                     $localJobs->addWarning(sprintf(
                         'Job "%s" (workflow "%s"): %s. Its real check context cannot be computed; declare it with addRequiredCheck() (or use a static "gate" job) so sync preserves it instead of removing it.',
-                        is_scalar($jobName) ? (string) $jobName : '',
-                        is_scalar($workflowName) ? (string) $workflowName : '',
+                        self::asString($jobName),
+                        self::asString($workflowName),
                         $nonDerivableReason,
                     ));
 
@@ -118,43 +121,11 @@ class Reader
     }
 
     /**
-     * @return array<int, string>
+     * Renders a value read from the YAML as a string for user-facing messages; non-scalars (arrays,
+     * null) collapse to an empty string, since they only appear in malformed workflows.
      */
-    private static function normalizeTriggerEvents(mixed $triggers): array
+    private static function asString(mixed $value): string
     {
-        if (is_string($triggers)) {
-            return [trim(strtolower($triggers))];
-        }
-
-        if (false === is_array($triggers)) {
-            return [];
-        }
-
-        $events = [];
-        if (array_is_list($triggers)) {
-            foreach ($triggers as $trigger) {
-                if (is_scalar($trigger)) {
-                    $events[] = trim(strtolower((string) $trigger));
-                }
-            }
-        } else {
-            foreach (array_keys($triggers) as $trigger) {
-                if (is_scalar($trigger)) {
-                    $events[] = trim(strtolower((string) $trigger));
-                }
-            }
-        }
-
-        $events = array_values(array_unique(array_filter($events, static fn (string $event): bool => '' !== $event)));
-
-        return $events;
-    }
-
-    /**
-     * @param array<int, string> $triggers
-     */
-    private static function isPullRequestEligible(array $triggers): bool
-    {
-        return [] !== array_intersect(['push', 'pull_request', 'pull_request_target'], $triggers);
+        return is_scalar($value) ? (string) $value : '';
     }
 }

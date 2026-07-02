@@ -251,7 +251,7 @@ class ReaderTest extends TestCase
     public function testCreateFromYamlSkipsJobsWhenWorkflowHasOnlyScheduleTrigger(): void
     {
         $yamlContent = <<<YAML
-            name: [Backend] Flex
+            name: '[Backend] Flex'
             on:
               schedule:
                 - cron: '0 0 * * *'
@@ -268,9 +268,11 @@ class ReaderTest extends TestCase
         $jobsCollection = $reader->createFromYaml($fileInfo);
 
         $this->assertFalse($jobsCollection->hasJob('backend-recipes'));
-        $this->assertCount(1, $jobsCollection->getWarnings());
-        $this->assertStringContainsString('[Backend] Flex', $jobsCollection->getWarnings()[0]);
-        $this->assertStringContainsString('schedule', $jobsCollection->getWarnings()[0]);
+        // Skipping an irrelevant workflow is informational, not a warning.
+        $this->assertCount(0, $jobsCollection->getWarnings());
+        $this->assertCount(1, $jobsCollection->getNotices());
+        $this->assertStringContainsString('[Backend] Flex', $jobsCollection->getNotices()[0]);
+        $this->assertStringContainsString('schedule', $jobsCollection->getNotices()[0]);
 
         unlink($fileInfo->getPathname());
     }
@@ -294,8 +296,10 @@ class ReaderTest extends TestCase
         $jobsCollection = $reader->createFromYaml($fileInfo);
 
         $this->assertFalse($jobsCollection->hasJob('dispatch-job'));
-        $this->assertCount(1, $jobsCollection->getWarnings());
-        $this->assertStringContainsString('workflow_dispatch', $jobsCollection->getWarnings()[0]);
+        // Skipping an irrelevant workflow is informational, not a warning.
+        $this->assertCount(0, $jobsCollection->getWarnings());
+        $this->assertCount(1, $jobsCollection->getNotices());
+        $this->assertStringContainsString('workflow_dispatch', $jobsCollection->getNotices()[0]);
 
         unlink($fileInfo->getPathname());
     }

@@ -175,6 +175,26 @@ class SyncCommandTest extends CommandTestCase
         $this->assertStringContainsString('addRequiredCheck()', $output);
     }
 
+    public function testExecuteReportsSkippedWorkflowsAsInfoNotWarning(): void
+    {
+        $commandTester = $this->createSyncCommandTesterWithSkippedWorkflow();
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--dry-run'                              => true,
+        ]);
+
+        $output = $commandTester->getDisplay();
+
+        // The schedule-only workflow is surfaced to the user...
+        $this->assertStringContainsString('excluded from the required-checks', $output);
+        $this->assertStringContainsString('Nightly', $output);
+        // ...as a plain informational line, not as an alert block (neither [INFO] nor [WARNING]).
+        $this->assertStringNotContainsString('[INFO]', $output);
+        $this->assertStringNotContainsString('[WARNING]', $output);
+    }
+
     public function testErrorPropagatesWhenNotInCheckMode(): void
     {
         $commandTester = $this->createFailingCommandTester();
@@ -436,6 +456,54 @@ class SyncCommandTest extends CommandTestCase
 
         $finder = $this->createMock(Finder::class);
         $finder->method('getWorkflows')->willReturn(new \ArrayIterator([$fileInfo]));
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: new WorkflowsReader($finder),
+            githubClient: $this->createMockGitHubClient(),
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        return new CommandTester($command);
+    }
+
+    /**
+     * Builds a tester whose workflows include a schedule-only workflow (not PR-eligible), so the read
+     * step records an informational note that the command must surface as info — not as a warning.
+     */
+    private function createSyncCommandTesterWithSkippedWorkflow(): CommandTester
+    {
+        $pushWorkflow = <<<YAML
+            name: PHP CS
+            on: [push]
+            jobs:
+              phpcs:
+                strategy:
+                  matrix:
+                    php: [ '8.2', '8.3' ]
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $scheduleWorkflow = <<<YAML
+            name: Nightly
+            on:
+              schedule:
+                - cron: '0 0 * * *'
+            jobs:
+              nightly:
+                runs-on: ubuntu-latest
+                steps:
+                  - uses: actions/checkout@v3
+            YAML;
+
+        $pushFile     = $this->createTempFile($pushWorkflow, 'phpcs');
+        $scheduleFile = $this->createTempFile($scheduleWorkflow, 'nightly');
+
+        $finder = $this->createMock(Finder::class);
+        $finder->method('getWorkflows')->willReturn(new \ArrayIterator([$pushFile, $scheduleFile]));
 
         $command = new SyncCommand(
             repoReader: $this->createMockReader(self::TEST_REPO),
