@@ -15,6 +15,7 @@ namespace Aerendir\Bin\GitHubActionsMatrix\Tests\Console\Command;
 
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubTokenCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\GitHubUsernameCommandOption;
+use Aerendir\Bin\GitHubActionsMatrix\Console\Command\Params\Options\RepoBranchCommandOption;
 use Aerendir\Bin\GitHubActionsMatrix\Console\Command\SyncCommand;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Finder;
 use Aerendir\Bin\GitHubActionsMatrix\Workflow\Reader as WorkflowsReader;
@@ -254,6 +255,162 @@ class SyncCommandTest extends CommandTestCase
         $commandTester->execute([
             '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
             '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+        ]);
+    }
+
+    /**
+     * A non-403 error while listing the branches (e.g. a server error) must not be dressed up as the
+     * Contents: Read hint: it is rethrown as-is.
+     */
+    public function testBranchesNon403ErrorPropagatesUnchanged(): void
+    {
+        $mockRepo = $this->createMock(Repo::class);
+        $mockRepo->method('branches')->willThrowException(
+            new \RuntimeException('Internal Server Error', 500)
+        );
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->willReturn($mockRepo);
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient,
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(500);
+        $this->expectExceptionMessage('Internal Server Error');
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+        ]);
+    }
+
+    public function testMissingBranchProtection404ShowsExplanatoryMessageAndExitsTwoInCheckMode(): void
+    {
+        $mockProtection = $this->createMock(Protection::class);
+        $mockProtection->method('show')->willThrowException(
+            new \RuntimeException('Branch not protected', 404)
+        );
+
+        $mockRepo = $this->createMock(Repo::class);
+        // The branch is provided on the CLI, so the branches must not be listed.
+        $mockRepo->expects($this->never())->method('branches');
+        $mockRepo->method('protection')->willReturn($mockProtection);
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->willReturn($mockRepo);
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient,
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--' . RepoBranchCommandOption::NAME     => 'ghost-branch',
+            '--check'                                => true,
+        ]);
+
+        $this->assertSame(2, $commandTester->getStatusCode());
+        $output = $commandTester->getDisplay();
+        $this->assertStringContainsString('ghost-branch', $output);
+        $this->assertStringContainsString('does not exist', $output);
+        $this->assertStringContainsString('no branch protection', $output);
+        $this->assertStringContainsString('--branch', $output);
+        $this->assertStringContainsString('setBranch(', $output);
+    }
+
+    public function testMissingBranchProtection404PropagatesWithCodeTwoInNormalMode(): void
+    {
+        $mockProtection = $this->createMock(Protection::class);
+        $mockProtection->method('show')->willThrowException(
+            new \RuntimeException('Branch not protected', 404)
+        );
+
+        $mockRepo = $this->createMock(Repo::class);
+        $mockRepo->expects($this->never())->method('branches');
+        $mockRepo->method('protection')->willReturn($mockProtection);
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->willReturn($mockRepo);
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient,
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(2);
+        $this->expectExceptionMessageMatches('/does not exist .* or has no branch protection/s');
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--' . RepoBranchCommandOption::NAME     => 'ghost-branch',
+        ]);
+    }
+
+    /**
+     * A non-404 error while reading the branch protection (e.g. a server error) must be rethrown as-is,
+     * not turned into the "branch does not exist" message.
+     */
+    public function testBranchProtectionNon404ErrorPropagatesUnchanged(): void
+    {
+        $mockProtection = $this->createMock(Protection::class);
+        $mockProtection->method('show')->willThrowException(
+            new \RuntimeException('Internal Server Error', 500)
+        );
+
+        $mockRepo = $this->createMock(Repo::class);
+        $mockRepo->expects($this->never())->method('branches');
+        $mockRepo->method('protection')->willReturn($mockProtection);
+
+        $mockClient = $this->createMock(Client::class);
+        $mockClient->method('authenticate');
+        $mockClient->method('api')->willReturn($mockRepo);
+
+        $command = new SyncCommand(
+            repoReader: $this->createMockReader(self::TEST_REPO),
+            workflowsReader: $this->createMockWorkflowsReader(),
+            githubClient: $mockClient,
+        );
+
+        $application = new Application();
+        $application->addCommand($command);
+
+        $commandTester = new CommandTester($command);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(500);
+        $this->expectExceptionMessage('Internal Server Error');
+
+        $commandTester->execute([
+            '--' . GitHubUsernameCommandOption::NAME => self::TEST_USERNAME,
+            '--' . GitHubTokenCommandOption::NAME    => self::TEST_TOKEN,
+            '--' . RepoBranchCommandOption::NAME     => 'main',
         ]);
     }
 

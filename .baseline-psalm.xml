@@ -27,7 +27,6 @@
       <code><![CDATA[$combinationsToRemove]]></code>
       <code><![CDATA[$localJobs]]></code>
       <code><![CDATA[$protection]]></code>
-      <code><![CDATA[$remoteJobsIds]]></code>
       <code><![CDATA[$repoName]]></code>
       <code><![CDATA[$repoUsername]]></code>
     </PropertyNotSetInConstructor>
