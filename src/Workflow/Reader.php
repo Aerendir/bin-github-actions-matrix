@@ -20,7 +20,7 @@ use Symfony\Component\Yaml\Yaml;
 
 class Reader
 {
-    public function __construct(private readonly Finder $finder = new Finder(), private readonly NonDerivableContextDetector $nonDerivableContextDetector = new NonDerivableContextDetector())
+    public function __construct(private readonly Finder $finder = new Finder(), private readonly NonDerivableContextDetector $nonDerivableContextDetector = new NonDerivableContextDetector(), private readonly WorkflowTriggerDetector $workflowTriggerDetector = new WorkflowTriggerDetector())
     {
     }
 
@@ -76,6 +76,21 @@ class Reader
         $jobs         = $parsed['jobs'];
 
         $localJobs = new JobsCollection();
+
+        // A workflow that never runs on a pull request can never report a check there: keeping its jobs
+        // would leave permanently-pending "expected" checks that block PRs. Skip the whole workflow and
+        // record it as info (expected, no action needed), not as a warning.
+        $triggers = $this->workflowTriggerDetector->detectTriggers($parsed);
+        if (false === $this->workflowTriggerDetector->isPullRequestEligible($triggers)) {
+            $localJobs->addNotice(sprintf(
+                'Workflow "%s" is not triggered by push/pull_request/pull_request_target (triggers: %s); its jobs never run on pull requests, so they are excluded from the required-checks set.',
+                self::asString($workflowName),
+                [] === $triggers ? 'none' : implode(', ', $triggers),
+            ));
+
+            return $localJobs;
+        }
+
         foreach ($jobs as $jobName => $jobContent) {
             if (in_array($jobName, $ignoredJobs, true)) {
                 continue;
@@ -89,8 +104,8 @@ class Reader
                 if (null !== $nonDerivableReason) {
                     $localJobs->addWarning(sprintf(
                         'Job "%s" (workflow "%s"): %s. Its real check context cannot be computed; declare it with addRequiredCheck() (or use a static "gate" job) so sync preserves it instead of removing it.',
-                        is_scalar($jobName) ? (string) $jobName : '',
-                        is_scalar($workflowName) ? (string) $workflowName : '',
+                        self::asString($jobName),
+                        self::asString($workflowName),
                         $nonDerivableReason,
                     ));
 
@@ -103,5 +118,14 @@ class Reader
         }
 
         return $localJobs;
+    }
+
+    /**
+     * Renders a value read from the YAML as a string for user-facing messages; non-scalars (arrays,
+     * null) collapse to an empty string, since they only appear in malformed workflows.
+     */
+    private static function asString(mixed $value): string
+    {
+        return is_scalar($value) ? (string) $value : '';
     }
 }

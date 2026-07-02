@@ -21,6 +21,9 @@ class JobsCollection
     /** @var array<int, string> */
     private array $warnings = [];
 
+    /** @var array<int, string> */
+    private array $notices = [];
+
     /**
      * @param array<string, Job> $jobs
      */
@@ -37,11 +40,16 @@ class JobsCollection
         foreach ($collection->getWarnings() as $warning) {
             $this->addWarning($warning);
         }
+
+        foreach ($collection->getNotices() as $notice) {
+            $this->addNotice($notice);
+        }
     }
 
     /**
-     * Records a non-fatal warning gathered while reading the workflows (e.g. a job whose required-check
-     * context cannot be derived statically). Surfaced to the user before any change is applied.
+     * Records a non-fatal warning gathered while reading the workflows: something the user should act
+     * on (e.g. a job whose required-check context cannot be derived statically). Surfaced to the user
+     * before any change is applied.
      */
     public function addWarning(string $warning): void
     {
@@ -54,6 +62,24 @@ class JobsCollection
     public function getWarnings(): array
     {
         return $this->warnings;
+    }
+
+    /**
+     * Records a purely informational notice gathered while reading the workflows: expected, no action
+     * needed (e.g. a workflow excluded from the required-checks set because it never runs on pull
+     * requests). Surfaced to the user as info, not as a warning.
+     */
+    public function addNotice(string $notice): void
+    {
+        $this->notices[] = $notice;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getNotices(): array
+    {
+        return $this->notices;
     }
 
     public function addOrMergeJob(Job $job): void

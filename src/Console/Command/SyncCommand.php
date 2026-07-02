@@ -100,6 +100,10 @@ final class SyncCommand extends AbstractCommand
             throw $throwable;
         }
 
+        foreach ($this->getLocalJobs()->getNotices() as $notice) {
+            $io->writeln('<info>' . $notice . '</info>');
+        }
+
         $warnings = $this->getLocalJobs()->getWarnings();
         if ([] !== $warnings) {
             $io->warning(['Some required-check contexts cannot be derived from the workflows:', ...$warnings]);
