@@ -55,7 +55,6 @@ abstract class AbstractCommand extends Command
     private string $repoUsername;
     private string $repoName;
     private JobsCollection $localJobs;
-    private array $remoteJobsIds;
     private Protection $protection;
     private array $combinationsToRemove;
 
@@ -123,17 +122,17 @@ abstract class AbstractCommand extends Command
             throw new \RuntimeException('The API returned an unexpected object');
         }
 
-        $allBranches       = $repo->branches($repoUsername, $this->repoName);
-        $protectedBranches = $this->repoReader->filterProtectedBranches($allBranches);
-        $this->branchName  = $this->getBranchName($input, $output, $questionHelper, $protectedBranches);
-
-        $this->protection = $repo->protection();
-        $protectionRules  = $this->protection->show($repoUsername, $this->repoName, $this->branchName);
+        // Resolve the branch. When it is already known (CLI option or config) the repository branches
+        // are deliberately not listed: GET /branches requires Contents: Read on fine-grained tokens,
+        // while everything else here only needs Administration: Read. The list is fetched (see
+        // getBranchName()) only to populate the interactive chooser.
+        $this->branchName = $this->getBranchName($input, $output, $questionHelper, $repo, $repoUsername);
+        $protectionRules  = $this->readBranchProtection($repo, $repoUsername);
 
         $requiredStatusChecks = $protectionRules['required_status_checks'];
-        $this->remoteJobsIds  = $requiredStatusChecks['contexts'];
+        $remoteJobsIds        = $requiredStatusChecks['contexts'];
 
-        $this->combinationsToRemove = $this->comparator->compare($this->localJobs, $this->remoteJobsIds);
+        $this->combinationsToRemove = $this->comparator->compare($this->localJobs, $remoteJobsIds);
     }
 
     protected function getRepoUsername(?InputInterface $input = null, ?OutputInterface $output = null, ?QuestionHelper $questionHelper = null): string
@@ -198,9 +197,17 @@ abstract class AbstractCommand extends Command
     }
 
     /**
-     * @param array<array-key, string> $protectedBranches
+     * Resolves the branch to synchronize, in priority order:
+     *   1. `--branch` (CLI)
+     *   2. `GHMatrixConfig::getBranch()` (config)
+     *   3. interactive chooser, populated from the repository's protected branches.
+     *
+     * The first two sources are trusted as-is and let the command run without listing the repository
+     * branches. Whether the resolved branch actually exists (and is protected) is validated later,
+     * for every source alike, by {@see self::readBranchProtection()}: that endpoint only needs
+     * Administration: Read, unlike the branch listing needed by the interactive chooser.
      */
-    protected function getBranchName(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, array $protectedBranches): string
+    protected function getBranchName(InputInterface $input, OutputInterface $output, QuestionHelper $questionHelper, Repo $repo, string $repoUsername): string
     {
         // Priority 1: CLI option
         $cliBranch = $this->repoBranchCommandOption->getValueOrNull($input);
@@ -208,22 +215,16 @@ abstract class AbstractCommand extends Command
             return $cliBranch;
         }
 
-        // Priority 2: Config file
+        // Priority 2: config file
         $configBranch = $this->config->getBranch();
         if (null !== $configBranch) {
-            // Validate that the configured branch exists in protected branches
-            if (in_array($configBranch, $protectedBranches, true)) {
-                return $configBranch;
-            }
-            // If configured branch is not in protected branches, warn and fall through
-            $output->writeln(sprintf(
-                '<comment>Warning: Configured branch "%s" is not in the list of protected branches. Falling back to selection.</comment>',
-                $configBranch
-            ));
+            return $configBranch;
         }
 
-        // Priority 3: Auto-select if single branch or ask user
-        // RepoBranchCommandOption handles both single branch auto-selection and prompting
+        // Priority 3: interactive chooser. Only now do we list the branches (GET /branches →
+        // Contents: Read); RepoBranchCommandOption auto-selects when there is a single branch.
+        $protectedBranches = $this->fetchProtectedBranches($repo, $repoUsername);
+
         return $this->repoBranchCommandOption->getValueOrAsk($input, $output, $questionHelper, $protectedBranches);
     }
 
@@ -279,6 +280,69 @@ abstract class AbstractCommand extends Command
     protected function getCombinationsToRemove(): array
     {
         return $this->combinationsToRemove;
+    }
+
+    /**
+     * Lists the repository's protected branches to populate the interactive chooser.
+     *
+     * GET /branches requires Contents: Read on fine-grained tokens — broader than the
+     * Administration: Read needed everywhere else — so it is called only when no branch was provided
+     * on the CLI or in the config. A 403 is rethrown with an actionable message and exit code 2.
+     *
+     * @return array<array-key, string>
+     */
+    private function fetchProtectedBranches(Repo $repo, string $repoUsername): array
+    {
+        try {
+            $allBranches = $repo->branches($repoUsername, $this->repoName);
+        } catch (\RuntimeException $runtimeException) {
+            if (403 === $runtimeException->getCode()) {
+                throw new \RuntimeException(<<<MESSAGE
+                    Could not fetch the list of branches to let you pick one — the tool needs to list
+                    the repository branches and the current token is not allowed to.
+                    Fix it by doing either of these:
+                     - Grant the token more permissions: add Contents: Read to the token (the permission
+                       required to list branches), then re-run.
+                     - Set the branch explicitly so the tool does not need to list branches at all: pass
+                       --branch <name> on the CLI, or set setBranch('<name>') in the config file.
+                    MESSAGE, 2);
+            }
+
+            throw $runtimeException;
+        }
+
+        return $this->repoReader->filterProtectedBranches($allBranches);
+    }
+
+    /**
+     * Reads the branch protection rules for the resolved branch.
+     *
+     * The GET protection endpoint only needs Administration: Read, so it doubles as the single place
+     * where the branch is validated: GitHub answers 404 both when the branch does not exist and when
+     * it exists but has no protection rules (the two cannot be told apart without Contents: Read).
+     * Either way the branch is unusable here, so a 404 is turned into an actionable message (exit
+     * code 2) covering every source the branch may have come from (--branch, config, chooser).
+     *
+     * @return array{required_status_checks: array{contexts: list<string>}}
+     */
+    private function readBranchProtection(Repo $repo, string $repoUsername): array
+    {
+        $this->protection = $repo->protection();
+
+        try {
+            // show() is typed as a bare array by the GitHub client; the shape below is the documented
+            // GET branch-protection payload, of which only the required status-check contexts are read.
+            /** @var array{required_status_checks: array{contexts: list<string>}} $protectionRules */
+            $protectionRules = $this->protection->show($repoUsername, $this->repoName, $this->branchName);
+
+            return $protectionRules;
+        } catch (\RuntimeException $runtimeException) {
+            if (404 === $runtimeException->getCode()) {
+                throw new \RuntimeException(sprintf('The branch "%s" either does not exist in %s/%s or has no branch protection rules configured.' . \PHP_EOL . 'Check the branch name you passed with --branch, or the one set in the config with setBranch():' . \PHP_EOL . 'it must name an existing, protected branch.', $this->branchName, $repoUsername, $this->repoName), 2);
+            }
+
+            throw $runtimeException;
+        }
     }
 
     /**
