@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ea60d27c0ff371b4c01e2192af916d13",
+    "content-hash": "d11a8f4401904f195d031dab25a0d479",
     "packages": [
         {
             "name": "clue/stream-filter",
@@ -3578,21 +3578,21 @@
         },
         {
             "name": "serendipity_hq/rector-config",
-            "version": "1.1.14",
+            "version": "1.1.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SerendipityHQ/rector-config.git",
-                "reference": "d45408c478912ec2c4a59643fc1cf35ffaede369"
+                "reference": "ab32cb6b926800afd2de46377cc707c1b6d7cd4c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SerendipityHQ/rector-config/zipball/d45408c478912ec2c4a59643fc1cf35ffaede369",
-                "reference": "d45408c478912ec2c4a59643fc1cf35ffaede369",
+                "url": "https://api.github.com/repos/SerendipityHQ/rector-config/zipball/ab32cb6b926800afd2de46377cc707c1b6d7cd4c",
+                "reference": "ab32cb6b926800afd2de46377cc707c1b6d7cd4c",
                 "shasum": ""
             },
             "require-dev": {
                 "php": "^7.4|^8.0",
-                "rector/rector": "^2.2.11",
+                "rector/rector": "^2.6.0",
                 "symfony/dependency-injection": "^6.0|^7.0"
             },
             "type": "library",
@@ -3618,9 +3618,9 @@
             ],
             "support": {
                 "issues": "https://github.com/SerendipityHQ/rector-config/issues",
-                "source": "https://github.com/SerendipityHQ/rector-config/tree/1.1.14"
+                "source": "https://github.com/SerendipityHQ/rector-config/tree/1.1.20"
             },
-            "time": "2025-12-06T12:16:49+00:00"
+            "time": "2026-08-08T12:13:05+00:00"
         }
     ],
     "aliases": [],
@@ -3634,5 +3634,5 @@
         "php": "^8.3"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
