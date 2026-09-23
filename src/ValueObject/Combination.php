@@ -96,11 +96,14 @@ class Combination implements \Stringable
 
     public function getAction(): string
     {
-        if ($this->isToSync()) {
-            return self::ACTION_SYNC;
-        }
+        // Removal wins over synchronisation: a combination that is both to sync and to remove is
+        // removed. Keep this order, it is the behaviour asserted by the tests.
         if ($this->isToRemove()) {
             return self::ACTION_REMOVE;
+        }
+
+        if ($this->isToSync()) {
+            return self::ACTION_SYNC;
         }
 
         return self::ACTION_NOTHING;
