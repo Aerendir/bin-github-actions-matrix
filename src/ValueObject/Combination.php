@@ -96,16 +96,14 @@ class Combination implements \Stringable
 
     public function getAction(): string
     {
-        $action = self::ACTION_NOTHING;
         if ($this->isToSync()) {
-            $action = self::ACTION_SYNC;
+            return self::ACTION_SYNC;
         }
-
         if ($this->isToRemove()) {
-            $action = self::ACTION_REMOVE;
+            return self::ACTION_REMOVE;
         }
 
-        return $action;
+        return self::ACTION_NOTHING;
     }
 
     public function contains(self $combination): bool
