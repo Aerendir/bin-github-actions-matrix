@@ -41,7 +41,9 @@ class MatrixTest extends TestCase
             0 => new Combination(['php' => '8.3'], 'rector.yml', 'Test Rector Workflow', 'rector'),
         ];
 
-        new Matrix($combinations);
+        // The constructor is expected to throw: the instance is never used, and PHPStan 2.2 flags
+        // that with `new.resultUnused`.
+        new Matrix($combinations); // @phpstan-ignore new.resultUnused
     }
 
     public function testConstructWithNonCombinationValueThrowsException(): void
@@ -52,7 +54,9 @@ class MatrixTest extends TestCase
             'combination1' => 'not-a-combination',
         ];
 
-        new Matrix($combinations);
+        // The constructor is expected to throw: the instance is never used, and PHPStan 2.2 flags
+        // that with `new.resultUnused`.
+        new Matrix($combinations); // @phpstan-ignore new.resultUnused
     }
 
     public function testCreateFromArrayWithEmptyMatrixCreatesAtLeastOneEmptyCombination(): void

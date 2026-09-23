@@ -117,9 +117,7 @@ final class GHMatrixConfig
             throw new \InvalidArgumentException('The combination cannot be empty.');
         }
 
-        if ( ! isset($this->optionalCombinations[$workflowName])) {
-            $this->optionalCombinations[$workflowName] = [];
-        }
+        $this->optionalCombinations[$workflowName] ??= [];
 
         $this->optionalCombinations[$workflowName][] = $combination;
     }
