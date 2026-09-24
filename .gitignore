@@ -3,3 +3,5 @@ composer.lock
 phpunit.xml
 var
 vendor
+gh-actions-matrix.php
+gh_token
