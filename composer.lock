@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "df25d2814fdc6a36fa4cc652b5031040",
+    "content-hash": "871512b7d4a3f2249fa4c7c68614d165",
     "packages": [
         {
             "name": "clue/stream-filter",
@@ -3634,16 +3634,16 @@
         },
         {
             "name": "serendipity_hq/rector-config",
-            "version": "1.1.20",
+            "version": "1.1.23",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SerendipityHQ/rector-config.git",
-                "reference": "ab32cb6b926800afd2de46377cc707c1b6d7cd4c"
+                "reference": "c3e95d8e15d1db2a4cfa30cc1977954a0e44d957"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SerendipityHQ/rector-config/zipball/ab32cb6b926800afd2de46377cc707c1b6d7cd4c",
-                "reference": "ab32cb6b926800afd2de46377cc707c1b6d7cd4c",
+                "url": "https://api.github.com/repos/SerendipityHQ/rector-config/zipball/c3e95d8e15d1db2a4cfa30cc1977954a0e44d957",
+                "reference": "c3e95d8e15d1db2a4cfa30cc1977954a0e44d957",
                 "shasum": ""
             },
             "require-dev": {
@@ -3674,9 +3674,9 @@
             ],
             "support": {
                 "issues": "https://github.com/SerendipityHQ/rector-config/issues",
-                "source": "https://github.com/SerendipityHQ/rector-config/tree/1.1.20"
+                "source": "https://github.com/SerendipityHQ/rector-config/tree/1.1.23"
             },
-            "time": "2026-08-08T12:13:05+00:00"
+            "time": "2026-11-13T15:29:24+00:00"
         }
     ],
     "aliases": [],
